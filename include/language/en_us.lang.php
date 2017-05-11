@@ -2297,8 +2297,8 @@ $app_strings = array(
     'LBL_DURATION_HOUR' => 'hour',
     'LBL_DURATION_MINUTE' => 'minute',
     'LBL_DURATION_DAYS' => 'days',
-    'LBL_DURATION_HOURS' => 'hours',
-    'LBL_DURATION_MINUTES' => 'minutes',
+    'LBL_DURATION_HOURS' => 'Duration Hours',
+    'LBL_DURATION_MINUTES' => 'Duration Minutes',
 
     //Calendar widget labels
     'LBL_CHOOSE_MONTH' => 'Choose Month',
@@ -2451,8 +2451,6 @@ $app_strings = array(
     'ERR_EMPTY_COLUMNS_LIST' => 'At least, one element required',
 
     'LBL_FILTER_HEADER_TITLE' => 'Filter',
-
-    'LBL_AOP_INTERNAL' => 'Internal',
 
 );
 
@@ -3588,6 +3586,8 @@ $app_list_strings['moduleList']['jjwg_Markers'] = 'Map Markers';
 $app_list_strings['moduleList']['jjwg_Areas'] = 'Map Areas';
 $app_list_strings['moduleList']['jjwg_Address_Cache'] = 'Map Address Cache';
 
+$app_list_strings['moduleList']['jjwp_Partners'] = 'JJWP Partners';
+
 $app_list_strings['map_unit_type_list']['mi'] = 'Miles';
 $app_list_strings['map_unit_type_list']['km'] = 'Kilometers';
 
@@ -3784,7 +3784,7 @@ $app_list_strings['marker_image_list']['restaurant_turkish'] = 'Restaurant Turki
 $app_list_strings['marker_image_list']['right'] = 'Right';
 $app_list_strings['marker_image_list']['right_then_down'] = 'Right Then Down';
 $app_list_strings['marker_image_list']['right_then_up'] = 'Right Then Up';
-$app_list_strings['marker_image_list']['satursday'] = 'Satursday';
+$app_list_strings['marker_image_list']['saturday'] = 'Saturday';
 $app_list_strings['marker_image_list']['school'] = 'School';
 $app_list_strings['marker_image_list']['shopping_mall'] = 'Shopping Mall';
 $app_list_strings['marker_image_list']['shore'] = 'Shore';
@@ -3968,3 +3968,8 @@ $app_list_strings['day_list']['Thursday'] = 'Thursday';
 $app_list_strings['day_list']['Friday'] = 'Friday';
 $app_list_strings['day_list']['Saturday'] = 'Saturday';
 $app_list_strings['day_list']['Sunday'] = 'Sunday';
+$app_list_strings['pdf_page_size_dom']['A4'] = 'A4';
+$app_list_strings['pdf_page_size_dom']['Letter'] = 'Letter';
+$app_list_strings['pdf_page_size_dom']['Legal'] = 'Legal';
+$app_list_strings['pdf_orientation_dom']['Portrait'] = 'Portrait';
+$app_list_strings['pdf_orientation_dom']['Landscape'] = 'Landscape';
