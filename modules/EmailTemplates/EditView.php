@@ -12,9 +12,6 @@ if (!isset($_REQUEST['campaign_id']) || empty($_REQUEST['campaign_id'])) {
 if (!isset($_REQUEST['inboundEmail']) || empty($_REQUEST['inboundEmail'])) {
     $inboundEmail = false;
 }
-if (isset($_REQUEST['use_mozaik']) && ($_REQUEST['use_mozaik']=='1')) {
-    $use_mozaik = true;
-}
 $focus = new EmailTemplate();
 
 if (isset($_REQUEST['record'])) {
@@ -206,6 +203,7 @@ $xtpl->assign("TYPE_OPTIONS", get_select_options_with_id($app_list_strings['reco
 
 if (isset($focus->body)) $xtpl->assign("BODY", $focus->body); else $xtpl->assign("BODY", "");
 if (isset($focus->body_html)) $xtpl->assign("BODY_HTML", $focus->body_html); else $xtpl->assign("BODY_HTML", "");
+
 
 // ---------------------------------
 // ------------ EDITOR -------------
