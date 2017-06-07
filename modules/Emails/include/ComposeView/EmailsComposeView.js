@@ -173,11 +173,22 @@
           my: 'bottom left',
           at: 'top left'
         },
-        show: {solo: true},
+        show: {solo: true, ready: true, event: false},
         hide: {event: false},
         style: {classes: 'emails-qtip'}
       });
       $(this).qtip("show");
+      $(this).unbind('unfocus').blur(function(e) {
+        var isButton = $(e.relatedTarget).hasClass('btn-qtip-bar');
+        var isQtipContent =  $(e.relatedTarget).hasClass('qtip-content');
+        var isQtip =  $(e.relatedTarget).hasClass('qtip-tip');
+
+        if(isButton || isQtipContent || isQtip) {
+          return false;
+        }
+
+        $(this).qtip("hide");
+      });
       $('.btn-qtip-bar').unbind('click').click(self.handleQTipBarClick);
     };
 
@@ -1099,10 +1110,12 @@
   $.fn.EmailsComposeView.onTemplateSelect = function(args) {
 
     var confirmed = function(args) {
+      var self = $('[name="'+args.form_name+'"]');
       $.post('index.php?entryPoint=emailTemplateData', {
         emailTemplateId: args.name_to_value_array.emails_email_templates_idb
       }, function(resp){
         var r = JSON.parse(resp);
+        $(self).find('[name="name"]').val(r.data.subject);
         tinyMCE.get('description').setContent($('<textarea />').html(r.data.body_html).text());
       });
       set_return(args);
