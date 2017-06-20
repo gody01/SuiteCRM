@@ -1041,7 +1041,7 @@ class MBPackage
      *
      * @return string
      */
-    public function exportProject($package, $export = true, $clean = true)
+    public function exportProject($package = '', $export = true, $clean = true)
     {
         $tmppath = 'custom/modulebuilder/projectTMP/';
         if (file_exists($this->getPackageDir())) {
