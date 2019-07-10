@@ -26,7 +26,7 @@ class IssueModuleCest
      */
     public function _before(AcceptanceTester $I)
     {
-        if(!$this->fakeData) {
+        if (!$this->fakeData) {
             $this->fakeData = Faker\Factory::create();
             $this->fakeDataSeed = rand(0, 2048);
         }
@@ -56,11 +56,6 @@ class IssueModuleCest
         \Helper\WebDriverHelper $webDriverHelper
     ) {
         $I->wantTo('Create a issue module for testing');
-
-        $I->amOnUrl(
-            $webDriverHelper->getInstanceURL()
-        );
-
         $I->loginAsAdmin();
 
         $moduleBuilder->createModule(
@@ -74,7 +69,7 @@ class IssueModuleCest
 
     /**
      * @param \AcceptanceTester $I
-     * @param \Step\Acceptance\NavigationBar $navigationBar
+     * @param \Step\Acceptance\NavigationBarTester $navigationBar
      * @param \Step\Acceptance\ListView $listView
      * @param \Helper\WebDriverHelper $webDriverHelper
      *
@@ -83,15 +78,11 @@ class IssueModuleCest
      */
     public function testScenarioViewIssueTestModule(
         \AcceptanceTester $I,
-        \Step\Acceptance\NavigationBar $navigationBar,
+        \Step\Acceptance\NavigationBarTester $navigationBar,
         \Step\Acceptance\ListView $listView,
         \Helper\WebDriverHelper $webDriverHelper
     ) {
         $I->wantTo('View Issue Test Module');
-        $I->amOnUrl(
-            $webDriverHelper->getInstanceURL()
-        );
-
         $I->loginAsAdmin();
 
         // Navigate to module
@@ -103,7 +94,7 @@ class IssueModuleCest
 
     /**
      * @param \AcceptanceTester $I
-     * @param \Step\Acceptance\NavigationBar $navigationBar
+     * @param \Step\Acceptance\NavigationBarTester $navigationBar
      * @param \Step\Acceptance\ListView $listView
      * @param \Step\Acceptance\EditView $editView
      * @param \Step\Acceptance\DetailView $detailView
@@ -114,17 +105,13 @@ class IssueModuleCest
      */
     public function testScenarioCreateRecord(
         \AcceptanceTester $I,
-        \Step\Acceptance\NavigationBar $navigationBar,
+        \Step\Acceptance\NavigationBarTester $navigationBar,
         \Step\Acceptance\ListView $listView,
         \Step\Acceptance\EditView $editView,
         \Step\Acceptance\DetailView $detailView,
         \Helper\WebDriverHelper $webDriverHelper
     ) {
         $I->wantTo('Create Issue Test Module Record');
-        $I->amOnUrl(
-            $webDriverHelper->getInstanceURL()
-        );
-
         $I->loginAsAdmin();
 
         // Go to Issue Test Module
@@ -146,7 +133,7 @@ class IssueModuleCest
 
     /**
      * @param \AcceptanceTester $I
-     * @param \Step\Acceptance\NavigationBar $navigationBar
+     * @param \Step\Acceptance\NavigationBarTester $navigationBar
      * @param \Step\Acceptance\ListView $listView
      * @param \Step\Acceptance\DetailView $detailView
      * @param \Helper\WebDriverHelper $webDriverHelper
@@ -155,16 +142,12 @@ class IssueModuleCest
      */
     public function testScenarioViewRecordFromListView(
         \AcceptanceTester $I,
-        \Step\Acceptance\NavigationBar $navigationBar,
+        \Step\Acceptance\NavigationBarTester $navigationBar,
         \Step\Acceptance\ListView $listView,
         \Step\Acceptance\DetailView $detailView,
         \Helper\WebDriverHelper $webDriverHelper
     ) {
         $I->wantTo('Select Record from list view');
-        $I->amOnUrl(
-            $webDriverHelper->getInstanceURL()
-        );
-
         $I->loginAsAdmin();
 
         // Go to Issue Test Module
@@ -182,12 +165,11 @@ class IssueModuleCest
         $listView->clickNameLink($this->fakeData->name);
         $detailView->waitForDetailViewVisible();
         $this->lastView = 'DetailView';
-
     }
 
     /**
      * @param \AcceptanceTester $I
-     * @param \Step\Acceptance\NavigationBar $navigationBar
+     * @param \Step\Acceptance\NavigationBarTester $navigationBar
      * @param \Step\Acceptance\ListView $listView
      * @param \Step\Acceptance\DetailView $detailView
      * @param \Step\Acceptance\EditView $editView
@@ -197,34 +179,29 @@ class IssueModuleCest
      */
     public function testScenarioEditRecordFromDetailView(
         \AcceptanceTester$I,
-        \Step\Acceptance\NavigationBar $navigationBar,
+        \Step\Acceptance\NavigationBarTester $navigationBar,
         \Step\Acceptance\ListView $listView,
         \Step\Acceptance\DetailView $detailView,
         \Step\Acceptance\EditView $editView,
         \Helper\WebDriverHelper $webDriverHelper
     ) {
         $I->wantTo('Edit Issue Test Module Record from detail view');
-        if($this->lastView !== 'DetailView') {
-            $I->amOnUrl(
-                $webDriverHelper->getInstanceURL()
-            );
+        $I->loginAsAdmin();
 
-            $I->loginAsAdmin();
+        // Go to Issue Test Module
+        $navigationBar->clickAllMenuItem(\Page\IssueModule::$NAME);
+        $listView->waitForListViewVisible();
 
-            // Go to Issue Test Module
-            $navigationBar->clickAllMenuItem(\Page\IssueModule::$NAME);
-            $listView->waitForListViewVisible();
+        // Select record from list view
+        $listView->clickFilterButton();
+        $listView->click('Quick Filter');
+        $this->fakeData->seed($this->fakeDataSeed);
+        $listView->fillField('#name_basic', $this->fakeData->name);
+        $listView->click('Search', '.submitButtons');
+        $listView->wait(1);
+        $this->fakeData->seed($this->fakeDataSeed);
+        $listView->clickNameLink($this->fakeData->name);
 
-            // Select record from list view
-            $listView->clickFilterButton();
-            $listView->click('Quick Filter');
-            $this->fakeData->seed($this->fakeDataSeed);
-            $listView->fillField('#name_basic', $this->fakeData->name);
-            $listView->click('Search', '.submitButtons');
-            $listView->wait(1);
-            $this->fakeData->seed($this->fakeDataSeed);
-            $listView->clickNameLink($this->fakeData->name);
-        }
         // Edit Record
         $detailView->clickActionMenuItem('Edit');
 
@@ -237,7 +214,7 @@ class IssueModuleCest
 
     /**
      * @param \AcceptanceTester $I
-     * @param \Step\Acceptance\NavigationBar $navigationBar
+     * @param \Step\Acceptance\NavigationBarTester $navigationBar
      * @param \Step\Acceptance\ListView $listView
      * @param \Step\Acceptance\DetailView $detailView
      * @param \Step\Acceptance\EditView $editView
@@ -247,34 +224,28 @@ class IssueModuleCest
      */
     public function testScenarioDuplicateRecordFromDetailView(
         \AcceptanceTester $I,
-        \Step\Acceptance\NavigationBar $navigationBar,
+        \Step\Acceptance\NavigationBarTester $navigationBar,
         \Step\Acceptance\ListView $listView,
         \Step\Acceptance\DetailView $detailView,
         \Step\Acceptance\EditView $editView,
         \Helper\WebDriverHelper $webDriverHelper
     ) {
         $I->wantTo('Duplicate Issue Test Module Record from detail view');
-        if($this->lastView !== 'DetailView') {
-            $I->amOnUrl(
-                $webDriverHelper->getInstanceURL()
-            );
+        $I->loginAsAdmin();
 
-            $I->loginAsAdmin();
+        // Go to Issue Test Module
+        $navigationBar->clickAllMenuItem(\Page\IssueModule::$NAME);
+        $listView->waitForListViewVisible();
 
-            // Go to Issue Test Module
-            $navigationBar->clickAllMenuItem(\Page\IssueModule::$NAME);
-            $listView->waitForListViewVisible();
-
-            // Select record from list view
-            $listView->clickFilterButton();
-            $listView->click('Quick Filter');
-            $this->fakeData->seed($this->fakeDataSeed);
-            $listView->fillField('#name_basic', $this->fakeData->name);
-            $listView->click('Search', '.submitButtons');
-            $listView->wait(1);
-            $this->fakeData->seed($this->fakeDataSeed);
-            $listView->clickNameLink($this->fakeData->name);
-        }
+        // Select record from list view
+        $listView->clickFilterButton();
+        $listView->click('Quick Filter');
+        $this->fakeData->seed($this->fakeDataSeed);
+        $listView->fillField('#name_basic', $this->fakeData->name);
+        $listView->click('Search', '.submitButtons');
+        $listView->wait(1);
+        $this->fakeData->seed($this->fakeDataSeed);
+        $listView->clickNameLink($this->fakeData->name);
 
         // Edit Record
         $detailView->clickActionMenuItem('Duplicate');
@@ -295,7 +266,7 @@ class IssueModuleCest
 
     /**
      * @param \AcceptanceTester $I
-     * @param \Step\Acceptance\NavigationBar $navigationBar
+     * @param \Step\Acceptance\NavigationBarTester $navigationBar
      * @param \Step\Acceptance\ListView $listView
      * @param \Step\Acceptance\DetailView $detailView
      * @param \Helper\WebDriverHelper $webDriverHelper
@@ -304,33 +275,28 @@ class IssueModuleCest
      */
     public function testScenarioDeleteRecordFromDetailView(
         \AcceptanceTester $I,
-        \Step\Acceptance\NavigationBar $navigationBar,
+        \Step\Acceptance\NavigationBarTester $navigationBar,
         \Step\Acceptance\ListView $listView,
         \Step\Acceptance\DetailView $detailView,
         \Helper\WebDriverHelper $webDriverHelper
     ) {
         $I->wantTo('Delete Issue Test Module Record from detail view');
-        if($this->lastView !== 'DetailView') {
-            $I->amOnUrl(
-                $webDriverHelper->getInstanceURL()
-            );
+        $I->loginAsAdmin();
 
-            $I->loginAsAdmin();
+        // Go to Issue Test Module
+        $navigationBar->clickAllMenuItem(\Page\IssueModule::$NAME);
+        $listView->waitForListViewVisible();
 
-            // Go to Issue Test Module
-            $navigationBar->clickAllMenuItem(\Page\IssueModule::$NAME);
-            $listView->waitForListViewVisible();
+        // Select record from list view
+        $listView->clickFilterButton();
+        $listView->click('Quick Filter');
+        $this->fakeData->seed($this->fakeDataSeed);
+        $listView->fillField('#name_basic', $this->fakeData->name);
+        $listView->click('Search', '.submitButtons');
+        $listView->wait(1);
+        $this->fakeData->seed($this->fakeDataSeed);
+        $listView->clickNameLink($this->fakeData->name);
 
-            // Select record from list view
-            $listView->clickFilterButton();
-            $listView->click('Quick Filter');
-            $this->fakeData->seed($this->fakeDataSeed);
-            $listView->fillField('#name_basic', $this->fakeData->name);
-            $listView->click('Search', '.submitButtons');
-            $listView->wait(1);
-            $this->fakeData->seed($this->fakeDataSeed);
-            $listView->clickNameLink($this->fakeData->name);
-        }
         // Delete Record
         $detailView->clickActionMenuItem('Delete');
         $detailView->acceptPopup();

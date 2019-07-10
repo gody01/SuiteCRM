@@ -25,7 +25,7 @@ class CompanyModuleCest
      */
     public function _before(AcceptanceTester $I)
     {
-        if(!$this->fakeData) {
+        if (!$this->fakeData) {
             $this->fakeData = Faker\Factory::create();
             $this->fakeData->addProvider(new Faker\Provider\en_US\Address($this->fakeData));
             $this->fakeData->addProvider(new Faker\Provider\en_US\PhoneNumber($this->fakeData));
@@ -58,11 +58,6 @@ class CompanyModuleCest
         \Helper\WebDriverHelper $webDriverHelper
     ) {
         $I->wantTo('Create a company module for testing');
-
-        $I->amOnUrl(
-            $webDriverHelper->getInstanceURL()
-        );
-
         $I->loginAsAdmin();
 
         $moduleBuilder->createModule(
@@ -76,7 +71,7 @@ class CompanyModuleCest
 
     /**
      * @param \AcceptanceTester $I
-     * @param \Step\Acceptance\NavigationBar $navigationBar
+     * @param \Step\Acceptance\NavigationBarTester $navigationBar
      * @param \Step\Acceptance\ListView $listView
      * @param \Helper\WebDriverHelper $webDriverHelper
      *
@@ -85,14 +80,11 @@ class CompanyModuleCest
      */
     public function testScenarioViewCompanyTestModule(
         \AcceptanceTester $I,
-        \Step\Acceptance\NavigationBar $navigationBar,
+        \Step\Acceptance\NavigationBarTester $navigationBar,
         \Step\Acceptance\ListView $listView,
         \Helper\WebDriverHelper $webDriverHelper
     ) {
         $I->wantTo('View Company Test Module');
-        $I->amOnUrl(
-            $webDriverHelper->getInstanceURL()
-        );
 
         $I->loginAsAdmin();
 
@@ -105,7 +97,7 @@ class CompanyModuleCest
 
     /**
      * @param \AcceptanceTester $I
-     * @param \Step\Acceptance\NavigationBar $navigationBar
+     * @param \Step\Acceptance\NavigationBarTester $navigationBar
      * @param \Step\Acceptance\ListView $listView
      * @param \Step\Acceptance\EditView $editView
      * @param \Step\Acceptance\DetailView $detailView
@@ -116,7 +108,7 @@ class CompanyModuleCest
      */
     public function testScenarioCreateRecord(
         \AcceptanceTester $I,
-        \Step\Acceptance\NavigationBar $navigationBar,
+        \Step\Acceptance\NavigationBarTester $navigationBar,
         \Step\Acceptance\ListView $listView,
         \Step\Acceptance\EditView $editView,
         \Step\Acceptance\DetailView $detailView,
@@ -124,17 +116,12 @@ class CompanyModuleCest
     ) {
         $I->wantTo('Create Company Test Module Record');
 
-        if($this->lastView !== 'ListView') {
-            $I->amOnUrl(
-                $webDriverHelper->getInstanceURL()
-            );
+        $I->loginAsAdmin();
 
-            $I->loginAsAdmin();
+        // Go to Company Test Module
+        $navigationBar->clickAllMenuItem(\Page\CompanyModule::$NAME);
+        $listView->waitForListViewVisible();
 
-            // Go to Company Test Module
-            $navigationBar->clickAllMenuItem(\Page\CompanyModule::$NAME);
-            $listView->waitForListViewVisible();
-        }
         // Select create Company Test Module form the current menu
         $navigationBar->clickCurrentMenuItem('Create ' . \Page\CompanyModule::$NAME);
 
@@ -165,7 +152,7 @@ class CompanyModuleCest
 
     /**
      * @param \AcceptanceTester $I
-     * @param \Step\Acceptance\NavigationBar $navigationBar
+     * @param \Step\Acceptance\NavigationBarTester $navigationBar
      * @param \Step\Acceptance\ListView $listView
      * @param \Step\Acceptance\DetailView $detailView
      * @param \Helper\WebDriverHelper $webDriverHelper
@@ -174,45 +161,37 @@ class CompanyModuleCest
      */
     public function testScenarioViewRecordFromListView(
         \AcceptanceTester $I,
-        \Step\Acceptance\NavigationBar $navigationBar,
+        \Step\Acceptance\NavigationBarTester $navigationBar,
         \Step\Acceptance\ListView $listView,
         \Step\Acceptance\DetailView $detailView,
         \Helper\WebDriverHelper $webDriverHelper
     ) {
         $I->wantTo('Select Record from list view');
 
-        if($this->lastView !== 'ListView') {
-            $I->amOnUrl(
-                $webDriverHelper->getInstanceURL()
-            );
+        $I->loginAsAdmin();
 
-            $I->loginAsAdmin();
+        // Go to Company Test Module
+        $navigationBar->clickAllMenuItem(\Page\CompanyModule::$NAME);
+        $listView->waitForListViewVisible();
 
-            // Go to Company Test Module
-            $navigationBar->clickAllMenuItem(\Page\CompanyModule::$NAME);
-            $listView->waitForListViewVisible();
-
-
-            $this->fakeData->seed($this->fakeDataSeed);
-            $listView->clickFilterButton();
-            $listView->click('Quick Filter');
-            $this->fakeData->seed($this->fakeDataSeed);
-            $listView->fillField('#name_basic', $this->fakeData->company);
-            $listView->click('Search', '.submitButtons');
-            $listView->wait(1);
-            $listView->dontSee('No results found');
-        }
+        $this->fakeData->seed($this->fakeDataSeed);
+        $listView->clickFilterButton();
+        $listView->click('Quick Filter');
+        $this->fakeData->seed($this->fakeDataSeed);
+        $listView->fillField('#name_basic', $this->fakeData->company);
+        $listView->click('Search', '.submitButtons');
+        $listView->wait(1);
+        $listView->dontSee('No results found');
         $this->fakeData->seed($this->fakeDataSeed);
         $listView->clickNameLink($this->fakeData->company);
 
         $detailView->waitForDetailViewVisible();
         $this->lastView = 'DetailView';
-
     }
 
     /**
      * @param \AcceptanceTester $I
-     * @param \Step\Acceptance\NavigationBar $navigationBar
+     * @param \Step\Acceptance\NavigationBarTester $navigationBar
      * @param \Step\Acceptance\ListView $listView
      * @param \Step\Acceptance\DetailView $detailView
      * @param \Step\Acceptance\EditView $editView
@@ -222,7 +201,7 @@ class CompanyModuleCest
      */
     public function testScenarioEditRecordFromDetailView(
         \AcceptanceTester$I,
-        \Step\Acceptance\NavigationBar $navigationBar,
+        \Step\Acceptance\NavigationBarTester $navigationBar,
         \Step\Acceptance\ListView $listView,
         \Step\Acceptance\DetailView $detailView,
         \Step\Acceptance\EditView $editView,
@@ -230,28 +209,23 @@ class CompanyModuleCest
     ) {
         $I->wantTo('Edit Company Test Module Record from detail view');
 
-        if($this->lastView !== 'DetailView') {
-            $I->amOnUrl(
-                $webDriverHelper->getInstanceURL()
-            );
+        $I->loginAsAdmin();
 
-            $I->loginAsAdmin();
+        // Go to Company Test Module
+        $navigationBar->clickAllMenuItem(\Page\CompanyModule::$NAME);
+        $listView->waitForListViewVisible();
 
-            // Go to Company Test Module
-            $navigationBar->clickAllMenuItem(\Page\CompanyModule::$NAME);
-            $listView->waitForListViewVisible();
+        // Select record from list view
+        $listView->clickFilterButton();
+        $listView->click('Quick Filter');
+        $this->fakeData->seed($this->fakeDataSeed);
+        $listView->fillField('#name_basic', $this->fakeData->company);
+        $listView->click('Search', '.submitButtons');
+        $listView->wait(1);
+        $listView->dontSee('No results found');
+        $this->fakeData->seed($this->fakeDataSeed);
+        $listView->clickNameLink($this->fakeData->company);
 
-            // Select record from list view
-            $listView->clickFilterButton();
-            $listView->click('Quick Filter');
-            $this->fakeData->seed($this->fakeDataSeed);
-            $listView->fillField('#name_basic', $this->fakeData->company);
-            $listView->click('Search', '.submitButtons');
-            $listView->wait(1);
-            $listView->dontSee('No results found');
-            $this->fakeData->seed($this->fakeDataSeed);
-            $listView->clickNameLink($this->fakeData->company);
-        }
         // Edit Record
         $detailView->clickActionMenuItem('Edit');
 
@@ -264,7 +238,7 @@ class CompanyModuleCest
 
     /**
      * @param \AcceptanceTester $I
-     * @param \Step\Acceptance\NavigationBar $navigationBar
+     * @param \Step\Acceptance\NavigationBarTester $navigationBar
      * @param \Step\Acceptance\ListView $listView
      * @param \Step\Acceptance\DetailView $detailView
      * @param \Step\Acceptance\EditView $editView
@@ -274,37 +248,30 @@ class CompanyModuleCest
      */
     public function testScenarioDuplicateRecordFromDetailView(
         \AcceptanceTester $I,
-        \Step\Acceptance\NavigationBar $navigationBar,
+        \Step\Acceptance\NavigationBarTester $navigationBar,
         \Step\Acceptance\ListView $listView,
         \Step\Acceptance\DetailView $detailView,
         \Step\Acceptance\EditView $editView,
         \Helper\WebDriverHelper $webDriverHelper
     ) {
         $I->wantTo('Duplicate Company Test Module Record from detail view');
-
-        if($this->lastView !== 'DetailView') {
-            $I->amOnUrl(
-                $webDriverHelper->getInstanceURL()
-            );
-
-            $I->loginAsAdmin();
+        $I->loginAsAdmin();
 
 
-            // Go to Company Test Module
-            $navigationBar->clickAllMenuItem(\Page\CompanyModule::$NAME);
-            $listView->waitForListViewVisible();
+        // Go to Company Test Module
+        $navigationBar->clickAllMenuItem(\Page\CompanyModule::$NAME);
+        $listView->waitForListViewVisible();
 
-            // Select record from list view
-            $listView->clickFilterButton();
-            $listView->click('Quick Filter');
-            $this->fakeData->seed($this->fakeDataSeed);
-            $listView->fillField('#name_basic', $this->fakeData->company);
-            $listView->click('Search', '.submitButtons');
-            $listView->wait(1);
-            $listView->dontSee('No results found');
-            $this->fakeData->seed($this->fakeDataSeed);
-            $listView->clickNameLink($this->fakeData->company);
-        }
+        // Select record from list view
+        $listView->clickFilterButton();
+        $listView->click('Quick Filter');
+        $this->fakeData->seed($this->fakeDataSeed);
+        $listView->fillField('#name_basic', $this->fakeData->company);
+        $listView->click('Search', '.submitButtons');
+        $listView->wait(1);
+        $listView->dontSee('No results found');
+        $this->fakeData->seed($this->fakeDataSeed);
+        $listView->clickNameLink($this->fakeData->company);
 
         // Edit Record
         $detailView->clickActionMenuItem('Duplicate');
@@ -325,7 +292,7 @@ class CompanyModuleCest
 
     /**
      * @param \AcceptanceTester $I
-     * @param \Step\Acceptance\NavigationBar $navigationBar
+     * @param \Step\Acceptance\NavigationBarTester $navigationBar
      * @param \Step\Acceptance\ListView $listView
      * @param \Step\Acceptance\DetailView $detailView
      * @param \Helper\WebDriverHelper $webDriverHelper
@@ -334,33 +301,28 @@ class CompanyModuleCest
      */
     public function testScenarioDeleteRecordFromDetailView(
         \AcceptanceTester $I,
-        \Step\Acceptance\NavigationBar $navigationBar,
+        \Step\Acceptance\NavigationBarTester $navigationBar,
         \Step\Acceptance\ListView $listView,
         \Step\Acceptance\DetailView $detailView,
         \Helper\WebDriverHelper $webDriverHelper
     ) {
         $I->wantTo('Delete Company Test Module Record from detail view');
 
-        if($this->lastView !== 'ListView') {
-            $I->amOnUrl(
-                $webDriverHelper->getInstanceURL()
-            );
+        $I->loginAsAdmin();
 
-            $I->loginAsAdmin();
+        // Go to Company Test Module
+        $navigationBar->clickAllMenuItem(\Page\CompanyModule::$NAME);
+        $listView->waitForListViewVisible();
 
-            // Go to Company Test Module
-            $navigationBar->clickAllMenuItem(\Page\CompanyModule::$NAME);
-            $listView->waitForListViewVisible();
+        // Select record from list view
+        $listView->clickFilterButton();
+        $listView->click('Quick Filter');
+        $this->fakeData->seed($this->fakeDataSeed);
+        $listView->fillField('#name_basic', $this->fakeData->company);
+        $listView->click('Search', '.submitButtons');
+        $listView->wait(1);
+        $listView->dontSee('No results found');
 
-            // Select record from list view
-            $listView->clickFilterButton();
-            $listView->click('Quick Filter');
-            $this->fakeData->seed($this->fakeDataSeed);
-            $listView->fillField('#name_basic', $this->fakeData->company);
-            $listView->click('Search', '.submitButtons');
-            $listView->wait(1);
-            $listView->dontSee('No results found');
-        }
         $this->fakeData->seed($this->fakeDataSeed);
         $listView->clickNameLink($this->fakeData->company);
 

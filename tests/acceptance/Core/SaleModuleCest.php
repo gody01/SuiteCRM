@@ -21,7 +21,7 @@ class SaleModuleCest
      */
     public function _before(AcceptanceTester $I)
     {
-        if(!$this->fakeData) {
+        if (!$this->fakeData) {
             $this->fakeData = Faker\Factory::create();
             $this->fakeDataSeed = rand(0, 2048);
         }
@@ -52,10 +52,6 @@ class SaleModuleCest
     ) {
         $I->wantTo('Create a sale module for testing');
 
-        $I->amOnUrl(
-            $webDriverHelper->getInstanceURL()
-        );
-
         $I->loginAsAdmin();
 
         $moduleBuilder->createModule(
@@ -67,7 +63,7 @@ class SaleModuleCest
 
     /**
      * @param \AcceptanceTester $I
-     * @param \Step\Acceptance\NavigationBar $navigationBar
+     * @param \Step\Acceptance\NavigationBarTester $navigationBar
      * @param \Step\Acceptance\ListView $listView
      * @param \Helper\WebDriverHelper $webDriverHelper
      *
@@ -76,15 +72,11 @@ class SaleModuleCest
      */
     public function testScenarioViewSaleTestModule(
         \AcceptanceTester $I,
-        \Step\Acceptance\NavigationBar $navigationBar,
+        \Step\Acceptance\NavigationBarTester $navigationBar,
         \Step\Acceptance\ListView $listView,
         \Helper\WebDriverHelper $webDriverHelper
     ) {
         $I->wantTo('View Sale Test Module');
-        $I->amOnUrl(
-            $webDriverHelper->getInstanceURL()
-        );
-
         $I->loginAsAdmin();
 
         // Navigate to module
@@ -95,7 +87,7 @@ class SaleModuleCest
 
     /**
      * @param \AcceptanceTester $I
-     * @param \Step\Acceptance\NavigationBar $navigationBar
+     * @param \Step\Acceptance\NavigationBarTester $navigationBar
      * @param \Step\Acceptance\ListView $listView
      * @param \Step\Acceptance\DetailView $detailView
      * @param \Step\Acceptance\EditView $editView
@@ -106,16 +98,13 @@ class SaleModuleCest
      */
     public function testScenarioCreateRecord(
         \AcceptanceTester $I,
-        \Step\Acceptance\NavigationBar $navigationBar,
+        \Step\Acceptance\NavigationBarTester $navigationBar,
         \Step\Acceptance\ListView $listView,
         \Step\Acceptance\DetailView $detailView,
         \Step\Acceptance\EditView $editView,
         \Helper\WebDriverHelper $webDriverHelper
     ) {
         $I->wantTo('Create Sale Test Module Record');
-        $I->amOnUrl(
-            $webDriverHelper->getInstanceURL()
-        );
 
         $I->loginAsAdmin();
 
@@ -143,7 +132,7 @@ class SaleModuleCest
 
     /**
      * @param \AcceptanceTester $I
-     * @param \Step\Acceptance\NavigationBar $navigationBar
+     * @param \Step\Acceptance\NavigationBarTester $navigationBar
      * @param \Step\Acceptance\ListView $listView
      * @param \Helper\WebDriverHelper $webDriverHelper
      *
@@ -151,14 +140,11 @@ class SaleModuleCest
      */
     public function testScenarioViewRecordFromListView(
         \AcceptanceTester $I,
-        \Step\Acceptance\NavigationBar $navigationBar,
+        \Step\Acceptance\NavigationBarTester $navigationBar,
         \Step\Acceptance\ListView $listView,
         \Helper\WebDriverHelper $webDriverHelper
     ) {
         $I->wantTo('Select Record from list view');
-        $I->amOnUrl(
-            $webDriverHelper->getInstanceURL()
-        );
 
         $I->loginAsAdmin();
 
@@ -179,7 +165,7 @@ class SaleModuleCest
 
     /**
      * @param \AcceptanceTester $I
-     * @param \Step\Acceptance\NavigationBar $navigationBar
+     * @param \Step\Acceptance\NavigationBarTester $navigationBar
      * @param \Step\Acceptance\ListView $listView
      * @param \Step\Acceptance\DetailView $detailView
      * @param \Step\Acceptance\EditView $editView
@@ -189,17 +175,13 @@ class SaleModuleCest
      */
     public function testScenarioEditRecordFromDetailView(
         \AcceptanceTester$I,
-        \Step\Acceptance\NavigationBar $navigationBar,
+        \Step\Acceptance\NavigationBarTester $navigationBar,
         \Step\Acceptance\ListView $listView,
         \Step\Acceptance\DetailView $detailView,
         \Step\Acceptance\EditView $editView,
         \Helper\WebDriverHelper $webDriverHelper
     ) {
         $I->wantTo('Edit Sale Test Module Record from detail view');
-        $I->amOnUrl(
-            $webDriverHelper->getInstanceURL()
-        );
-
         $I->loginAsAdmin();
 
         // Go to Sale Test Module
@@ -228,7 +210,7 @@ class SaleModuleCest
 
     /**
      * @param \AcceptanceTester $I
-     * @param \Step\Acceptance\NavigationBar $navigationBar
+     * @param \Step\Acceptance\NavigationBarTester $navigationBar
      * @param \Step\Acceptance\ListView $listView
      * @param \Step\Acceptance\DetailView $detailView
      * @param \Step\Acceptance\EditView $editView
@@ -238,16 +220,13 @@ class SaleModuleCest
      */
     public function testScenarioDuplicateRecordFromDetailView(
         \AcceptanceTester $I,
-        \Step\Acceptance\NavigationBar $navigationBar,
+        \Step\Acceptance\NavigationBarTester $navigationBar,
         \Step\Acceptance\ListView $listView,
         \Step\Acceptance\DetailView $detailView,
         \Step\Acceptance\EditView $editView,
         \Helper\WebDriverHelper $webDriverHelper
     ) {
         $I->wantTo('Duplicate Sale Test Module Record from detail view');
-        $I->amOnUrl(
-            $webDriverHelper->getInstanceURL()
-        );
 
         $I->loginAsAdmin();
 
@@ -283,7 +262,7 @@ class SaleModuleCest
 
     /**
      * @param \AcceptanceTester $I
-     * @param \Step\Acceptance\NavigationBar $navigationBar
+     * @param \Step\Acceptance\NavigationBarTester $navigationBar
      * @param \Step\Acceptance\ListView $listView
      * @param \Step\Acceptance\DetailView $detailView
      * @param \Helper\WebDriverHelper $webDriverHelper
@@ -292,15 +271,12 @@ class SaleModuleCest
      */
     public function testScenarioDeleteRecordFromDetailView(
         \AcceptanceTester $I,
-        \Step\Acceptance\NavigationBar $navigationBar,
+        \Step\Acceptance\NavigationBarTester $navigationBar,
         \Step\Acceptance\ListView $listView,
         \Step\Acceptance\DetailView $detailView,
         \Helper\WebDriverHelper $webDriverHelper
     ) {
         $I->wantTo('Delete Sale Test Module Record from detail view');
-        $I->amOnUrl(
-            $webDriverHelper->getInstanceURL()
-        );
 
         $I->loginAsAdmin();
 

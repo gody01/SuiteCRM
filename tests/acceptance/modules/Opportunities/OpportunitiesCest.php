@@ -43,13 +43,9 @@ class OpportunitiesCest
     ) {
         $I->wantTo('View the opportunities module for testing');
 
-        $I->amOnUrl(
-            $webDriverHelper->getInstanceURL()
-        );
-
         // Navigate to opportunities list-view
         $I->loginAsAdmin();
-        $opportunities->gotoOpportunities();
+        $I->visitPage('Opportunities', 'index');
         $listView->waitForListViewVisible();
 
         $I->see('Opportunities', '.module-title-text');
@@ -60,7 +56,7 @@ class OpportunitiesCest
      * @param \Step\Acceptance\DetailView $detailView
      * @param \Step\Acceptance\ListView $listView
      * @param \Step\Acceptance\Opportunities $opportunities
-     * @param \Step\Acceptance\Accounts $account
+     * @param \Step\Acceptance\AccountsTester $account
      * @param \Helper\WebDriverHelper $webDriverHelper
      *
      * As administrative user I want to create an opportunity so that I can test
@@ -71,18 +67,14 @@ class OpportunitiesCest
         \Step\Acceptance\DetailView $detailView,
         \Step\Acceptance\ListView $listView,
         \Step\Acceptance\Opportunities $opportunities,
-        \Step\Acceptance\Accounts $account,
+        \Step\Acceptance\AccountsTester $account,
         \Helper\WebDriverHelper $webDriverHelper
     ) {
         $I->wantTo('Create an opportunity');
 
-        $I->amOnUrl(
-            $webDriverHelper->getInstanceURL()
-        );
-
         // Navigate to accounts list-view
         $I->loginAsAdmin();
-        $account->gotoAccounts();
+        $I->visitPage('Accounts', 'index');
         $listView->waitForListViewVisible();
 
         // Create account
@@ -91,7 +83,7 @@ class OpportunitiesCest
         $account->createAccount($account_name);
 
         // Navigate to opportunities list-view
-        $opportunities->gotoOpportunities();
+        $I->visitPage('Opportunities', 'index');
         $listView->waitForListViewVisible();
 
         // Create opportunity
@@ -104,7 +96,7 @@ class OpportunitiesCest
         $listView->waitForListViewVisible();
 
         // Delete account
-        $account->gotoAccounts();
+        $I->visitPage('Accounts', 'index');
         $listView->waitForListViewVisible();
         $listView->clickFilterButton();
         $I->fillField('#name_basic', $account_name);
