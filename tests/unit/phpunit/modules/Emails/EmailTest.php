@@ -172,7 +172,7 @@ class EmailTest extends StateCheckerPHPUnitTestCaseAbstract
             NonGmailSentFolderHandler::ERR_NO_STORED_SENT_FOLDER,
             $email->getTempEmailAtSend()->getNonGmailSentFolderHandler()->getLastError()
         );
-
+        
         $this->restoreState($state);
     }
 
@@ -709,6 +709,13 @@ class EmailTest extends StateCheckerPHPUnitTestCaseAbstract
 
         //finally cleanup
         $email->delete($email->id);
+    }
+
+    public function testgetNotesSqlEscape()
+    {
+        $email = new Email();
+        $email->getNotes("'=");
+        $this->assertFalse(DBManagerFactory::getInstance()->lastError());
     }
 
     public function testcleanEmails()

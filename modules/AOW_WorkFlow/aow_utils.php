@@ -183,7 +183,7 @@ function getModuleTreeData($module)
                         'module_label'=> $module_label)
     );
 
-    if ($module != '') {
+    if ($module != '' && ACLController::checkAccess($module, 'list', true)) {
         if (isset($beanList[$module]) && $beanList[$module]) {
             $mod = new $beanList[$module]();
 
@@ -194,6 +194,10 @@ function getModuleTreeData($module)
                     if ($mod->load_relationship($name)) {
                         $rel_module = $mod->$name->getRelatedModuleName();
                     }
+                }
+
+                if (!ACLController::checkAccess($rel_module, 'list', true)) {
+                    continue;
                 }
 
                 $rel_module_label = isset($app_list_strings['moduleList'][$rel_module]) ? $app_list_strings['moduleList'][$rel_module] : $rel_module;
@@ -618,7 +622,11 @@ function getModuleField(
         } else {
             if (isset($fieldlist[$fieldname]['type']) && ($fieldlist[$fieldname]['type'] == 'datetimecombo' || $fieldlist[$fieldname]['type'] == 'datetime' || $fieldlist[$fieldname]['type'] == 'date')) {
                 $value = $focus->convertField($value, $fieldlist[$fieldname]);
-                $displayValue = $timedate->to_display_date_time($value);
+                if($fieldlist[$fieldname]['type'] == 'date') {
+                    $displayValue = $timedate->to_display_date($value, false);
+                }else{
+                    $displayValue = $timedate->to_display_date_time($value, true, true);
+                }
                 $fieldlist[$fieldname]['value'] = $fieldlist[$aow_field]['value'] = $displayValue;
                 $fieldlist[$fieldname]['name'] = $aow_field;
             } else {
@@ -994,7 +1002,7 @@ function fixUpFormatting($module, $field, $value)
         case 'currency':
         case 'float':
             if ($value === '' || $value == null || $value == 'NULL') {
-                continue;
+                break;
             }
             if (is_string($value)) {
                 $value = (float)unformat_number($value);
@@ -1007,7 +1015,7 @@ function fixUpFormatting($module, $field, $value)
         case 'tinyint':
         case 'int':
             if ($value === '' || $value == null || $value == 'NULL') {
-                continue;
+                break;
             }
             if (is_string($value)) {
                 $value = (int)unformat_number($value);
