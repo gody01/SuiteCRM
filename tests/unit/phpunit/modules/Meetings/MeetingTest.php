@@ -1,6 +1,8 @@
 <?php
 
-class MeetingTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
+use SuiteCRM\Test\SuitePHPUnitFrameworkTestCase;
+
+class MeetingTest extends SuitePHPUnitFrameworkTestCase
 {
     protected function setUp()
     {
@@ -8,18 +10,13 @@ class MeetingTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
 
         global $current_user;
         get_sugar_config_defaults();
-        $current_user = new User();
+        $current_user = BeanFactory::newBean('Users');
     }
 
     public function testMeeting()
     {
-        $state = new SuiteCRM\StateSaver();
-        
-        
-        
-
-        //execute the contructor and check for the Object type and  attributes
-        $meeting = new Meeting();
+        // Execute the constructor and check for the Object type and  attributes
+        $meeting = BeanFactory::newBean('Meetings');
 
         $this->assertInstanceOf('Meeting', $meeting);
         $this->assertInstanceOf('SugarBean', $meeting);
@@ -39,20 +36,11 @@ class MeetingTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
 
         $this->assertAttributeEquals(null, 'cached_get_users', $meeting);
         $this->assertAttributeEquals(false, 'date_changed', $meeting);
-        
-        // clean up
     }
 
     public function testACLAccess()
     {
-        // save state
-
-        $state = new \SuiteCRM\StateSaver();
-        $state->pushGlobals();
-
-        // test
-        
-        $meeting = new Meeting();
+        $meeting = BeanFactory::newBean('Meetings');
 
         //test without recurring_source
         $this->assertEquals(true, $meeting->ACLAccess('edit'));
@@ -66,39 +54,18 @@ class MeetingTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
         $this->assertEquals(false, $meeting->ACLAccess('save'));
         $this->assertEquals(false, $meeting->ACLAccess('editview'));
         $this->assertEquals(false, $meeting->ACLAccess('delete'));
-        
-        // clean up
-        
-        $state->popGlobals();
     }
 
     public function testhasIntegratedMeeting()
     {
-        $meeting = new Meeting();
+        $meeting = BeanFactory::newBean('Meetings');
         $result = $meeting->hasIntegratedMeeting();
         $this->assertEquals(false, $result);
     }
 
     public function testSaveAndMarkdeletedAndSetAcceptStatus()
     {
-
-    // save state
-
-        $state = new \SuiteCRM\StateSaver();
-        $state->pushTable('aod_index');
-        $state->pushTable('aod_indexevent');
-        $state->pushTable('meetings');
-        $state->pushTable('meetings_contacts');
-        $state->pushTable('meetings_cstm');
-        $state->pushTable('meetings_leads');
-        $state->pushTable('meetings_users');
-        $state->pushTable('vcals');
-        $state->pushTable('tracker');
-        $state->pushGlobals();
-
-        // test
-        
-        $meeting = new Meeting();
+        $meeting = BeanFactory::newBean('Meetings');
 
         $meeting->name = 'test';
         $meeting->status = 'Not Held';
@@ -118,15 +85,15 @@ class MeetingTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
         /* Test set_accept_status method */
 
         //test set_accept_status with User object
-        $user = new User();
+        $user = BeanFactory::newBean('Users');
         $meeting->set_accept_status($user, 'accept');
 
         //test set_accept_status with contact object
-        $contact = new Contact();
+        $contact = BeanFactory::newBean('Contacts');
         $meeting->set_accept_status($contact, 'accept');
 
         //test set_accept_status with Lead object
-        $lead = new Lead();
+        $lead = BeanFactory::newBean('Leads');
         $meeting->set_accept_status($lead, 'accept');
 
         //mark all created relationships as deleted
@@ -136,25 +103,11 @@ class MeetingTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
         $meeting->mark_deleted($meeting->id);
         $result = $meeting->retrieve($meeting->id);
         $this->assertEquals(null, $result);
-
-        
-        // clean up
-        
-        $state->popGlobals();
-        $state->popTable('tracker');
-        $state->popTable('vcals');
-        $state->popTable('meetings_users');
-        $state->popTable('meetings_leads');
-        $state->popTable('meetings_cstm');
-        $state->popTable('meetings_contacts');
-        $state->popTable('meetings');
-        $state->popTable('aod_indexevent');
-        $state->popTable('aod_index');
     }
 
     public function testget_summary_text()
     {
-        $meeting = new Meeting();
+        $meeting = BeanFactory::newBean('Meetings');
 
         //test without setting name
         $this->assertEquals(null, $meeting->get_summary_text());
@@ -171,14 +124,7 @@ class MeetingTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
 
     public function testfill_in_additional_detail_fields()
     {
-        // save state
-
-        $state = new \SuiteCRM\StateSaver();
-        $state->pushGlobals();
-
-        // test
-        
-        $meeting = new Meeting();
+        $meeting = BeanFactory::newBean('Meetings');
 
         //preset required attributes
         $meeting->assigned_user_id = 1;
@@ -203,23 +149,11 @@ class MeetingTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
         $this->assertEquals(-1, $meeting->email_reminder_time);
         $this->assertEquals(false, $meeting->email_reminder_checked);
         $this->assertEquals('Accounts', $meeting->parent_type);
-
-        // clean up
-        
-        $state->popGlobals();
     }
 
     public function testget_list_view_data()
     {
-
-    // save state
-
-        $state = new \SuiteCRM\StateSaver();
-        $state->pushGlobals();
-
-        // test
-        
-        $meeting = new Meeting();
+        $meeting = BeanFactory::newBean('Meetings');
         $current_theme = SugarThemeRegistry::current();
 
         //preset required attribute values
@@ -262,10 +196,6 @@ class MeetingTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
         $this->assertEquals($expected['CONTACT_ID'], $actual['CONTACT_ID']);
         $this->assertEquals($expected['REPEAT_INTERVAL'], $actual['REPEAT_INTERVAL']);
         $this->assertEquals($expected['PARENT_MODULE'], $actual['PARENT_MODULE']);
-
-        // clean up
-        
-        $state->popGlobals();
     }
 
     public function testset_notification_body()
@@ -273,7 +203,7 @@ class MeetingTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
         global $current_user;
         $current_user = new User(1);
 
-        $meeting = new Meeting();
+        $meeting = BeanFactory::newBean('Meetings');
 
         //test with attributes preset and verify template variables are set accordingly
         $meeting->name = 'test';
@@ -297,13 +227,13 @@ class MeetingTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
 
     public function testcreate_notification_email()
     {
-        $meeting = new Meeting();
+        $meeting = BeanFactory::newBean('Meetings');
 
         $meeting->date_start = '2016-02-11 17:30:00';
         $meeting->date_end = '2016-02-11 17:30:00';
 
         //test without setting user
-        $result = $meeting->create_notification_email(new User());
+        $result = $meeting->create_notification_email(BeanFactory::newBean('Users'));
         $this->assertInstanceOf('SugarPHPMailer', $result);
 
         //test with valid user
@@ -313,37 +243,29 @@ class MeetingTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
 
     public function testsend_assignment_notifications()
     {
-        $state = new SuiteCRM\StateSaver();
-        
-        
-        
-        
-        
-        $meeting = new Meeting();
+        $meeting = BeanFactory::newBean('Meetings');
 
         $meeting->date_start = '2016-02-11 17:30:00';
         $meeting->date_end = '2016-02-11 17:30:00';
 
-        $admin = new Administration();
+        $admin = BeanFactory::newBean('Administration');
         $admin->retrieveSettings();
         $sendNotifications = false;
 
         $notify_user = new User(1);
 
-        //execute the method and test if it works and does not throws an exception.
+        // Execute the method and test that it works and doesn't throw an exception.
         try {
             $meeting->send_assignment_notifications($notify_user, $admin);
             $this->assertTrue(true);
         } catch (Exception $e) {
             $this->fail($e->getMessage() . "\nTrace:\n" . $e->getTraceAsString());
         }
-        
-        // clean up
     }
 
     public function testget_meeting_users()
     {
-        $meeting = new Meeting();
+        $meeting = BeanFactory::newBean('Meetings');
 
         $result = $meeting->get_meeting_users();
         $this->assertTrue(is_array($result));
@@ -351,16 +273,16 @@ class MeetingTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
 
     public function testget_invite_meetings()
     {
-        $meeting = new Meeting();
+        $meeting = BeanFactory::newBean('Meetings');
 
-        $user = new User();
+        $user = BeanFactory::newBean('Users');
         $result = $meeting->get_invite_meetings($user);
         $this->assertTrue(is_array($result));
     }
 
     public function testget_notification_recipients()
     {
-        $meeting = new Meeting();
+        $meeting = BeanFactory::newBean('Meetings');
 
         //test without special_notification
         $result = $meeting->get_notification_recipients();
@@ -374,7 +296,7 @@ class MeetingTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
 
     public function testbean_implements()
     {
-        $meeting = new Meeting();
+        $meeting = BeanFactory::newBean('Meetings');
 
         $this->assertEquals(false, $meeting->bean_implements('')); //test with blank value
         $this->assertEquals(false, $meeting->bean_implements('test')); //test with invalid value
@@ -383,43 +305,24 @@ class MeetingTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
 
     public function testlistviewACLHelper()
     {
-        // save state
-
-        $state = new \SuiteCRM\StateSaver();
-        $state->pushGlobals();
-
-        // test
-        
-        $meeting = new Meeting();
+        $meeting = BeanFactory::newBean('Meetings');
 
         $expected = array('MAIN' => 'a', 'PARENT' => 'a', 'CONTACT' => 'a');
         $actual = $meeting->listviewACLHelper();
         $this->assertSame($expected, $actual);
-        
-        // clean up
-        
-        $state->popGlobals();
     }
 
     public function testsave_relationship_changes()
     {
-        $state = new SuiteCRM\StateSaver();
-        
-        
-        
-        
-        
-        $meeting = new Meeting();
+        $meeting = BeanFactory::newBean('Meetings');
 
-        //execute the method and test if it works and does not throws an exception.
+        // Execute the method and test that it works and doesn't throw an exception.
         try {
             $meeting->save_relationship_changes(false);
             $this->assertTrue(true);
         } catch (Exception $e) {
             $this->fail($e->getMessage() . "\nTrace:\n" . $e->getTraceAsString());
         }
-        
-        // clean up
     }
 
     /**
@@ -427,17 +330,11 @@ class MeetingTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
      */
     public function testafterImportSave()
     {
-        $state = new SuiteCRM\StateSaver();
-        
-        
-        
-        
-        
         require_once 'data/Link.php';
 
-        //execute the method and test if it works and does not throws an exception.
+        // Execute the method and test that it works and doesn't throw an exception.
         try {
-            $meeting = new Meeting();
+            $meeting = BeanFactory::newBean('Meetings');
             //test without parent_type
             $meeting->afterImportSave();
 
@@ -453,13 +350,11 @@ class MeetingTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
         } catch (Exception $e) {
             $this->fail($e->getMessage() . "\nTrace:\n" . $e->getTraceAsString());
         }
-        
-        // clean up
     }
 
     public function testgetDefaultStatus()
     {
-        $meeting = new Meeting();
+        $meeting = BeanFactory::newBean('Meetings');
         $result = $meeting->getDefaultStatus();
         $this->assertEquals('Planned', $result);
     }

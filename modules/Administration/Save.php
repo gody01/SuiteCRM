@@ -41,13 +41,7 @@ if (!defined('sugarEntry') || !sugarEntry) {
  * display the words "Powered by SugarCRM" and "Supercharged by SuiteCRM".
  */
 
-/*********************************************************************************
 
- * Description:  TODO: To be written.
- * Portions created by SugarCRM are Copyright (C) SugarCRM, Inc.
- * All Rights Reserved.
- * Contributor(s): ______________________________________..
- ********************************************************************************/
 
 
 global $current_user;
@@ -56,7 +50,7 @@ if (!is_admin($current_user)) {
     sugar_die("Unauthorized access to administration.");
 }
 
-$focus = new Administration();
+$focus = BeanFactory::newBean('Administration');
 
 // filter for relevant POST data and update config table
 foreach ($_POST as $key => $val) {

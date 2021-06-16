@@ -41,19 +41,13 @@ if (!defined('sugarEntry') || !sugarEntry) {
  * display the words "Powered by SugarCRM" and "Supercharged by SuiteCRM".
  */
 
-/*********************************************************************************
 
- * Description:  TODO: To be written.
- * Portions created by SugarCRM are Copyright (C) SugarCRM, Inc.
- * All Rights Reserved.
- * Contributor(s): ______________________________________..
- ********************************************************************************/
 
 
 global $mod_strings;
 global $app_strings;
 
-$focus = new Email();
+$focus = BeanFactory::newBean('Emails');
 
 if (!empty($_REQUEST['record'])) {
     $result = $focus->retrieve($_REQUEST['record']);

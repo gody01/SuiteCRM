@@ -41,12 +41,7 @@ if (!defined('sugarEntry') || !sugarEntry) {
  * display the words "Powered by SugarCRM" and "Supercharged by SuiteCRM".
  */
 
-/*********************************************************************************
 
- * Description:
- * Portions created by SugarCRM are Copyright (C) SugarCRM, Inc. All Rights
- * Reserved. Contributor(s): ______________________________________..
- * *******************************************************************************/
 
 // LEGACY for old versions - emulating upload.php
 // aw: make this better for later versions.
@@ -94,7 +89,6 @@ if (version_compare(phpversion(), '5.2.0') >=0) {
 
     //Quickcreatedefs on the basis of editviewdefs
     updateQuickCreateDefs();
-    upgradeSugarCache($_SESSION['install_file']);
 
     if ((count($errors) == 1)) { // only diffs
         logThis('file preflight check passed successfully.');
@@ -278,7 +272,7 @@ eoq;
         if (function_exists('sugar_fopen')) {
             $fp = sugar_fopen($sqlScript, 'r');
         } else {
-            $fp = fopen($sqlScript, 'r');
+            $fp = fopen($sqlScript, 'rb');
         }
         $contents = stream_get_contents($fp);
         $anyScriptChanges =$contents;
@@ -407,24 +401,6 @@ eoq;
 }
 //Add the backward compatibility check as well.
 
-//Php Backward compatibility checks
-if (ini_get("zend.ze1_compatibility_mode")) {
-    $stop = true;
-    if (empty($mod_strings['LBL_BACKWARD_COMPATIBILITY_ON'])) {
-        $mod_strings['LBL_BACKWARD_COMPATIBILITY_ON'] = 'Php Backward Compatibility mode is turned on. Set zend.ze1_compatibility_mode to Off for proceeding further';
-    }
-
-    $php_compatibility_warning =<<<eoq
-	<table cellpadding="3" cellspacing="0" border="0">
-		<tr>
-			<th colspan="2" align="left">
-				<span class='error'><b>{$mod_strings['LBL_BACKWARD_COMPATIBILITY_ON']}</b></span>
-			</th>
-		</tr>
-	</table>
-eoq;
-    $php_warnings .= $php_compatibility_warning;
-}
 if ($php_warnings != null) {
     $uwMain = $php_warnings;
 }

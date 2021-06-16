@@ -1,7 +1,8 @@
-<?php
+<?php /** @noinspection ALL */
 
+use SuiteCRM\Test\SuitePHPUnitFrameworkTestCase;
 
-class ACLActionTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
+class ACLActionTest extends SuitePHPUnitFrameworkTestCase
 {
     protected function setUp()
     {
@@ -9,9 +10,9 @@ class ACLActionTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
 
         global $current_user;
         get_sugar_config_defaults();
-        $current_user = new User();
+        $current_user = BeanFactory::newBean('Users');
     }
-    
+
     protected function tearDown()
     {
         parent::tearDown();
@@ -19,55 +20,34 @@ class ACLActionTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
 
     public function testACLAction()
     {
-//        self::markTestIncomplete('environment dependency');
-//
-//        $state = new SuiteCRM\StateSaver();
-//        $state->pushTable('acl_actions');
-//        $state->pushGlobals();
-//
-//        $_POST['foo'] = 'bar123ase';
-//        //execute the contructor and check for the Object type and type attribute
-//        $aclAction = new ACLAction();
-//        $this->assertInstanceOf('ACLAction', $aclAction);
-//        $this->assertInstanceOf('SugarBean', $aclAction);
-//
-//        $this->assertAttributeEquals('ACLActions', 'module_dir', $aclAction);
-//        $this->assertAttributeEquals('ACLAction', 'object_name', $aclAction);
-//        $this->assertAttributeEquals('acl_actions', 'table_name', $aclAction);
-//        $this->assertAttributeEquals(true, 'new_schema', $aclAction);
-//        $this->assertAttributeEquals(true, 'disable_custom_fields', $aclAction);
-//
-//        // clean up
-//
-//        $state->popGlobals();
-//        $state->popTable('acl_actions');
+        self::markTestIncomplete('environment dependency');
+
+        $_POST['foo'] = 'bar123ase';
+        // Execute the constructor and check for the Object type and type attribute
+        $aclAction = BeanFactory::newBean('ACLActions');
+        $this->assertInstanceOf('ACLAction', $aclAction);
+        $this->assertInstanceOf('SugarBean', $aclAction);
+
+        $this->assertAttributeEquals('ACLActions', 'module_dir', $aclAction);
+        $this->assertAttributeEquals('ACLAction', 'object_name', $aclAction);
+        $this->assertAttributeEquals('acl_actions', 'table_name', $aclAction);
+        $this->assertAttributeEquals(true, 'new_schema', $aclAction);
+        $this->assertAttributeEquals(true, 'disable_custom_fields', $aclAction);
     }
 
     public function testaddActions()
     {
-//        self::markTestIncomplete('environment dependency');
-//
-//        $state = new SuiteCRM\StateSaver();
-//        $state->pushTable('acl_actions');
-//        $state->pushTable('aod_index');
-//
-//
-//
-//        //take count of actions initially and then after method execution and test if action count increases
-//        $action_count = count(ACLAction::getDefaultActions());
-//        ACLAction::addActions('Test');
-//        $actual = ACLAction::getDefaultActions();
-//        $this->assertGreaterThan($action_count, count($actual));
-//
-//        // clean up
-//
-//        $state->popTable('aod_index');
-//        $state->popTable('acl_actions');
+        self::markTestIncomplete('environment dependency');
+
+        //take count of actions initially and then after method execution and test if action count increases
+        $action_count = count(ACLAction::getDefaultActions());
+        ACLAction::addActions('Test');
+        $actual = ACLAction::getDefaultActions();
+        $this->assertGreaterThan($action_count, count($actual));
     }
 
     public function testremoveActions()
     {
-
         //take count of actions initially and then after method execution and test if action count decreases
         $action_count = count(ACLAction::getDefaultActions());
         ACLAction::removeActions('Test');
@@ -77,15 +57,8 @@ class ACLActionTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
 
     public function testAccessName()
     {
-        $state = new SuiteCRM\StateSaver();
-        
-        
-        
-
         $this->assertFalse(ACLAction::AccessName('')); //test with invalid value
         $this->assertEquals('All', ACLAction::AccessName(90)); //test with a valid value
-        
-        // clean up
     }
 
     public function testgetDefaultActions()
@@ -106,15 +79,15 @@ class ACLActionTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
 
     public function testgetUserActions()
     {
-//        $result1 = ACLAction::getUserActions('1');
-//        $result2 = ACLAction::getUserActions('1', false, 'Accounts');
-//        $result3 = ACLAction::getUserActions('1', false, 'Accounts', 'list');
-//
-//        self::markTestIncomplete('Need to implement: verify that all three results retunred are different.');
-//        //verify that all three results retunred are different
-//        //$this->assertNotSame($result1, $result2);
-//        //$this->assertNotSame($result1, $result3);
-//        //$this->assertNotSame($result2, $result3);
+        self::markTestIncomplete('Need to implement: verify that all three results returned are different.');
+        // $result1 = ACLAction::getUserActions('1');
+        // $result2 = ACLAction::getUserActions('1', false, 'Accounts');
+        // $result3 = ACLAction::getUserActions('1', false, 'Accounts', 'list');
+
+        //verify that all three results returned are different
+        //$this->assertNotSame($result1, $result2);
+        //$this->assertNotSame($result1, $result3);
+        //$this->assertNotSame($result2, $result3);
     }
 
     public function testhasAccess()
@@ -130,67 +103,58 @@ class ACLActionTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
 
     public function testuserNeedsSecurityGroup()
     {
-        $state = new SuiteCRM\StateSaver();
-        $state->pushGlobals();
-        
         $this->assertFalse(ACLAction::userNeedsSecurityGroup('1', '', ''));//test with empty module and action
-        $this->assertFalse(ACLAction::userNeedsSecurityGroup('1', 'Accounts', 'list')); //test with valid module and action
-        
-        // clean up
-        
-        $state->popGlobals();
+        $this->assertFalse(ACLAction::userNeedsSecurityGroup('1', 'Accounts',
+            'list')); //test with valid module and action
     }
 
     public function testuserHasAccess()
     {
-//        self::markTestIncomplete('Need to fix checking user access. Hint: session is a system state perhaps its failing because the user session');
-//
-//        $state = new SuiteCRM\StateSaver();
-//        $state->pushGlobals();
-//
-//        $this->assertFalse(ACLAction::userHasAccess('', '', '')); //test with empty module and action
-//        $this->assertTrue(ACLAction::userHasAccess('', 'Accounts', 'list')); //test with e,pty user and valid module and action
-//        $this->assertTrue(ACLAction::userHasAccess('1', 'Accounts', 'list')); //test with valid User, module and action
-//        $this->assertTrue(ACLAction::userHasAccess('1', 'SecurityGroups', 'list')); //test with valid User, module and action
-//        $this->assertTrue(ACLAction::userHasAccess('1', 'Users', 'list')); //test with valid User, module and action
-//
-//        // clean up
-//
-//        $state->popGlobals();
+        self::markTestIncomplete('Need to fix checking user access. Hint: session is a system state perhaps its failing because the user session');
+
+        // Test with empty module and action
+        $this->assertFalse(ACLAction::userHasAccess('', '', ''));
+        // Test with empty user and valid module and action
+        $this->assertTrue(ACLAction::userHasAccess('', 'Accounts',
+            'list'));
+        // Test with valid User, module and action
+        $this->assertTrue(ACLAction::userHasAccess('1', 'Accounts', 'list'));
+        // Test with valid User, module and action
+        $this->assertTrue(ACLAction::userHasAccess('1', 'SecurityGroups',
+            'list'));
+        // Test with valid User, module and action
+        $this->assertTrue(ACLAction::userHasAccess('1', 'Users', 'list'));
     }
 
     public function testgetUserAccessLevel()
     {
-//        self::markTestIncomplete('Need to fix checking user access. Hint: session is a system state perhaps its failing because the user session');
-//
-//
-//        //tes for accoounts module with two different actions
-//        $this->assertEquals(90, ACLAction::getUserAccessLevel('1', 'Accounts', 'list'));
-//        $this->assertEquals(89, ACLAction::getUserAccessLevel('1', 'Accounts', 'access'));
-//
-//        //tes for users module with two different actions
-//        $this->assertEquals(90, ACLAction::getUserAccessLevel('1', 'Users', 'list'));
-//        $this->assertEquals(89, ACLAction::getUserAccessLevel('1', 'Users', 'access'));
+        self::markTestIncomplete('Need to fix checking user access. Hint: session is a system state perhaps its failing because the user session');
+
+        //tes for accoounts module with two different actions
+        $this->assertEquals(90, ACLAction::getUserAccessLevel('1', 'Accounts', 'list'));
+        $this->assertEquals(89, ACLAction::getUserAccessLevel('1', 'Accounts', 'access'));
+
+        //tes for users module with two different actions
+        $this->assertEquals(90, ACLAction::getUserAccessLevel('1', 'Users', 'list'));
+        $this->assertEquals(89, ACLAction::getUserAccessLevel('1', 'Users', 'access'));
     }
 
     public function testuserNeedsOwnership()
     {
-//        self::markTestIncomplete('Need to fix checking user access. Hint: session is a system state perhaps its failing because the user session');
-//
-//
-//        //test with invalid values
-//        $this->assertFalse(ACLAction::userNeedsOwnership('', '', ''));
-//
-//        //test with valid values for different module and action combination
-//        $this->assertFalse(ACLAction::userNeedsOwnership('1', 'Accounts', 'list'));
-//        $this->assertFalse(ACLAction::userNeedsOwnership('1', 'Accounts', 'delete'));
-//        $this->assertFalse(ACLAction::userNeedsOwnership('1', 'Users', 'delete'));
-//        $this->assertFalse(ACLAction::userNeedsOwnership('1', 'Users', 'list'));
+        self::markTestIncomplete('Need to fix checking user access. Hint: session is a system state perhaps its failing because the user session');
+
+        //test with invalid values
+        $this->assertFalse(ACLAction::userNeedsOwnership('', '', ''));
+
+        //test with valid values for different module and action combination
+        $this->assertFalse(ACLAction::userNeedsOwnership('1', 'Accounts', 'list'));
+        $this->assertFalse(ACLAction::userNeedsOwnership('1', 'Accounts', 'delete'));
+        $this->assertFalse(ACLAction::userNeedsOwnership('1', 'Users', 'delete'));
+        $this->assertFalse(ACLAction::userNeedsOwnership('1', 'Users', 'list'));
     }
 
     public function testsetupCategoriesMatrix()
     {
-
         //preset required data
         $categories = array();
         $categories['Accounts']['module']['list'][] = 'list';
@@ -199,12 +163,36 @@ class ACLActionTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
         $names_expected = array('list' => 'List', 'edit' => 'Edit');
 
         $categories_expected = array(
-                'Accounts' => array(
-                        'module' => array(
-                                'list' => array('list', 'accessColor' => false, 'accessName' => false, 'accessLabel' => false, 'accessOptions' => array(90 => 'All', 80 => 'Group', 75 => 'Owner', 0 => 'Not Set', -99 => 'None')),
-                                'edit' => array('edit', 'accessColor' => false, 'accessName' => false, 'accessLabel' => false, 'accessOptions' => array(90 => 'All', 80 => 'Group', 75 => 'Owner', 0 => 'Not Set', -99 => 'None')),
-                        ),
+            'Accounts' => array(
+                'module' => array(
+                    'list' => array(
+                        'list',
+                        'accessColor' => false,
+                        'accessName' => false,
+                        'accessLabel' => false,
+                        'accessOptions' => array(
+                            90 => 'All',
+                            80 => 'Group',
+                            75 => 'Owner',
+                            0 => 'Not Set',
+                            -99 => 'None'
+                        )
+                    ),
+                    'edit' => array(
+                        'edit',
+                        'accessColor' => false,
+                        'accessName' => false,
+                        'accessLabel' => false,
+                        'accessOptions' => array(
+                            90 => 'All',
+                            80 => 'Group',
+                            75 => 'Owner',
+                            0 => 'Not Set',
+                            -99 => 'None'
+                        )
+                    ),
                 ),
+            ),
         );
 
         //execute the method and verify that it retunrs expected results
@@ -215,7 +203,7 @@ class ACLActionTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
 
     public function testtoArray()
     {
-        $aclAction = new ACLAction();
+        $aclAction = BeanFactory::newBean('ACLActions');
 
         //wihout any fields set
         $expected = array('id' => null, 'aclaccess' => null);
@@ -231,7 +219,7 @@ class ACLActionTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
 
     public function testfromArray()
     {
-        $aclAction = new ACLAction();
+        $aclAction = BeanFactory::newBean('ACLActions');
         $arr = array('id' => '1234', 'name' => 'test');
 
         //execute the method and verify that it retunrs expected results
@@ -242,7 +230,7 @@ class ACLActionTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
 
     public function testclearSessionCache()
     {
-        $aclAction = new ACLAction();
+        $aclAction = BeanFactory::newBean('ACLActions');
 
         //execute the method and verify that it unsets the session cache
         $aclAction->clearSessionCache();

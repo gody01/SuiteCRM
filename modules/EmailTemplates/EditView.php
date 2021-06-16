@@ -54,7 +54,7 @@ if (!isset($_REQUEST['campaign_id']) || empty($_REQUEST['campaign_id'])) {
 if (!isset($_REQUEST['inboundEmail']) || empty($_REQUEST['inboundEmail'])) {
     $inboundEmail = false;
 }
-$focus = new EmailTemplate();
+$focus = BeanFactory::newBean('EmailTemplates');
 
 if (isset($_REQUEST['record'])) {
     $focus->retrieve($_REQUEST['record']);
@@ -110,10 +110,7 @@ if (empty($focus->id)) {
 
 echo getClassicModuleTitle($focus->module_dir, $params, true);
 
-if (!$focus->ACLAccess('EditView')) {
-    ACLController::displayNoAccess(true);
-    sugar_cleanup(true);
-} elseif (!is_admin($current_user) && $focus->type === 'system') {
+if (!$focus->ACLAccess('EditView') || (!is_admin($current_user) && isset($focus->type) && $focus->type === 'system')) {
     ACLController::displayNoAccess(true);
     sugar_cleanup(true);
 }
@@ -363,7 +360,7 @@ if (true) {
         $etid = $old_id;
     }
     if (!empty($etid)) {
-        $note = new Note();
+        $note = BeanFactory::newBean('Notes');
         $where = "notes.parent_id='{$etid}' AND notes.filename IS NOT NULL";
         $notes_list = $note->get_full_list("", $where, true);
 

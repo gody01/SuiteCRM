@@ -49,7 +49,7 @@ if (!defined('sugarEntry') || !sugarEntry) {
      public $javascript = '<script>';
      public function lookupCurrencies()
      {
-         $this->focus = new Currency();
+         $this->focus = BeanFactory::newBean('Currencies');
          $this->list = $this->focus->get_full_list('name');
          $this->focus->retrieve('-99');
          if (is_array($this->list)) {
@@ -63,7 +63,7 @@ if (!defined('sugarEntry') || !sugarEntry) {
          global $current_user;
          if ($current_user->is_admin) {
              if (isset($_POST['edit']) && $_POST['edit'] == 'true' && isset($_POST['name']) && !empty($_POST['name']) && isset($_POST['conversion_rate']) && !empty($_POST['conversion_rate']) && isset($_POST['symbol']) && !empty($_POST['symbol'])) {
-                 $currency = new Currency();
+                 $currency = BeanFactory::newBean('Currencies');
                  if (isset($_POST['record']) && !empty($_POST['record'])) {
                      $currency->retrieve($_POST['record']);
                  }
@@ -88,12 +88,12 @@ if (!defined('sugarEntry') || !sugarEntry) {
                  $symbols= $_POST['symbol'];
                  $rates  = $_POST['rate'];
                  $isos  = $_POST['iso'];
-                 $size = sizeof($ids);
-                 if ($size != sizeof($names)|| $size != sizeof($isos) || $size != sizeof($symbols) || $size != sizeof($rates)) {
+                 $size = count($ids);
+                 if ($size != count($names)|| $size != count($isos) || $size != count($symbols) || $size != count($rates)) {
                      return;
                  }
             
-                 $temp = new Currency();
+                 $temp = BeanFactory::newBean('Currencies');
                  for ($i = 0; $i < $size; $i++) {
                      $temp->id = $ids[$i];
                      $temp->name = $names[$i];

@@ -38,8 +38,7 @@
  * display the words "Powered by SugarCRM" and "Supercharged by SuiteCRM".
  */
 
-use SuiteCRM\StateCheckerPHPUnitTestCaseAbstract;
-use SuiteCRM\StateSaver;
+use SuiteCRM\Test\SuitePHPUnitFrameworkTestCase;
 
 if (!defined('sugarEntry') || !sugarEntry) {
     die('Not A Valid Entry Point');
@@ -52,9 +51,8 @@ require_once __DIR__ . '/../../../../../include/Imap/ImapHandlerFactory.php';
  *
  * @author gyula
  */
-class ImapHandlerFactoryTest extends StateCheckerPHPUnitTestCaseAbstract
+class ImapHandlerFactoryTest extends SuitePHPUnitFrameworkTestCase
 {
-    
     /**
      * FAIL: invalid key argument for save test settings key
      */
@@ -110,8 +108,8 @@ class ImapHandlerFactoryTest extends StateCheckerPHPUnitTestCaseAbstract
         $results = $factory->saveTestSettingsKey('testCaseExample');
         $existsAfter = file_exists($settingsFile);
         $this->assertTrue($existsAfter);
-        $this->assertTrue(unlink($settingsFile));
         $this->assertTrue($results);
+        $factory->deleteTestSettings();
     }
     
     /**
@@ -122,5 +120,6 @@ class ImapHandlerFactoryTest extends StateCheckerPHPUnitTestCaseAbstract
         $factory = new ImapHandlerFactory();
         $results = $factory->getImapHandler();
         $this->assertInstanceOf(ImapHandlerInterface::class, $results);
+        $factory->deleteTestSettings();
     }
 }

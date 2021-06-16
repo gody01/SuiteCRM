@@ -53,7 +53,6 @@ if (!defined('sugarEntry') || !sugarEntry) {
 
 require_once('include/json_config.php');
 
-require_once('include/MVC/View/views/view.detail.php');
 
 class CampaignsViewDetail extends ViewDetail
 {
@@ -117,7 +116,7 @@ class CampaignsViewDetail extends ViewDetail
             $this->ss->assign("TARGET_BUTTON_STATE", "submit");
         }
 
-        $currency = new Currency();
+        $currency = BeanFactory::newBean('Currencies');
         if (isset($this->bean->currency_id) && !empty($this->bean->currency_id)) {
             $currency->retrieve($this->bean->currency_id);
             if ($currency->deleted != 1) {

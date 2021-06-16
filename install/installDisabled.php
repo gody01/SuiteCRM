@@ -82,18 +82,11 @@ $out =<<<EOQ
     <tr>
       <td align="right" colspan="2" height="20">
         <hr>
-        <form action="install.php" method="post" name="form" id="form">
-        <table cellspacing="0" cellpadding="0" border="0" class="stdTable">
-          <tr>
-            <td><input class="button" type="submit" value="{$mod_strings['LBL_START']}" /></td>
-          </tr>
-        </table>
-        </form>
       </td>
     </tr>
   </table>
   <footer id="install_footer">
-    <p id="footer_links"><a href="https://suitecrm.com" target="_blank">Visit suitecrm.com</a> | <a href="https://suitecrm.com/index.php?option=com_kunena&view=category&Itemid=1137&layout=list" target="_blank">Support Forums</a> | <a href="https://docs.suitecrm.com/admin/installation-guide/" target="_blank">Installation Guide</a> | <a href="LICENSE.txt" target="_blank">License</a>
+    <p id="footer_links"><a href="https://suitecrm.com" target="_blank">Visit suitecrm.com</a> | <a href="https://suitecrm.com/suitecrm/forum" target="_blank">Support Forums</a> | <a href="https://docs.suitecrm.com/admin/installation-guide/" target="_blank">Installation Guide</a> | <a href="LICENSE.txt" target="_blank">License</a>
 </footer>
 </body>
 </html>

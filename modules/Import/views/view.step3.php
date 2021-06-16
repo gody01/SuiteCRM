@@ -75,14 +75,14 @@ class ImportViewStep3 extends ImportView
         $this->ss->assign("CURRENT_STEP", $this->currentStep);
         // attempt to lookup a preexisting field map
         // use the custom one if specfied to do so in step 1
-        $mapping_file = new ImportMap();
+        $mapping_file = BeanFactory::newBean('Import_1');
         $field_map = $mapping_file->set_get_import_wizard_fields();
         $default_values = array();
         $ignored_fields = array();
 
         if (!empty($_REQUEST['source_id'])) {
             $GLOBALS['log']->fatal("Loading import map properties.");
-            $mapping_file = new ImportMap();
+            $mapping_file = BeanFactory::newBean('Import_1');
             $mapping_file->retrieve($_REQUEST['source_id'], false);
             $_REQUEST['source'] = $mapping_file->source;
             $has_header = $mapping_file->has_header;
@@ -121,6 +121,10 @@ class ImportViewStep3 extends ImportView
         //populate import locale  values from import mapping if available, these values will be used througout the rest of the code path
 
         $uploadFileName = $_REQUEST['file_name'];
+
+        if (strpos($uploadFileName, 'phar://') !== false) {
+            return;
+        }
 
         // Now parse the file and look for errors
         $importFile = new ImportFile($uploadFileName, $delimiter, html_entity_decode($_REQUEST['custom_enclosure'], ENT_QUOTES), false);
@@ -186,7 +190,7 @@ class ImportViewStep3 extends ImportView
         // we export it as email_address, but import as email1
         $field_map['email_address'] = 'email1';
 
-        // build each row; row count is determined by the the number of fields in the import file
+        // build each row; row count is determined by the number of fields in the import file
         $columns = array();
         $mappedFields = array();
 
@@ -290,13 +294,6 @@ class ImportViewStep3 extends ImportView
 
             // Bug 27046 - Sort the column name picker alphabetically
             ksort($options);
-
-            // to be displayed in UTF-8 format
-            if (!empty($charset) && $charset != 'UTF-8') {
-                if (isset($rows[1][$field_count])) {
-                    $rows[1][$field_count] = $locale->translateCharset($rows[1][$field_count], $charset);
-                }
-            }
 
             $cellOneData = isset($rows[0][$field_count]) ? $rows[0][$field_count] : '';
             $cellTwoData = isset($rows[1][$field_count]) ? $rows[1][$field_count] : '';

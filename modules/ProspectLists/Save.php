@@ -41,20 +41,14 @@ if (!defined('sugarEntry') || !sugarEntry) {
  * display the words "Powered by SugarCRM" and "Supercharged by SuiteCRM".
  */
 
-/*********************************************************************************
-
- * Description:  TODO: To be written.
- * Portions created by SugarCRM are Copyright (C) SugarCRM, Inc.
- * All Rights Reserved.
- * Contributor(s): ______________________________________..
- ********************************************************************************/
 
 
 
 
 
 
-$focus = new ProspectList();
+
+$focus = BeanFactory::newBean('ProspectLists');
 
 $focus->retrieve($_POST['record']);
 
@@ -73,7 +67,7 @@ $return_id = $focus->id;
 
 //Bug 33675 Duplicate target list
 if (!empty($_REQUEST['duplicateId'])) {
-    $copyFromProspectList = new ProspectList();
+    $copyFromProspectList = BeanFactory::newBean('ProspectLists');
     $copyFromProspectList->retrieve($_REQUEST['duplicateId']);
     $relations = $copyFromProspectList->retrieve_relationships('prospect_lists_prospects', array('prospect_list_id'=>$_REQUEST['duplicateId']), 'related_id, related_type');
     if (count($relations)>0) {

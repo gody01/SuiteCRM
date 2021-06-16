@@ -65,7 +65,7 @@ class OpportunitiesByLeadSourceDashlet extends DashletGenericChart
         global $app_list_strings;
 
         $selected_datax = array();
-        if (!empty($this->pbls_lead_sources) && sizeof($this->pbls_lead_sources) > 0) {
+        if (!empty($this->pbls_lead_sources) && count($this->pbls_lead_sources) > 0) {
             foreach ($this->pbls_lead_sources as $key) {
                 $selected_datax[] = $key;
             }
@@ -92,7 +92,7 @@ class OpportunitiesByLeadSourceDashlet extends DashletGenericChart
 
         $currency_symbol = $sugar_config['default_currency_symbol'];
         if ($current_user->getPreference('currency')) {
-            $currency = new Currency();
+            $currency = BeanFactory::newBean('Currencies');
             $currency->retrieve($current_user->getPreference('currency'));
             $currency_symbol = $currency->symbol;
         }
@@ -183,7 +183,7 @@ EOD;
         $currency_symbol = $sugar_config['default_currency_symbol'];
         if ($current_user->getPreference('currency')){
 
-            $currency = new Currency();
+            $currency = BeanFactory::newBean('Currencies');
             $currency->retrieve($current_user->getPreference('currency'));
             $currency_symbol = $currency->symbol;
         }
@@ -206,7 +206,8 @@ EOD;
 
     public function getChartData($query)
     {
-        global $app_list_strings, $db;
+        global $app_list_strings;
+        $db = DBManagerFactory::getInstance();
         $dataSet = [];
         $result = $db->query($query);
 

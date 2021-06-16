@@ -39,12 +39,13 @@
  */
 
 use SuiteCRM\SubPanel\SubPanelRowCounter;
+use SuiteCRM\Test\SuitePHPUnitFrameworkTestCase;
 
 if (!defined('sugarEntry') || !sugarEntry) {
     die('Not A Valid Entry Point');
 }
 
-class SubPanelTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
+class SubPanelTest extends SuitePHPUnitFrameworkTestCase
 {
     protected function setUp()
     {
@@ -56,7 +57,7 @@ class SubPanelTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
 
     public function testFaultySubpanelDef()
     {
-        $bean = new Contact();
+        $bean = BeanFactory::newBean('Contacts');
         $counter = new SubPanelRowCounter($bean);
         $subPanelDefs = [];
 
@@ -67,7 +68,7 @@ class SubPanelTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
 
     public function testSelectQueryToCountQuery()
     {
-        $bean = new Contact();
+        $bean = BeanFactory::newBean('Contacts');
         $counter = new SubPanelRowCounter($bean);
 
         $select = 'SELECT id FROM table';
@@ -91,7 +92,7 @@ class SubPanelTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
 
     public function testMakeFunctionCountQuery()
     {
-        $bean = new Account();
+        $bean = BeanFactory::newBean('Accounts');
         $counter = new SubPanelRowCounter($bean);
 
         $nonExistantQuery = $counter->makeFunctionCountQuery('');
@@ -104,7 +105,7 @@ class SubPanelTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
 
     public function testMakeSubPanelRowCountQuery()
     {
-        $bean = new Contact();
+        $bean = BeanFactory::newBean('Contacts');
         $counter = new SubPanelRowCounter($bean);
         $subPanelDefs = ['get_subpanel_data' => 'accounts'];
         $counter->setSubPanelDefs($subPanelDefs);
