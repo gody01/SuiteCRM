@@ -41,13 +41,7 @@ if (!defined('sugarEntry') || !sugarEntry) {
  * display the words "Powered by SugarCRM" and "Supercharged by SuiteCRM".
  */
 
-/*********************************************************************************
 
- * Description:  TODO: To be written.
- * Portions created by SugarCRM are Copyright (C) SugarCRM, Inc.
- * All Rights Reserved.
- * Contributor(s): ______________________________________..
- ********************************************************************************/
 
 require_once('include/MVC/View/SugarView.php');
 require_once('modules/EmailMan/Forms.php');
@@ -93,13 +87,13 @@ class ViewCampaignconfig extends SugarView
         echo $this->getModuleTitle(false);
         global $currentModule, $sugar_config;
         
-        $focus = new Administration();
+        $focus = BeanFactory::newBean('Administration');
         $focus->retrieveSettings(); //retrieve all admin settings.
         $GLOBALS['log']->info("Mass Emailer(EmailMan) ConfigureSettings view");
         
         $this->ss->assign("MOD", $mod_strings);
         $this->ss->assign("APP", $app_strings);
-        $this->ss->assign("THEME", SugarThemeRegistry::current()->__toString());
+        $this->ss->assign("THEME", (string)SugarThemeRegistry::current());
         $this->ss->assign("RETURN_MODULE", "Administration");
         $this->ss->assign("RETURN_ACTION", "index");
         
@@ -130,7 +124,7 @@ class ViewCampaignconfig extends SugarView
             $this->ss->assign("no_checked", "checked='checked'");
         }
         
-        $email = new Email();
+        $email = BeanFactory::newBean('Emails');
         $this->ss->assign('ROLLOVER', $email->rolloverStyle);
         
         $this->ss->assign("JAVASCRIPT", get_validate_record_js());

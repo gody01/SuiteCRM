@@ -41,18 +41,14 @@
 if (!isset($_REQUEST['uid']) || empty($_REQUEST['uid']) || !isset($_REQUEST['templateID']) || empty($_REQUEST['templateID'])) {
     die('Error retrieving record. This record may be deleted or you may not be authorized to view it.');
 }
-$level = error_reporting();
-$state = new \SuiteCRM\StateSaver();
-$state->pushErrorLevel();
+
+$errorLevelStored = error_reporting();
 error_reporting(0);
 require_once('modules/AOS_PDF_Templates/PDF_Lib/mpdf.php');
 require_once('modules/AOS_PDF_Templates/templateParser.php');
 require_once('modules/AOS_PDF_Templates/sendEmail.php');
 require_once('modules/AOS_PDF_Templates/AOS_PDF_Templates.php');
-$state->popErrorLevel();
-if ($level !== error_reporting()) {
-    throw new Exception('Incorrect error reporting level');
-}
+error_reporting($errorLevelStored);
 
 global $mod_strings, $sugar_config;
 
@@ -75,7 +71,7 @@ while ($row = $bean->db->fetchByAssoc($res)) {
 }
 
 
-$template = new AOS_PDF_Templates();
+$template = BeanFactory::newBean('AOS_PDF_Templates');
 $template->retrieve($_REQUEST['templateID']);
 
 $object_arr = array();
@@ -184,7 +180,7 @@ function populate_group_lines($text, $lineItemsGroups, $lineItems, $element = 't
     $endElement = '</' . $element . '>';
 
 
-    $groups = new AOS_Line_Item_Groups();
+    $groups = BeanFactory::newBean('AOS_Line_Item_Groups');
     foreach ($groups->field_defs as $name => $arr) {
         if (!((isset($arr['dbType']) && strtolower($arr['dbType']) == 'id') || $arr['type'] == 'id' || $arr['type'] == 'link')) {
             $curNum = strpos($text, '$aos_line_item_groups_' . $name);
@@ -272,7 +268,7 @@ function populate_product_lines($text, $lineItems, $element = 'tr')
     $endElement = '</' . $element . '>';
 
     //Find first and last valid line values
-    $product_quote = new AOS_Products_Quotes();
+    $product_quote = BeanFactory::newBean('AOS_Products_Quotes');
     foreach ($product_quote->field_defs as $name => $arr) {
         if (!((isset($arr['dbType']) && strtolower($arr['dbType']) == 'id') || $arr['type'] == 'id' || $arr['type'] == 'link')) {
             $curNum = strpos($text, '$aos_products_quotes_' . $name);
@@ -290,7 +286,7 @@ function populate_product_lines($text, $lineItems, $element = 'tr')
         }
     }
 
-    $product = new AOS_Products();
+    $product = BeanFactory::newBean('AOS_Products');
     foreach ($product->field_defs as $name => $arr) {
         if (!((isset($arr['dbType']) && strtolower($arr['dbType']) == 'id') || $arr['type'] == 'id' || $arr['type'] == 'link')) {
             $curNum = strpos($text, '$aos_products_' . $name);
@@ -370,7 +366,7 @@ function populate_service_lines($text, $lineItems, $element = 'tr')
     $text = str_replace("\$aos_services_quotes_service", "\$aos_services_quotes_product", $text);
 
     //Find first and last valid line values
-    $product_quote = new AOS_Products_Quotes();
+    $product_quote = BeanFactory::newBean('AOS_Products_Quotes');
     foreach ($product_quote->field_defs as $name => $arr) {
         if (!((isset($arr['dbType']) && strtolower($arr['dbType']) == 'id') || $arr['type'] == 'id' || $arr['type'] == 'link')) {
             $curNum = strpos($text, '$aos_services_quotes_' . $name);

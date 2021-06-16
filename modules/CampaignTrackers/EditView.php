@@ -41,13 +41,7 @@ if (!defined('sugarEntry') || !sugarEntry) {
  * display the words "Powered by SugarCRM" and "Supercharged by SuiteCRM".
  */
 
-/*********************************************************************************
 
- * Description: TODO:  To be written.
- * Portions created by SugarCRM are Copyright (C) SugarCRM, Inc.
- * All Rights Reserved.
- * Contributor(s): ______________________________________..
- ********************************************************************************/
 
 
 
@@ -58,7 +52,7 @@ global $app_list_strings;
 global $mod_strings;
 global $sugar_version, $sugar_config;
 
-$focus = new CampaignTracker();
+$focus = BeanFactory::newBean('CampaignTrackers');
 
 if (isset($_REQUEST['record'])) {
     $focus->retrieve($_REQUEST['record']);

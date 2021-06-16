@@ -142,7 +142,7 @@ class CampaignTracker extends SugarBean
     /* Generally from this method you would return value of a field that is required and is of type string*/
     public function get_summary_text()
     {
-        return "$this->tracker_name";
+        return (string)$this->tracker_name;
     }
 
 
@@ -167,7 +167,7 @@ class CampaignTracker extends SugarBean
 
         if (!class_exists('Administration')) {
         }
-        $admin=new Administration();
+        $admin=BeanFactory::newBean('Administration');
         $admin->retrieveSettings('massemailer'); //retrieve all admin settings.
         if (isset($admin->settings['massemailer_tracking_entities_location_type']) and $admin->settings['massemailer_tracking_entities_location_type']=='2'  and isset($admin->settings['massemailer_tracking_entities_location'])) {
             $this->message_url=$admin->settings['massemailer_tracking_entities_location'];

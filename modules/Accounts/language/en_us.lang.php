@@ -139,7 +139,7 @@ $mod_strings = array(
     'LBL_SHIPPING_ADDRESS_STREET' => 'Shipping Street:',
     'LBL_SHIPPING_ADDRESS' => 'Shipping Address:',
     'LBL_SIC_CODE' => 'SIC Code:',
-    'LBL_STATE' => 'State:',
+    'LBL_STATE' => 'State/Region:',
     'LBL_TICKER_SYMBOL' => 'Ticker Symbol:',
     'LBL_TYPE' => 'Type:',
     'LBL_WEBSITE' => 'Website:',
@@ -161,4 +161,5 @@ $mod_strings = array(
     'LBL_AOS_CONTRACTS' => 'Contracts',
     'LBL_AOS_INVOICES' => 'Invoices',
     'LBL_AOS_QUOTES' => 'Quotes',
+    'LBL_LIST_WEBSITE' => 'website',
 );

@@ -1,12 +1,13 @@
 <?php
 
-class AOD_IndexEventTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
+use SuiteCRM\Test\SuitePHPUnitFrameworkTestCase;
+
+class AOD_IndexEventTest extends SuitePHPUnitFrameworkTestCase
 {
     public function testAOD_IndexEvent()
     {
-
-        //execute the contructor and check for the Object type and type attribute
-        $aod_indexEvent = new AOD_IndexEvent();
+        // Execute the constructor and check for the Object type and type attribute
+        $aod_indexEvent = BeanFactory::newBean('AOD_IndexEvent');
         $this->assertInstanceOf('AOD_IndexEvent', $aod_indexEvent);
         $this->assertInstanceOf('Basic', $aod_indexEvent);
         $this->assertInstanceOf('SugarBean', $aod_indexEvent);

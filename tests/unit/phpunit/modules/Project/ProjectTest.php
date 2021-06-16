@@ -1,6 +1,8 @@
 <?php
 
-class ProjectTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
+use SuiteCRM\Test\SuitePHPUnitFrameworkTestCase;
+
+class ProjectTest extends SuitePHPUnitFrameworkTestCase
 {
     protected function setUp()
     {
@@ -8,13 +10,13 @@ class ProjectTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
 
         global $current_user;
         get_sugar_config_defaults();
-        $current_user = new User();
+        $current_user = BeanFactory::newBean('Users');
     }
 
     public function testProject()
     {
-        //execute the contructor and check for the Object type and  attributes
-        $project = new Project();
+        // Execute the constructor and check for the Object type and  attributes
+        $project = BeanFactory::newBean('Project');
 
         $this->assertInstanceOf('Project', $project);
         $this->assertInstanceOf('SugarBean', $project);
@@ -29,35 +31,25 @@ class ProjectTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
 
     public function testfill_in_additional_detail_fields()
     {
-        $state = new SuiteCRM\StateSaver();
-        
-        
-        
-
-        $project = new Project();
+        $project = BeanFactory::newBean('Project');
 
         //test without setting assigned_user_id
         $project->fill_in_additional_detail_fields();
         $this->assertEquals("", $project->assigned_user_name);
 
-
         //test with assigned_user_id set
         $project->assigned_user_id = 1;
         $project->fill_in_additional_detail_fields();
         $this->assertEquals("Administrator", $project->assigned_user_name);
-        
-        // clean up
     }
-
 
     public function testfill_in_additional_list_fields()
     {
-        $project = new Project();
+        $project = BeanFactory::newBean('Project');
 
         //test without setting assigned_user_id
         $project->fill_in_additional_list_fields();
         $this->assertEquals("", $project->assigned_user_name);
-
 
         //test with assigned_user_id set
         $project->assigned_user_id = 1;
@@ -65,32 +57,21 @@ class ProjectTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
         $this->assertEquals("Administrator", $project->assigned_user_name);
     }
 
-
     public function testsave_relationship_changes()
     {
-        $state = new SuiteCRM\StateSaver();
-        
-        $state->pushGlobals();
-        
-        
-        
-        $project = new Project();
+        $project = BeanFactory::newBean('Project');
 
         $project->id =1;
         $_REQUEST['relate_id'] = 2;
         $_REQUEST['relate_to'] = "contacts";
 
-        //execute the method and test if it works and does not throws an exception.
+        // Execute the method and test that it works and doesn't throw an exception.
         try {
             $project->save_relationship_changes(true);
             $this->assertTrue(true);
         } catch (Exception $e) {
             $this->fail($e->getMessage() . "\nTrace:\n" . $e->getTraceAsString());
         }
-        
-        // clean up
-        
-        $state->popGlobals();
     }
 
 
@@ -99,16 +80,14 @@ class ProjectTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
 //        $this->markTestIncomplete('Can Not be implemented: Unknown column parent_id in where clause \n Argument 3 passed to MysqlManager::convert() must be of the type array, integer given');
     }
 
-
     public function test_get_total_actual_effort()
     {
 //        $this->markTestIncomplete('Can Not be implemented: Unknown column parent_id in where clause \n Argument 3 passed to MysqlManager::convert() must be of the type array, integer given');
     }
 
-
     public function testget_summary_text()
     {
-        $project = new Project();
+        $project = BeanFactory::newBean('Project');
 
         //test without setting name
         $this->assertEquals(null, $project->get_summary_text());
@@ -118,10 +97,9 @@ class ProjectTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
         $this->assertEquals('test', $project->get_summary_text());
     }
 
-
     public function testbuild_generic_where_clause()
     {
-        $project = new Project();
+        $project = BeanFactory::newBean('Project');
 
         //test with empty string params
         $expected = "project.name LIKE '%%'";
@@ -141,7 +119,7 @@ class ProjectTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
     public function testget_list_view_data()
     {
         /*
-        $project = new Project();
+        $project = BeanFactory::newBean('Project');
 
         $project->user_name = "tes user";
         $project->assigned_user_name = "test assigned user";
@@ -161,7 +139,7 @@ class ProjectTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
 
     public function testbean_implements()
     {
-        $project = new Project();
+        $project = BeanFactory::newBean('Project');
 
         $this->assertEquals(false, $project->bean_implements('')); //test with blank value
         $this->assertEquals(false, $project->bean_implements('test')); //test with invalid value
@@ -175,7 +153,7 @@ class ProjectTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
 
     public function testgetAllProjectTasks()
     {
-        $project = new Project();
+        $project = BeanFactory::newBean('Project');
 
         $project->id = 1;
         $result = $project->getAllProjectTasks();

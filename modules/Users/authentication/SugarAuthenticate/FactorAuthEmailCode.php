@@ -100,14 +100,14 @@ class FactorAuthEmailCode implements FactorAuthInterface
 
         $ret = true;
 
-        $emailTemplate = new EmailTemplate();
+        $emailTemplate = BeanFactory::newBean('EmailTemplates');
         $emailTemplateId = $sugar_config['passwordsetting']['factoremailtmpl'];
         $emailTemplate->retrieve($emailTemplateId);
 
         $mailer = new SugarPHPMailer();
         $mailer->setMailerForSystem();
 
-        $emailObj = new Email();
+        $emailObj = BeanFactory::newBean('Emails');
         $defaults = $emailObj->getSystemDefaultEmail();
 
         $mailer->From = $defaults['email'];
@@ -127,7 +127,7 @@ class FactorAuthEmailCode implements FactorAuthInterface
         if (!$mailer->send()) {
             $ret = false;
             $GLOBALS['log']->fatal(
-                    'Email sending for two factor email authentication via Email Code failed. Mailer Error Info: ' .
+                'Email sending for two factor email authentication via Email Code failed. Mailer Error Info: ' .
                     $mailer->ErrorInfo
             );
         } else {

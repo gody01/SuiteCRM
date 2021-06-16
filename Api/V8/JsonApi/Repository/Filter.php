@@ -10,6 +10,7 @@ class Filter
     const OP_GTE = '>=';
     const OP_LT = '<';
     const OP_LTE = '<=';
+    const OP_LIKE = 'LIKE';
 
     const OP_AND = 'AND';
     const OP_OR = 'OR';
@@ -43,9 +44,11 @@ class Filter
             unset($params['operator']);
         }
 
+        $params = $this->addDeletedParameter($params);
+
         $where = [];
         foreach ($params as $field => $expr) {
-            if (!property_exists($bean, $field)) {
+            if (empty($bean->field_defs[$field])) {
                 throw new \InvalidArgumentException(sprintf(
                     'Filter field %s in %s module is not found',
                     $field,
@@ -57,11 +60,14 @@ class Filter
                 throw new \InvalidArgumentException(sprintf('Filter field %s must be an array', $field));
             }
 
+            $isCustom = isset($bean->field_defs[$field]['source']) && ($bean->field_defs[$field]['source'] == 'custom_fields');
+            $tableName = $isCustom ? $bean->get_custom_table_name() : $bean->getTableName();
+
             foreach ($expr as $op => $value) {
                 $this->checkOperator($op);
                 $where[] = sprintf(
                     '%s.%s %s %s',
-                    $bean->getTableName(),
+                    $tableName,
                     $field,
                     constant(sprintf('%s::OP_%s', self::class, strtoupper($op))),
                     $this->db->quoted($value)
@@ -70,6 +76,23 @@ class Filter
         }
 
         return implode(sprintf(' %s ', $operator), $where);
+    }
+
+    /**
+     * Only return deleted records if they were explicitly requested
+     *
+     * @param array $params
+     * @return array
+     */
+    protected function addDeletedParameter(array $params)
+    {
+        if (!array_key_exists('deleted', $params)) {
+            $params['deleted'] = [
+                'eq' => 0
+            ];
+        }
+
+        return $params;
     }
 
     /**

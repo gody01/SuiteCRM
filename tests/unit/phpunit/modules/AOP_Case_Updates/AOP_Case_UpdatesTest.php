@@ -1,6 +1,8 @@
 <?php
 
-class AOP_Case_UpdatesTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
+use SuiteCRM\Test\SuitePHPUnitFrameworkTestCase;
+
+class AOP_Case_UpdatesTest extends SuitePHPUnitFrameworkTestCase
 {
     protected function setUp()
     {
@@ -8,14 +10,13 @@ class AOP_Case_UpdatesTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
 
         global $current_user;
         get_sugar_config_defaults();
-        $current_user = new User();
+        $current_user = BeanFactory::newBean('Users');
     }
 
     public function testAOP_Case_Updates()
     {
-
-        //execute the contructor and check for the Object type and  attributes
-        $aopCaseUpdates = new AOP_Case_Updates();
+        // Execute the constructor and check for the Object type and  attributes
+        $aopCaseUpdates = BeanFactory::newBean('AOP_Case_Updates');
         $this->assertInstanceOf('AOP_Case_Updates', $aopCaseUpdates);
         $this->assertInstanceOf('Basic', $aopCaseUpdates);
         $this->assertInstanceOf('SugarBean', $aopCaseUpdates);
@@ -32,17 +33,8 @@ class AOP_Case_UpdatesTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
     public function testsave()
     {
         self::markTestIncomplete('environment dependency');
-        
-        $state = new SuiteCRM\StateSaver();
-        $state->pushTable('acl_actions');
-        $state->pushTable('aod_index');
-        $state->pushTable('aod_indexevent');
-        $state->pushTable('aop_case_updates');
-        $state->pushGlobals();
-        
-        
 
-        $aopCaseUpdates = new AOP_Case_Updates();
+        $aopCaseUpdates = BeanFactory::newBean('AOP_Case_Updates');
         $aopCaseUpdates->name = 'test name';
         $aopCaseUpdates->description = 'test description';
         $aopCaseUpdates->case_id = 'test case id';
@@ -55,19 +47,11 @@ class AOP_Case_UpdatesTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
 
         //mark the record as deleted for cleanup
         $aopCaseUpdates->mark_deleted($aopCaseUpdates->id);
-        
-        // clean up
-        
-        $state->popGlobals();
-        $state->popTable('aop_case_updates');
-        $state->popTable('aod_indexevent');
-        $state->popTable('aod_index');
-        $state->popTable('acl_actions');
     }
 
     public function testgetCase()
     {
-        $aopCaseUpdates = new AOP_Case_Updates();
+        $aopCaseUpdates = BeanFactory::newBean('AOP_Case_Updates');
 
         //execute the method and verify that it returns a Case object
         $result = $aopCaseUpdates->getCase();
@@ -77,7 +61,7 @@ class AOP_Case_UpdatesTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
 
     public function testgetContacts()
     {
-        $aopCaseUpdates = new AOP_Case_Updates();
+        $aopCaseUpdates = BeanFactory::newBean('AOP_Case_Updates');
 
         //execute the method and verify that it returns an array
         $result = $aopCaseUpdates->getContacts();
@@ -86,7 +70,7 @@ class AOP_Case_UpdatesTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
 
     public function testgetUpdateContact()
     {
-        $aopCaseUpdates = new AOP_Case_Updates();
+        $aopCaseUpdates = BeanFactory::newBean('AOP_Case_Updates');
 
         //execute the method without contact_id and verify that it returns null
         $result = $aopCaseUpdates->getUpdateContact();
@@ -100,7 +84,7 @@ class AOP_Case_UpdatesTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
 
     public function testgetUser()
     {
-        $aopCaseUpdates = new AOP_Case_Updates();
+        $aopCaseUpdates = BeanFactory::newBean('AOP_Case_Updates');
 
         //execute the method and verify that it returns an instance of User
         $result = $aopCaseUpdates->getUser();
@@ -109,7 +93,7 @@ class AOP_Case_UpdatesTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
 
     public function testgetUpdateUser()
     {
-        $aopCaseUpdates = new AOP_Case_Updates();
+        $aopCaseUpdates = BeanFactory::newBean('AOP_Case_Updates');
 
         //execute the method and verify that it returns an instance of User
         $result = $aopCaseUpdates->getUpdateUser();

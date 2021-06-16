@@ -41,12 +41,7 @@ if (!defined('sugarEntry') || !sugarEntry) {
  * display the words "Powered by SugarCRM" and "Supercharged by SuiteCRM".
  */
 
-/*********************************************************************************
 
- * Description:
- * Portions created by SugarCRM are Copyright (C) SugarCRM, Inc. All Rights
- * Reserved. Contributor(s): ______________________________________..
- * *******************************************************************************/
 
 
     
@@ -58,7 +53,7 @@ $q = "SELECT id, name, email_password FROM inbound_email WHERE deleted=0 AND sta
 $r = $db->query($q);
 
 while ($a = $db->fetchByAssoc($r)) {
-    $ieX = new InboundEmail();
+    $ieX = BeanFactory::newBean('InboundEmail');
     $ieX->retrieve($a['id']);
     if (!$ieX->repairAccount()) {
         // none of the iterations worked.  flag for display

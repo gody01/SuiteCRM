@@ -222,7 +222,7 @@ class OutboundEmail
                 if (!empty($system->mail_smtpserver)) {
                     $ret[] = array(
                         'id' => $system->id,
-                        'name' => "$system->name",
+                        'name' => (string)$system->name,
                         'mail_smtpserver' => $system->mail_smtpdisplay,
                         'is_editable' => $isEditable,
                         'type' => $system->type,
@@ -282,7 +282,7 @@ class OutboundEmail
             $a = $this->db->fetchByAssoc($r);
 
             if (!empty($a)) {
-                $opts = unserialize(base64_decode($a['stored_options']));
+                $opts = sugar_unserialize(base64_decode($a['stored_options']));
 
                 if (isset($opts['outbound_email'])) {
                     $mailer = "AND id = '{$opts['outbound_email']}'";
@@ -318,7 +318,7 @@ class OutboundEmail
 
         $results = array();
         while ($row = $this->db->fetchByAssoc($rs)) {
-            $opts = unserialize(base64_decode($row['stored_options']));
+            $opts = sugar_unserialize(base64_decode($row['stored_options']));
             if (isset($opts['outbound_email']) && $opts['outbound_email'] == $this->id) {
                 $results[] = $row['id'];
             }
@@ -345,7 +345,7 @@ class OutboundEmail
             $a = $this->db->fetchByAssoc($r);
 
             if (!empty($a)) {
-                $opts = unserialize(base64_decode($a['stored_options']));
+                $opts = sugar_unserialize(base64_decode($a['stored_options']));
 
                 if (isset($opts['outbound_email'])) {
                     $mailer = "id = '{$opts['outbound_email']}'";
@@ -388,7 +388,7 @@ class OutboundEmail
         $a = $this->db->fetchByAssoc($r);
         if (!empty($a)) {
             // next see if the admin preference for using the system outbound is set
-            $admin = new Administration();
+            $admin = BeanFactory::newBean('Administration');
             $admin->retrieveSettings('', true);
             if (isset($admin->settings['notify_allow_default_outbound'])
                 && $admin->settings['notify_allow_default_outbound'] == 2
@@ -405,7 +405,7 @@ class OutboundEmail
      */
     public function getSystemMailerSettings()
     {
-        $q = "SELECT id FROM outbound_email WHERE type = 'system'";
+        $q = "SELECT id FROM outbound_email WHERE type = 'system' AND deleted = 0";
         $r = $this->db->query($q);
         $a = $this->db->fetchByAssoc($r);
 
@@ -493,7 +493,7 @@ class OutboundEmail
                 if (empty($this->$def)) {
                     $this->$def = 0;
                 }
-                $values[] = intval($this->$def);
+                $values[] = (int)$this->$def;
                 $validKeys[] = $def;
             } else {
                 if (isset($this->$def)) {
@@ -522,7 +522,7 @@ class OutboundEmail
         $values = $this->getValues($cols);
 
         if ($this->new_with_id) {
-            $q = sprintf("INSERT INTO outbound_email (%s) VALUES (%s)", implode($cols, ","), implode($values, ","));
+            $q = sprintf("INSERT INTO outbound_email (%s) VALUES (%s)", implode(",", $cols), implode(",", $values));
         } else {
             $updvalues = array();
             foreach ($values as $k => $val) {
@@ -530,7 +530,7 @@ class OutboundEmail
             }
             $q = "UPDATE outbound_email SET " . implode(
                 ', ',
-                    $updvalues
+                $updvalues
             ) . " WHERE id = " . $this->db->quoted($this->id);
         }
 
@@ -544,7 +544,7 @@ class OutboundEmail
      */
     public function saveSystem()
     {
-        $q = "SELECT id FROM outbound_email WHERE type = 'system'";
+        $q = "SELECT id FROM outbound_email WHERE type = 'system' AND deleted = 0";
         $r = $this->db->query($q);
         $a = $this->db->fetchByAssoc($r);
 
