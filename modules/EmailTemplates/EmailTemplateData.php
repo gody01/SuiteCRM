@@ -73,7 +73,7 @@ if (preg_match('/^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/
 
         case 'createCopy':
             $bean = BeanFactory::getBean('EmailTemplates', $emailTemplateId);
-            $newBean = new EmailTemplate();
+            $newBean = BeanFactory::newBean('EmailTemplates');
             $fieldsForCopy = array('type', 'description');
             foreach ($bean as $key => $value) {
                 if (in_array($key, $fields)) {
@@ -84,6 +84,7 @@ if (preg_match('/^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/
                     }
                 }
             }
+            $newBean->assigned_user_id = $GLOBALS['current_user']->id;
             if ($newBean->save()) {
                 $msgs[] = 'LBL_TEMPLATE_SAVED';
             }

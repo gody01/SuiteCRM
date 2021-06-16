@@ -41,13 +41,7 @@ if (!defined('sugarEntry') || !sugarEntry) {
  * display the words "Powered by SugarCRM" and "Supercharged by SuiteCRM".
  */
 
-/*********************************************************************************
 
- * Description:  TODO: To be written.
- * Portions created by SugarCRM are Copyright (C) SugarCRM, Inc.
- * All Rights Reserved.
- * Contributor(s): ______________________________________..
- ********************************************************************************/
 
 
 
@@ -82,7 +76,7 @@ if (!isset($where)) {
 
 echo '<br />' .get_form_header($mod_strings['LBL_LIST_FORM_TITLE'], '', false);
 
-$savedSearch = new SavedSearch();
+$savedSearch = BeanFactory::newBean('SavedSearch');
 $lv = new ListViewSmarty();
 if (file_exists('custom/modules/SavedSearch/metadata/listviewdefs.php')) {
     require_once('custom/modules/SavedSearch/metadata/listviewdefs.php');

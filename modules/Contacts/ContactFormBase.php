@@ -457,7 +457,7 @@ EOQ;
             ACLController::displayNoAccess(true);
             sugar_cleanup(true);
         }
-        if ($_REQUEST['action'] != 'BusinessCard' && $_REQUEST['action'] != 'ConvertLead' && $_REQUEST['action'] != 'ConvertProspect') {
+        if ($_REQUEST['action'] != 'ConvertLead' && $_REQUEST['action'] != 'ConvertProspect') {
             if (!empty($_POST[$prefix.'sync_contact']) || !empty($focus->sync_contact)) {
                 $focus->contacts_users_id = $current_user->id;
             } else {
@@ -573,7 +573,7 @@ EOQ;
             // fake this case like it's already saved.
             $focus->save($check_notify);
 
-            $email = new Email();
+            $email = BeanFactory::newBean('Emails');
             $email->retrieve($_REQUEST['inbound_email_id']);
             $email->parent_type = 'Contacts';
             $email->parent_id = $focus->id;
@@ -686,6 +686,6 @@ EOQ;
     */
     protected function getContact()
     {
-        return new Contact();
+        return BeanFactory::newBean('Contacts');
     }
 }

@@ -41,20 +41,14 @@ if (!defined('sugarEntry') || !sugarEntry) {
  * display the words "Powered by SugarCRM" and "Supercharged by SuiteCRM".
  */
 
-/*********************************************************************************
 
- * Description:  TODO: To be written.
- * Portions created by SugarCRM are Copyright (C) SugarCRM, Inc.
- * All Rights Reserved.
- * Contributor(s): ______________________________________..
- ********************************************************************************/
 
 
 
 
 
 $current_module_strings = return_module_language($current_language, "Opportunities");
-$seedOpportunity = new Opportunity();
+$seedOpportunity = BeanFactory::newBean('Opportunities');
     
 //build top 5 opportunity list
 $where = "opportunities.sales_stage <> 'Closed Won' AND opportunities.sales_stage <> 'Closed Lost' AND opportunities.assigned_user_id='".$current_user->id."'";

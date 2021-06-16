@@ -41,86 +41,118 @@ if (!defined('sugarEntry') || !sugarEntry) {
  * display the words "Powered by SugarCRM" and "Supercharged by SuiteCRM".
  */
 
-/*********************************************************************************
 
- * Description:
- * Portions created by SugarCRM are Copyright (C) SugarCRM, Inc. All Rights
- * Reserved. Contributor(s): ______________________________________..
- * *******************************************************************************/
 logThis('[At systemCheck.php]');
 
 $stop = false; // flag to prevent going to next step
 
-///////////////////////////////////////////////////////////////////////////////
-////	FILE CHECKS
+//FILE CHECKS
 logThis('Starting file permission check...');
-$filesNotWritable = array();
-$filesNWPerms = array();
+$filesNotWritable = [];
+$baseDirectory = getcwd();
+$isWindows = is_windows();
 
-// add directories here that should be skipped when doing file permissions checks (cache/upload is the nasty one)
-$skipDirs = array(
+$includeDirs = [
+    'Api',
+    'cache',
+    'custom',
+    'data',
+    'include',
+    'install',
+    'jssource',
+    'lib',
+    'metadata',
+    'ModuleInstall',
+    'modules',
+    'service',
+    'soap',
+    'themes',
+    'XTemplate',
+    'Zend',
+    'vendor'
+];
+
+$skipDirs = [
     $sugar_config['upload_dir'],
     '.svn',
-    '.git',
-);
-$files = uwFindAllFiles(getcwd(), array(), true, $skipDirs);
-
-$i=0;
-$filesOut = "
-	<a href='javascript:void(0); toggleNwFiles(\"filesNw\");'>{$mod_strings['LBL_UW_SHOW_NW_FILES']}</a>
-	<div id='filesNw' style='display:none;'>
-	<table cellpadding='3' cellspacing='0' border='0'>
-	<tr>
-		<th align='left'>{$mod_strings['LBL_UW_FILE']}</th>
-		<th align='left'>{$mod_strings['LBL_UW_FILE_PERMS']}</th>
-		<th align='left'>{$mod_strings['LBL_UW_FILE_OWNER']}</th>
-		<th align='left'>{$mod_strings['LBL_UW_FILE_GROUP']}</th>
-	</tr>";
-
-$isWindows = is_windows();
-foreach ($files as $file) {
-    if ($isWindows) {
-        if (!is_writable_windows($file) && file_exists($file)) {
-            logThis('WINDOWS: File ['.$file.'] not readable - saving for display');
-            // don't warn yet - we're going to use this to check against replacement files
-            $filesNotWritable[$i] = $file;
-            $filesNWPerms[$i] = substr(sprintf('%o', fileperms($file)), -4);
-            $filesOut .= "<tr>".
-                            "<td><span class='error'>{$file}</span></td>".
-                            "<td>{$filesNWPerms[$i]}</td>".
-                            "<td>".$mod_strings['ERR_UW_CANNOT_DETERMINE_USER']."</td>".
-                            "<td>".$mod_strings['ERR_UW_CANNOT_DETERMINE_GROUP']."</td>".
-                          "</tr>";
-        }
-    } else {
-        if (!is_writable($file) && file_exists($file)) {
-            logThis('File ['.$file.'] not writable - saving for display');
-            // don't warn yet - we're going to use this to check against replacement files
-            $filesNotWritable[$i] = $file;
-            $filesNWPerms[$i] = substr(sprintf('%o', fileperms($file)), -4);
-            $owner = posix_getpwuid(fileowner($file));
-            $group = posix_getgrgid(filegroup($file));
-            $filesOut .= "<tr>".
-                            "<td><span class='error'>{$file}</span></td>".
-                            "<td>{$filesNWPerms[$i]}</td>".
-                            "<td>".$owner['name']."</td>".
-                            "<td>".$group['name']."</td>".
-                        "</tr>";
-        }
+    '.git'
+];
+/**
+ * @param SplFileInfo $file
+ * @param mixed $key
+ * @param RecursiveCallbackFilterIterator $iterator
+ * @return bool
+ */
+$fileCheck = function ($file, $key, $iterator) use ($baseDirectory, $skipDirs, $includeDirs) {
+    $subDir = explode(DIRECTORY_SEPARATOR, str_replace($baseDirectory . DIRECTORY_SEPARATOR, '', $key));
+    if ($iterator->hasChildren() &&
+        !in_array($file->getFilename(), $skipDirs, true) &&
+        (empty($subDir) || in_array($subDir[0], $includeDirs, true))
+    ) {
+        return true;
     }
+
+    return $file->isFile() && !$file->isWritable();
+};
+
+/** @var SplFileInfo[] $files */
+$files = new RecursiveIteratorIterator(
+    new RecursiveCallbackFilterIterator(
+        new RecursiveDirectoryIterator(
+            clean_path($baseDirectory),
+            RecursiveDirectoryIterator::SKIP_DOTS
+        ),
+        $fileCheck
+    )
+);
+
+$i = 0;
+$filesOut = "
+<a href='javascript:void(0); toggleNwFiles(\"filesNw\");'>{$mod_strings['LBL_UW_SHOW_NW_FILES']}</a>
+<div id='filesNw' style='display:none;'>
+<table cellpadding='3' cellspacing='0' border='0'>
+<tr>
+    <th align='left'>{$mod_strings['LBL_UW_FILE']}</th>
+    <th align='left'>{$mod_strings['LBL_UW_FILE_PERMS']}</th>
+    <th align='left'>{$mod_strings['LBL_UW_FILE_OWNER']}</th>
+    <th align='left'>{$mod_strings['LBL_UW_FILE_GROUP']}</th>
+</tr>";
+
+foreach ($files as $file) {
+    logThis('File [' . $file->getPathname() . '] not writable - saving for display');
+
+    $filesNotWritable[$i] = $file->getPathname();
+    $perms = substr(sprintf('%o', $file->getPerms()), -4);
+    $owner = $file->getOwner();
+    $group = $file->getGroup();
+    if (!$isWindows && function_exists('posix_getpwuid')) {
+        $ownerData = posix_getpwuid($owner);
+        $owner = !empty($ownerData) ? $ownerData['name'] : $owner;
+    }
+    if (!$isWindows && function_exists('posix_getgrgid')) {
+        $groupData = posix_getgrgid($group);
+        $group = !empty($groupData) ? $groupData['name'] : $group;
+    }
+    $filesOut .= "<tr>" .
+        "<td><span class='error'>{$file->getFilename()}</span></td>" .
+        "<td>{$perms}</td>" .
+        "<td>{$owner}</td>" .
+        "<td>{$group}</td>" .
+        "</tr>";
+
     $i++;
 }
 
 $filesOut .= '</table></div>';
-// not a stop error
-$errors['files']['filesNotWritable'] = (count($filesNotWritable) > 0) ? true : false;
+$errors['files']['filesNotWritable'] = true;
+
 if (count($filesNotWritable) < 1) {
     $filesOut = "<b>{$mod_strings['LBL_UW_FILE_NO_ERRORS']}</b>";
+    $errors['files']['filesNotWritable'] = false;
 }
 
 logThis('Finished file permission check.');
-////	END FILE CHECKS
-///////////////////////////////////////////////////////////////////////////////
+
 
 ///////////////////////////////////////////////////////////////////////////////
 ////	DATABASE CHECKS
@@ -170,7 +202,6 @@ $checks = array(
     'curlStatus'				=> $mod_strings['LBL_UW_COMPLIANCE_CURL'],
     'imapStatus'				=> $mod_strings['LBL_UW_COMPLIANCE_IMAP'],
     'mbstringStatus'			=> $mod_strings['LBL_UW_COMPLIANCE_MBSTRING'],
-    'safeModeStatus'			=> $mod_strings['LBL_UW_COMPLIANCE_SAFEMODE'],
     'callTimeStatus'			=> $mod_strings['LBL_UW_COMPLIANCE_CALLTIME'],
     'memory_msg'				=> $mod_strings['LBL_UW_COMPLIANCE_MEMORY'],
     'stream_msg'                => $mod_strings['LBL_UW_COMPLIANCE_STREAM'],
@@ -221,7 +252,7 @@ foreach ($errors as $k => $type) {
     }
 }
 
-$GLOBALS['top_message'] = "{$mod_strings['LBL_UW_NEXT_TO_UPLOAD']}";
+$GLOBALS['top_message'] = (string)($mod_strings['LBL_UW_NEXT_TO_UPLOAD']);
 $showBack		= true;
 $showCancel		= true;
 $showRecheck	= true;

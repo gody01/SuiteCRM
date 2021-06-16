@@ -53,7 +53,7 @@ function install_aop()
     $sugar_config['aop'] = array('distribution_method' => 'roundRobin');
     $templates = getTemplates();
     foreach ($templates as $configKey => $templateData) {
-        $template = new EmailTemplate();
+        $template = BeanFactory::newBean('EmailTemplates');
         foreach ($templateData as $field => $value) {
             $template->$field = $value;
         }
@@ -252,7 +252,7 @@ function getTemplates()
     $templates['user_email_template'] = array(
         'name' => 'User Case Update',
         'published' => 'off',
-        'description' => 'Email template to send to a Sugar user when their case is updated.',
+        'description' => 'Email template to send to a SuiteCRM user when their case is updated.',
         'subject' => '$acase_name (# $acase_case_number) update',
         'type' => 'system',
         'body' => 'Hi $user_first_name $user_last_name,

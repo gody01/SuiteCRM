@@ -1,6 +1,8 @@
 <?php
 
-class LeadTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
+use SuiteCRM\Test\SuitePHPUnitFrameworkTestCase;
+
+class LeadTest extends SuitePHPUnitFrameworkTestCase
 {
     protected function setUp()
     {
@@ -8,22 +10,13 @@ class LeadTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
 
         global $current_user;
         get_sugar_config_defaults();
-        $current_user = new User();
+        $current_user = BeanFactory::newBean('Users');
+        $GLOBALS['mod_strings'] = return_module_language($GLOBALS['current_language'], 'Leads');
     }
 
     public function testLead()
     {
-        //self::markTestIncomplete('Test changes error level');
-
-        // save state
-
-        $state = new \SuiteCRM\StateSaver();
-        $state->pushTable('inbound_email');
-        
-
-        // test
-        
-        //execute the contructor and check for the Object type and  attributes
+        // Execute the constructor and check for the Object type and  attributes
         $lead = BeanFactory::getBean('Leads');
 
         $this->assertInstanceOf('Lead', $lead);
@@ -37,20 +30,10 @@ class LeadTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
 
         $this->assertAttributeEquals(true, 'new_schema', $lead);
         $this->assertAttributeEquals(true, 'importable', $lead);
-        
-        // clean up
-        
-        
-        $state->popTable('inbound_email');
     }
 
     public function testget_account()
     {
-        $state = new SuiteCRM\StateSaver();
-        
-        
-        
-
         $lead = BeanFactory::getBean('Leads');
 
         //test without pre settting attributes
@@ -62,8 +45,6 @@ class LeadTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
         $lead->account_id = 1;
         $result = $lead->get_account();
         $this->assertEquals(null, $result);
-        
-        // clean up
     }
 
     public function testget_opportunity()
@@ -165,30 +146,15 @@ class LeadTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
         $this->assertEquals("1", $lead->opportunity_id);
         */
 
-
-
         //mark the record as deleted and verify that this record cannot be retrieved anymore.
         $lead->mark_deleted($lead->id);
         $result = $lead->retrieve($lead->id);
         $this->assertEquals(null, $result);
     }
 
-
     public function testfill_in_additional_list_fields()
     {
-
-    // save state
-
-        $state = new \SuiteCRM\StateSaver();
-        $state->pushTable('aod_index');
-        $state->pushTable('aod_indexevent');
-        $state->pushTable('leads');
-        $state->pushTable('leads_cstm');
-        $state->pushTable('sugarfeed');
-        $state->pushTable('tracker');
-
-        // test
-        $lead = new Lead();
+        $lead = BeanFactory::newBean('Leads');
 
         $lead->first_name = "firstn";
         $lead->last_name = "lastn";
@@ -196,18 +162,7 @@ class LeadTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
         $lead->fill_in_additional_list_fields();
 
         $this->assertEquals("firstn lastn", $lead->name);
-
-        
-        // clean up
-        
-        $state->popTable('tracker');
-        $state->popTable('sugarfeed');
-        $state->popTable('leads_cstm');
-        $state->popTable('leads');
-        $state->popTable('aod_indexevent');
-        $state->popTable('aod_index');
     }
-
 
     public function testfill_in_additional_detail_fields()
     {
@@ -223,15 +178,6 @@ class LeadTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
 
     public function testget_list_view_data()
     {
-
-    // save state
-
-        $state = new \SuiteCRM\StateSaver();
-        $state->pushTable('email_addresses');
-        $state->pushTable('tracker');
-
-        // test
-        
         $lead = BeanFactory::getBean('Leads');
 
         $expected = array(
@@ -242,10 +188,11 @@ class LeadTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
             'CONVERTED' => '0',
             'ENCODED_NAME' => ' ',
             'EMAIL1' => '',
-            'EMAIL1_LINK' =>
-                '<a class="email-link"'
-                . ' onclick="$(document).openComposeViewModal(this);" data-module="Leads"'
-                . ' data-record-id="" data-module-name=" " data-email-address=""></a>',
+            'EMAIL1_LINK' => '            <a class="email-link" href="mailto:"
+                    onclick="$(document).openComposeViewModal(this);"
+                    data-module="Leads" data-record-id=""
+                    data-module-name=" " data-email-address=""
+                ></a>',
             'ACC_NAME_FROM_ACCOUNTS' => null,
         );
 
@@ -257,13 +204,7 @@ class LeadTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
         $this->assertEquals($expected['FULL_NAME'], $actual['FULL_NAME']);
         $this->assertEquals($expected['DO_NOT_CALL'], $actual['DO_NOT_CALL']);
         $this->assertEquals($expected['EMAIL1_LINK'], $actual['EMAIL1_LINK']);
-        
-        // clean up
-        
-        $state->popTable('tracker');
-        $state->popTable('email_addresses');
     }
-
 
     public function testget_linked_fields()
     {
@@ -350,24 +291,12 @@ class LeadTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
 
     public function testlistviewACLHelper()
     {
-        // save state
-
-        $state = new \SuiteCRM\StateSaver();
-        $state->pushGlobals();
-
-        // test
-        
         $lead = BeanFactory::getBean('Leads');
 
         $expected = array("MAIN" => "a", "ACCOUNT" => "a", "OPPORTUNITY" => "a", "CONTACT" => "a");
         $actual = $lead->listviewACLHelper();
         $this->assertSame($expected, $actual);
-
-        // clean up
-        
-        $state->popGlobals();
     }
-
 
     public function testconvertCustomFieldsForm()
     {
@@ -375,14 +304,13 @@ class LeadTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
 
         $form = "";
         $prefix = "";
-        $tempBean = new Contact();
+        $tempBean = BeanFactory::newBean('Contacts');
 
         $result = $lead->convertCustomFieldsForm($form, $tempBean, $prefix);
 
         $this->assertEquals(true, $result);
         $this->assertgreaterThanOrEqual("", $form); //no filed with source = custom_fields
     }
-
 
     public function testget_unlinked_email_query()
     {
@@ -398,7 +326,6 @@ class LeadTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
         $actual = $lead->get_unlinked_email_query();
         $this->assertSame($expected, $actual);
     }
-
 
     public function testget_old_related_calls()
     {
@@ -416,7 +343,6 @@ class LeadTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
         $this->assertSame($expected, $actual);
     }
 
-
     public function testgetActivitiesOptions()
     {
         $lead = BeanFactory::getBean('Leads');
@@ -425,7 +351,6 @@ class LeadTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
         $actual = $lead->getActivitiesOptions();
         $this->assertSame($expected, $actual);
     }
-
 
     public function testget_old_related_meetings()
     {

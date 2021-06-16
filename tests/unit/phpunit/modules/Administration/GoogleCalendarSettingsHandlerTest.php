@@ -38,7 +38,7 @@
 * display the words "Powered by SugarCRM" and "Supercharged by SuiteCRM".
 */
 
-use SuiteCRM\StateCheckerPHPUnitTestCaseAbstract;
+use SuiteCRM\Test\SuitePHPUnitFrameworkTestCase;
 
 if (!defined('sugarEntry') || !sugarEntry) {
     die('Not A Valid Entry Point');
@@ -49,8 +49,14 @@ include_once __DIR__ . '/../../../../../modules/Administration/GoogleCalendarSet
 include_once __DIR__ . '/GoogleCalendarSettingsHandlerMock.php';
 include_once __DIR__ . '/../../../../../include/utils/layout_utils.php';
         
-class GoogleCalendarSettingsHandlerTest extends StateCheckerPHPUnitTestCaseAbstract
+class GoogleCalendarSettingsHandlerTest extends SuitePHPUnitFrameworkTestCase
 {
+    protected function setUp()
+    {
+        parent::setUp();
+        $GLOBALS['mod_strings'] = return_module_language($GLOBALS['current_language'], 'Administration');
+    }
+
     public function testFirst()
     {
         $this->assertEquals(true, true);

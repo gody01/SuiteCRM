@@ -148,7 +148,7 @@ class EmailsDataAddressCollector
             $this->validateInboundEmail($inboundEmail);
 
             if (in_array($inboundEmail->id, $showFolders, false)) {
-                $storedOptions = unserialize(base64_decode($inboundEmail->stored_options));
+                $storedOptions = sugar_unserialize(base64_decode($inboundEmail->stored_options));
                 $isGroupEmailAccount = $inboundEmail->isGroupEmailAccount();
                 $isPersonalEmailAccount = $inboundEmail->isPersonalEmailAccount();
 
@@ -325,7 +325,7 @@ class EmailsDataAddressCollector
         EmailFromValidator $emailFromValidator,
         &$replyToErr
     ) {
-        $tmpEmail = new Email();
+        $tmpEmail = BeanFactory::newBean('Emails');
         $tmpEmail->FromName = $tmpEmail->from_name = $tmpName;
         $tmpEmail->From = $tmpEmail->from_addr = $tmpAddr;
         $tmpEmail->from_addr_name = $this->getReplyTo();
@@ -680,8 +680,8 @@ class EmailsDataAddressCollector
         foreach ($dataAddresses as $address => $userAddress) {
             if ($userAddress['type'] !== 'system') {
                 $emailInfo = $userAddress['attributes'];
-                $fromString = $this->addCurrentUserToEmailString($emailInfo['from']);
-                $replyString = $this->addCurrentUserToEmailString($emailInfo['reply_to']);
+                $fromString = $emailInfo['from'];
+                $replyString = $emailInfo['reply_to'];
 
                 $dataAddresses[$address]['attributes'] = [
                     'from' => $fromString,

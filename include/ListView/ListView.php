@@ -8,7 +8,7 @@ if (!defined('sugarEntry') || !sugarEntry) {
  * SugarCRM, Inc. Copyright (C) 2004-2013 SugarCRM Inc.
  *
  * SuiteCRM is an extension to SugarCRM Community Edition developed by SalesAgility Ltd.
- * Copyright (C) 2011 - 2018 SalesAgility Ltd.
+ * Copyright (C) 2011 - 2020 SalesAgility Ltd.
  *
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -586,7 +586,7 @@ class ListView
             $this->records_per_page = $sugar_config['list_max_entries_per_page'] + 0;
             $this->initialized = true;
             global $app_strings, $currentModule;
-            $this->local_theme = SugarThemeRegistry::current()->__toString();
+            $this->local_theme = (string)SugarThemeRegistry::current();
             $this->local_app_strings =$app_strings;
             $this->local_image_path = SugarThemeRegistry::current()->getImagePath();
             $this->local_current_module = $currentModule;
@@ -873,20 +873,22 @@ class ListView
         $this->xTemplate->assign($name, $value);
     }
 
-    /**INTERNAL FUNCTION returns the offset first checking the query then checking the session if the where clause has changed from the last time it returns 0
-     * Portions created by SugarCRM are Copyright (C) SugarCRM, Inc.
-     * All Rights Reserved.
-     * Contributor(s): ______________________________________.
-    */
+    /**
+     * INTERNAL FUNCTION returns the offset first checking the query then checking the session if the where clause has changed from the last time it returns 0
+     * @param $localVarName
+     * @return int
+     */
     public function getOffset($localVarName)
     {
         if ($this->query_where_has_changed || isset($GLOBALS['record_has_changed'])) {
-            $this->setSessionVariable($localVarName, "offset", 0);
+            $this->setSessionVariable($localVarName, 'offset', 0);
         }
-        $offset = $this->getSessionVariable($localVarName, "offset");
-        if (isset($offset)) {
+        // this might return several kinds of values: 0, '', 'end', etc
+        $offset = $this->getSessionVariable($localVarName, 'offset');
+        if (isset($offset) && ($offset !== '')) {
             return $offset;
         }
+
         return 0;
     }
 
@@ -934,7 +936,7 @@ class ListView
         if (isset($_SESSION[$this->getSessionVariableName($localVarName, $varName)])) {
             return $_SESSION[$this->getSessionVariableName($localVarName, $varName)];
         }
-        return "";
+        return '';
     }
 
     public function getUserVariable($localVarName, $varName)
@@ -969,7 +971,7 @@ class ListView
         );
 
         foreach ($priority_map as $p) {
-            if (key_exists($p, $sortOrderList)) {
+            if (array_key_exists($p, $sortOrderList)) {
                 $order = strtolower($sortOrderList[$p]);
                 if (in_array($order, array('asc', 'desc'))) {
                     return $order;
@@ -1049,7 +1051,7 @@ class ListView
                 $this->child_focus,
                 $related_field_name,
                 $this->query_orderby,
-            $this->query_where,
+                $this->query_where,
                 $current_offset,
                 $this->query_limit
             );
@@ -1134,23 +1136,28 @@ class ListView
             str_replace(' ', '', trim($subpanel_def->_instance_properties['sort_by'])) == 'last_name,first_name') {
             $this->sortby = 'last_name '.$this->sort_order.', first_name ';
         }
+        try {
+            if (!empty($this->response)) {
+                $response =& $this->response;
+                echo 'cached';
+            } else {
+                $response = SugarBean::get_union_related_list(
+                    $sugarbean,
+                    $this->sortby,
+                    $this->sort_order,
+                    $this->query_where,
+                    $current_offset,
+                    -1,
+                    $this->records_per_page,
+                    $this->query_limit,
+                    $subpanel_def
+                );
+                $this->response =& $response;
+            }
+        } catch (Exception $ex) {
+            LoggerManager::getLogger()->fatal('[' . __METHOD__ . "] . {$ex->getMessage()}");
 
-        if (!empty($this->response)) {
-            $response =& $this->response;
-            echo 'cached';
-        } else {
-            $response = SugarBean::get_union_related_list(
-                $sugarbean,
-                $this->sortby,
-                $this->sort_order,
-                $this->query_where,
-                $current_offset,
-                -1,
-                $this->records_per_page,
-                $this->query_limit,
-                $subpanel_def
-            );
-            $this->response =& $response;
+            return ['list' => [], 'parent_data' => [], 'query' => ''];
         }
         $list = $response['list'];
         
@@ -1261,7 +1268,7 @@ class ListView
         }
 
         $end_record = $start_record + $this->records_per_page;
-        // back up the the last page.
+        // back up the last page.
         if ($end_record > $row_count+1) {
             $end_record = $row_count+1;
         }
@@ -1444,7 +1451,7 @@ class ListView
                 $delete_link = '&nbsp;';
             }
 
-            $admin = new Administration();
+            $admin = BeanFactory::newBean('Administration');
             $admin->retrieveSettings('system');
 
             $user_merge = $current_user->getPreference('mailmerge_on');
@@ -1480,7 +1487,7 @@ class ListView
                 || (!empty($sugar_config['disable_export']))
                 || (!empty($sugar_config['admin_export_only'])
                 && !(
-                        is_admin($current_user)
+                    is_admin($current_user)
                         || (ACLController::moduleSupportsACL($_REQUEST['module'])
                             && ACLAction::getUserAccessLevel($current_user->id, $_REQUEST['module'], 'access') == ACL_ALLOW_ENABLED
                             && (ACLAction::getUserAccessLevel($current_user->id, $_REQUEST['module'], 'admin') == ACL_ALLOW_ADMIN ||
@@ -1634,7 +1641,7 @@ class ListView
         reset($data);
 
         //GETTING OFFSET
-        $offset = intval($this->getOffset($html_varName));
+        $offset = (int)$this->getOffset($html_varName);
         $timeStamp = $this->unique_id();
         $_SESSION[$html_varName."_FROM_LIST_VIEW"] = $timeStamp;
 

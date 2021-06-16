@@ -41,13 +41,7 @@ if (!defined('sugarEntry') || !sugarEntry) {
  * display the words "Powered by SugarCRM" and "Supercharged by SuiteCRM".
  */
 
-/*********************************************************************************
 
- * Description:  TODO: To be written.
- * Portions created by SugarCRM are Copyright (C) SugarCRM, Inc.
- * All Rights Reserved.
- * Contributor(s): ______________________________________..
- ********************************************************************************/
 
 require_once('modules/Administration/Forms.php');
 require_once('include/SubPanel/SubPanelDefinitions.php');
@@ -85,9 +79,7 @@ class ViewConfiguretabs extends SugarView
      */
     public function display()
     {
-        global $mod_strings;
         global $app_list_strings;
-        global $app_strings;
         
         require_once("modules/MySettings/TabController.php");
         $controller = new TabController();
@@ -112,8 +104,9 @@ class ViewConfiguretabs extends SugarView
         
         //get list of all subpanels and panels to hide
         $mod_list_strings_key_to_lower = array_change_key_case($app_list_strings['moduleList']);
-        $panels_arr = SubPanelDefinitions::get_all_subpanels();
-        $hidpanels_arr = SubPanelDefinitions::get_hidden_subpanels();
+        $subPanelDefinition = new SubPanelDefinitions($this->bean);
+        $panels_arr = $subPanelDefinition->get_all_subpanels();
+        $hidpanels_arr = $subPanelDefinition->get_hidden_subpanels();
         
         if (!$hidpanels_arr || !is_array($hidpanels_arr)) {
             $hidpanels_arr = array();

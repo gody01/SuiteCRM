@@ -41,13 +41,7 @@ if (!defined('sugarEntry') || !sugarEntry) {
  * display the words "Powered by SugarCRM" and "Supercharged by SuiteCRM".
  */
 
-/*********************************************************************************
 
- * Description:  TODO: To be written.
- * Portions created by SugarCRM are Copyright (C) SugarCRM, Inc.
- * All Rights Reserved.
- * Contributor(s): ______________________________________..
- ********************************************************************************/
 
 
 
@@ -55,7 +49,7 @@ if (!defined('sugarEntry') || !sugarEntry) {
 global $mod_strings;
 
 
-$focus = new ProspectList();
+$focus = BeanFactory::newBean('ProspectLists');
 
 $focus->retrieve($_POST['record']);
 if (isset($_POST['isDuplicate']) && $_POST['isDuplicate'] == true) {

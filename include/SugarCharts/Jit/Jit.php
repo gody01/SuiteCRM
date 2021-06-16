@@ -5,7 +5,7 @@
  * SugarCRM, Inc. Copyright (C) 2004-2013 SugarCRM Inc.
  *
  * SuiteCRM is an extension to SugarCRM Community Edition developed by SalesAgility Ltd.
- * Copyright (C) 2011 - 2018 SalesAgility Ltd.
+ * Copyright (C) 2011 - 2020 SalesAgility Ltd.
  *
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -39,8 +39,6 @@
  */
 
 
-
-
 require_once("include/SugarCharts/JsChart.php");
 
 class Jit extends JsChart
@@ -56,9 +54,6 @@ class Jit extends JsChart
     public function getChartResources()
     {
         return '
-		<!--[if lt IE 9]>
-		<script type="text/javascript" src="'.getJSPath('include/SugarCharts/Jit/FlashCanvas/flashcanvas.js').'"></script>
-		<![endif]-->
 		<script language="javascript" type="text/javascript" src="'.getJSPath('include/SugarCharts/Jit/js/Jit/jit.js').'"></script>
 		<script language="javascript" type="text/javascript" src="'.getJSPath('include/SugarCharts/Jit/js/sugarCharts.js').'"></script>
 		';

@@ -54,7 +54,7 @@ class SugarView
     const ERR_NOT_ARRAY = 3;
     const ERR_NOT_SUB_ARRAY = 4;
     const WARN_SCOPE_EXISTS = 5;
-    
+
     /**
      * @var array $view_object_map
      * This array is meant to hold an objects/data that we would like to pass between
@@ -136,7 +136,7 @@ class SugarView
      * @var array
      */
     private $settings = [];
-    
+
     /**
      * SugarView constructor.
      * @deprecated since version 7.11
@@ -145,7 +145,7 @@ class SugarView
     {
         LoggerManager::getLogger()->deprecated();
     }
-    
+
     /**
      * @deprecated deprecated since version 7.6, PHP4 Style Constructors are deprecated and will be remove in 8.0
      * please update your code, use __construct instead
@@ -397,7 +397,7 @@ class SugarView
         $GLOBALS['app']->headerDisplayed = true;
 
         $themeObject = SugarThemeRegistry::current();
-        $theme = $themeObject->__toString();
+        $theme = (string)$themeObject;
 
         $ss = new Sugar_Smarty();
         $ss->assign("APP", $app_strings);
@@ -519,7 +519,7 @@ class SugarView
                 $ss->assign("LOGOUT_LABEL", key($value['linkinfo']));//key value for first element.
                 continue;
             }
-
+            
             foreach ($value as $linkattribute => $attributevalue) {
                 // get the main link info
                 if ($linkattribute == 'linkinfo') {
@@ -528,9 +528,14 @@ class SugarView
                         "URL" => current($attributevalue),
                         "SUBMENU" => array(),
                     );
+                    
                     if (substr($gcls[$key]["URL"], 0, 11) == "javascript:") {
                         $gcls[$key]["ONCLICK"] = substr($gcls[$key]["URL"], 11);
                         $gcls[$key]["URL"] = "javascript:void(0)";
+                    }
+
+                    if (isset($attributevalue['target'])) {
+                        $gcls[$key]["TARGET"] = $attributevalue['target'];
                     }
                 }
                 // and now the sublinks
@@ -724,7 +729,7 @@ class SugarView
             foreach ($groupTabs as $key => $tabGroup) {
                 if (count($topTabs) >= $max_tabs - 1 && $key !== $app_strings['LBL_TABGROUP_ALL'] && in_array(
                     $tabGroup['modules'][$moduleTab],
-                        $tabGroup['extra']
+                    $tabGroup['extra']
                 )
                 ) {
                     unset($groupTabs[$key]['modules'][$moduleTab]);
@@ -886,7 +891,7 @@ class SugarView
 
         // Add in the number formatting styles here as well, we have been handling this with individual modules.
         require_once('modules/Currencies/Currency.php');
-        list($num_grp_sep, $dec_sep) = get_number_seperators();
+        list($num_grp_sep, $dec_sep) = get_number_separators();
 
         $the_script =
             "<script type=\"text/javascript\">\n" .
@@ -1019,8 +1024,8 @@ EOHTML;
         if (empty($this->responseTime)) {
             $this->_calculateFooterMetrics();
         }
-        global $app_strings;
-        global $mod_strings;
+        global $app_strings, $sugar_config;
+        $server_unique_key = isset($sugar_config['unique_key']) ? $sugar_config['unique_key'] : '';
         $themeObject = SugarThemeRegistry::current();
 
         $ss = new Sugar_Smarty();
@@ -1131,7 +1136,7 @@ EOHTML;
         // here we allocate the help link data
         $help_actions_blacklist = array('Login'); // we don't want to show a context help link here
         if (!in_array($this->action, $help_actions_blacklist)) {
-            if (!isset($GLOBALS['server_unique_key'])) {
+            if (!isset($server_unique_key)) {
                 LoggerManager::getLogger()->warn('Undefined index: server_unique_key');
             }
             $url =
@@ -1147,7 +1152,7 @@ EOHTML;
                 '&help_action=' .
                 $this->action .
                 '&key=' .
-                (isset($GLOBALS['server_unique_key']) ? $GLOBALS['server_unique_key'] : null) .
+                (isset($server_unique_key) ? $server_unique_key : null) .
                 '\'))';
             $label =
                 (isset($GLOBALS['app_list_strings']['moduleList'][$this->module]) ?
@@ -1243,7 +1248,7 @@ EOHTML;
     protected function _checkModule()
     {
         if (!empty($this->module) && !file_exists('modules/' . $this->module)) {
-            $error = str_replace("[module]", "$this->module", $GLOBALS['app_strings']['ERR_CANNOT_FIND_MODULE']);
+            $error = str_replace("[module]", (string)$this->module, $GLOBALS['app_strings']['ERR_CANNOT_FIND_MODULE']);
             $GLOBALS['log']->fatal($error);
             echo $error;
             die();
@@ -1281,7 +1286,7 @@ EOHTML;
             number_format(round($deltaTime, 2), 2) .
             ' ' .
             $GLOBALS['app_strings']['LBL_SERVER_RESPONSE_TIME_SECONDS'];
-        $return = $response_time_string;
+        $return = $response_time_string. '<br />';
 
         if (!empty($GLOBALS['sugar_config']['show_page_resources'])) {
             // Print out the resources used in constructing the page.
@@ -1388,13 +1393,13 @@ EOHTML;
 
         $module_menu = array();
 
-        if (file_exists('modules/' . $module . '/Menu.php')) {
-            require('modules/' . $module . '/Menu.php');
+        if (file_exists(get_custom_file_if_exists('modules/' . $module . '/Menu.php'))) {
+            require(get_custom_file_if_exists('modules/' . $module . '/Menu.php'));
         }
         if (file_exists('custom/modules/' . $module . '/Ext/Menus/menu.ext.php')) {
             require('custom/modules/' . $module . '/Ext/Menus/menu.ext.php');
         }
-        if (!file_exists('modules/' . $module . '/Menu.php') &&
+        if (!file_exists(get_custom_file_if_exists('modules/' . $module . '/Menu.php')) &&
             !file_exists('custom/modules/' . $module . '/Ext/Menus/menu.ext.php') &&
             !empty($GLOBALS['mod_strings']['LNK_NEW_RECORD'])
         ) {
@@ -1643,19 +1648,16 @@ EOHTML;
             if (!empty($iconPath) && !$browserTitle) {
                 if (SugarThemeRegistry::current()->directionality == "ltr") {
                     return $app_strings['LBL_SEARCH_ALT'] . "&nbsp;"
-                        . "$firstParam";
-                } else {
-                    return "$firstParam" . "&nbsp;" . $app_strings['LBL_SEARCH'];
+                        . (string)$firstParam;
                 }
-            } else {
-                return $firstParam;
+                return (string)$firstParam . "&nbsp;" . $app_strings['LBL_SEARCH'];
             }
+            return $firstParam;
+        }
+        if (!empty($iconPath) && !$browserTitle) {
+            //return "<a href='index.php?module={$this->module}&action=index'>$this->module</a>";
         } else {
-            if (!empty($iconPath) && !$browserTitle) {
-                //return "<a href='index.php?module={$this->module}&action=index'>$this->module</a>";
-            } else {
-                return $firstParam;
-            }
+            return $firstParam;
         }
     }
 
@@ -1976,7 +1978,7 @@ EOHTML;
     public function mergeDeepArray($arrays)
     {
         $result = array();
-        
+
         if (!is_array($arrays)) {
             throw new InvalidArgumentException('Parameter should be an array to merging. ' . gettype($arrays) . ' given.', self::ERR_NOT_ARRAY);
         }
@@ -1987,7 +1989,7 @@ EOHTML;
 
         return $result;
     }
-    
+
     /**
      *
      * @param array $array
