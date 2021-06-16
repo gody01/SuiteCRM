@@ -40,7 +40,6 @@
  */
 
 
-require_once('include/MVC/View/views/view.detail.php');
 
 class ProjectViewTemplatesDetail extends ViewDetail
 {
@@ -63,7 +62,7 @@ class ProjectViewTemplatesDetail extends ViewDetail
         global $beanFiles;
         require_once($beanFiles['Project']);
 
-        $focus = new Project();
+        $focus = BeanFactory::newBean('Project');
         $focus->retrieve($_REQUEST['record']);
 
         global $app_list_strings, $current_user, $mod_strings;

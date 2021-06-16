@@ -1,13 +1,13 @@
 <?php
 
+use SuiteCRM\Test\SuitePHPUnitFrameworkTestCase;
 
-class jjwg_MarkersTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
+class jjwg_MarkersTest extends SuitePHPUnitFrameworkTestCase
 {
     public function testjjwg_Markers()
     {
-
-        //execute the contructor and check for the Object type and  attributes
-        $jjwgMarkers = new jjwg_Markers();
+        // Execute the constructor and check for the Object type and  attributes
+        $jjwgMarkers = BeanFactory::newBean('jjwg_Markers');
 
         $this->assertInstanceOf('jjwg_Markers', $jjwgMarkers);
         $this->assertInstanceOf('Basic', $jjwgMarkers);
@@ -24,25 +24,18 @@ class jjwg_MarkersTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
 
     public function testconfiguration()
     {
-        $state = new SuiteCRM\StateSaver();
-        
-        
-        
-
-        $jjwgMarkers = new jjwg_Markers();
+        $jjwgMarkers = BeanFactory::newBean('jjwg_Markers');
 
         $jjwgMarkers->configuration();
 
         $this->assertInstanceOf('jjwg_Maps', $jjwgMarkers->jjwg_Maps);
         $this->assertTrue(is_array($jjwgMarkers->settings));
         $this->assertGreaterThan(0, count($jjwgMarkers->settings));
-        
-        // clean up
     }
 
     public function testdefine_loc()
     {
-        $jjwgMarkers = new jjwg_Markers();
+        $jjwgMarkers = BeanFactory::newBean('jjwg_Markers');
 
         //test without pre settting attributes
         $result = $jjwgMarkers->define_loc(array());
@@ -59,7 +52,7 @@ class jjwg_MarkersTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
 
     public function testis_valid_lng()
     {
-        $jjwgMarkers = new jjwg_Markers();
+        $jjwgMarkers = BeanFactory::newBean('jjwg_Markers');
 
         //test with invalid values
         $this->assertEquals(false, $jjwgMarkers->is_valid_lng(''));
@@ -73,7 +66,7 @@ class jjwg_MarkersTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
 
     public function testis_valid_lat()
     {
-        $jjwgMarkers = new jjwg_Markers();
+        $jjwgMarkers = BeanFactory::newBean('jjwg_Markers');
 
         //test with invalid values
         $this->assertEquals(false, $jjwgMarkers->is_valid_lat(''));

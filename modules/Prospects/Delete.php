@@ -41,20 +41,14 @@ if (!defined('sugarEntry') || !sugarEntry) {
  * display the words "Powered by SugarCRM" and "Supercharged by SuiteCRM".
  */
 
-/*********************************************************************************
 
- * Description:  TODO: To be written.
- * Portions created by SugarCRM are Copyright (C) SugarCRM, Inc.
- * All Rights Reserved.
- * Contributor(s): ______________________________________..
- ********************************************************************************/
 
 
 global $mod_strings;
 
 
 
-$focus = new Prospect();
+$focus = BeanFactory::newBean('Prospects');
 
 if (!isset($_REQUEST['record'])) {
     sugar_die($mod_strings['ERR_DELETE_RECORD']);

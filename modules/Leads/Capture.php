@@ -60,7 +60,7 @@ if (file_exists('leadCapture_override.php')) {
     include('leadCapture_override.php');
 }
 if (!empty($_POST['user']) && !empty($users[$_POST['user']])) {
-    $current_user = new User();
+    $current_user = BeanFactory::newBean('Users');
     $current_user->user_name = $users[$_POST['user']]['name'];
 
     if ($current_user->load_user($users[$_POST['user']]['pass'], true)) {
@@ -78,7 +78,7 @@ if (!empty($_POST['user']) && !empty($users[$_POST['user']])) {
 
         if (isset($_POST['_splitName'])) {
             $name = explode(' ', $_POST['name']);
-            if (sizeof($name) == 1) {
+            if (count($name) == 1) {
                 $_POST['first_name'] = '';
                 $_POST['last_name'] = $name[0];
             } else {

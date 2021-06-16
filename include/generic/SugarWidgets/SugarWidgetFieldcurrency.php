@@ -53,7 +53,7 @@ function get_currency()
 {
     global $current_user,$global_currency_obj;
     if (empty($global_currency_obj)) {
-        $global_currency_obj = new Currency();
+        $global_currency_obj = BeanFactory::newBean('Currencies');
         //  $global_currency_symbol = '$';
 
         if ($current_user->getPreference('currency')) {
@@ -243,7 +243,7 @@ class SugarWidgetFieldCurrency extends SugarWidgetFieldInt
 
     /**
      * Return currency for layout_def
-     * @param $layout_def mixed
+     * @param mixed $layout_def
      * @return array Array with currency symbol and currency ID
      */
     protected function getCurrency($layout_def)

@@ -41,15 +41,10 @@ if (!defined('sugarEntry') || !sugarEntry) {
  * display the words "Powered by SugarCRM" and "Supercharged by SuiteCRM".
  */
 
-/*********************************************************************************
 
- * Description:
- * Portions created by SugarCRM are Copyright (C) SugarCRM, Inc. All Rights
- * Reserved. Contributor(s): ______________________________________..
- *********************************************************************************/
 require_once("include/SugarRouting/SugarRouting.php");
 
-$ie = new InboundEmail();
+$ie = BeanFactory::newBean('InboundEmail');
 $json = getJSONobj();
 $rules = new SugarRouting($ie, $current_user);
 
@@ -106,8 +101,6 @@ switch ($_REQUEST['routingAction']) {
                 'rule' => $rule
             );
         }
-        
-        //_ppd($ret);
         
         $out = $json->encode($ret, true);
         echo $out;

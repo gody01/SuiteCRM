@@ -64,7 +64,6 @@ $mod_strings = array(
     'LNK_NEW_MEETING' => 'Schedule Meeting',
     'LNK_NEW_TASK' => 'Create Task',
     'LNK_NEW_BUG' => 'Report Bug',
-    'LBL_ADD_BUSINESSCARD' => 'Enter Business Card',
     'LNK_NEW_SEND_EMAIL' => 'Compose Email',
     'LBL_NO_ACCESS' => 'You do not have access to this area. Contact your site administrator to obtain access',
     'LBL_NO_RESULTS_IN_MODULE' => '-- No Results --',
@@ -181,6 +180,9 @@ $mod_strings = array(
     'LBL_ABOUT_SUITE' => 'About SuiteCRM',
     'LBL_PARTNERS' => 'Partners',
     'LBL_FEATURING' => 'AOS, AOW, AOR, AOP, AOE and Reschedule modules by SalesAgility.',
+    'LBL_EDIT_ALL_RECURRENCES' => 'Edit All Recurrences',
+    'LBL_REMOVE_ALL_RECURRENCES' => 'Delete All Recurrences',
+    'LBL_CONFIRM_REMOVE' => 'Are you sure you want to remove the record?',
 
     'LBL_CONTRIBUTOR_SUITECRM' => 'SuiteCRM - Open source CRM for the world',
     'LBL_CONTRIBUTOR_SECURITY_SUITE' => 'SecuritySuite by Jason Eggers',
@@ -234,8 +236,19 @@ $mod_strings = array(
     'LBL_HOUR_ABBREV' => 'hour',
     'LBL_HOURS_ABBREV' => 'hours',
     'LBL_MINSS_ABBREV' => 'minutes',
-    'LBL_LOCATION' => 'Location: ',
-    'LBL_STATUS' => 'Status: ',
+    'LBL_LOCATION' => 'Location:',
+    'LBL_STATUS' => 'Status:',
     'LBL_DESCRIPTION' => 'Description: ',
     //End Events
+
+    'LBL_ELASTIC_SEARCH_EXCEPTION_SEARCH_INVALID_REQUEST' => 'An error has occurred while performing the search. Your query syntax might not be valid.',
+    'LBL_ELASTIC_SEARCH_EXCEPTION_SEARCH_ENGINE_NOT_FOUND' => 'Unable to find the requested SearchEngine. Try performing the search again.',
+    'LBL_ELASTIC_SEARCH_EXCEPTION_NO_NODES_AVAILABLE' => 'Failed to connect to the Elasticsearch server.',
+    'LBL_ELASTIC_SEARCH_EXCEPTION_SEARCH' => 'An error internal to the Search has occurred.',
+    'LBL_ELASTIC_SEARCH_EXCEPTION_DEFAULT' => 'An unknown error has occurred while performing the search.',
+    'LBL_ELASTIC_SEARCH_EXCEPTION_END_MESSAGE' => 'Contact an administrator if the problem persists. More information available in the logs.',
+
+    'LBL_ELASTIC_SEARCH_DEFAULT' => 'No results matching your search criteria. Try broadening your search.',
+
+    'LNK_TASK_VIEW' => 'View Task',
 );

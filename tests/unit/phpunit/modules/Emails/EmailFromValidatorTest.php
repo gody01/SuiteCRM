@@ -38,7 +38,7 @@
  * display the words "Powered by SugarCRM" and "Supercharged by SuiteCRM".
  */
 
-use SuiteCRM\StateCheckerPHPUnitTestCaseAbstract;
+use SuiteCRM\Test\SuitePHPUnitFrameworkTestCase;
 
 if (!defined('sugarEntry') || !sugarEntry) {
     die('Not A Valid Entry Point');
@@ -51,12 +51,12 @@ require_once __DIR__ . '/../../../../../modules/Emails/EmailFromValidator.php';
  *
  * @author gyula
  */
-class EmailFromValidatorTest extends StateCheckerPHPUnitTestCaseAbstract
+class EmailFromValidatorTest extends SuitePHPUnitFrameworkTestCase
 {
     // TODO: !@# Needs more test...
     public function testValidateWrongFromAddr()
     {
-        $email = new Email();
+        $email = BeanFactory::newBean('Emails');
         $validator = new EmailFromValidator();
         
         // from_addr is not set
@@ -109,7 +109,7 @@ class EmailFromValidatorTest extends StateCheckerPHPUnitTestCaseAbstract
     
     public function testValidateWrongFrom()
     {
-        $email = new Email();
+        $email = BeanFactory::newBean('Emails');
         $validator = new EmailFromValidator();
         
         // From is not set
@@ -162,7 +162,7 @@ class EmailFromValidatorTest extends StateCheckerPHPUnitTestCaseAbstract
     
     public function testValidateOk()
     {
-        $email = new Email();
+        $email = BeanFactory::newBean('Emails');
         $validator = new EmailFromValidator();
         
         $email->From = 'gusta@yammee.org';

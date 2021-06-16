@@ -251,7 +251,7 @@ echo "<p align='center'>".$this->gen_xml($datax, $ids, $cache_file_name, $refres
                 foreach ($user_id as $the_id) {
                     $id[] = "'".$the_id."'";
                 }
-                $ids = join(",", $id);
+                $ids = implode(",", $id);
                 $where .= "opportunities.assigned_user_id IN ($ids) ";
             }
             if (!empty($where)) {
@@ -264,7 +264,7 @@ echo "<p align='center'>".$this->gen_xml($datax, $ids, $cache_file_name, $refres
                 foreach ($legends as $key=>$value) {
                     $legendItem[] = "'".$key."'";
                 }
-                $legendItems = join(",", $legendItem);
+                $legendItems = implode(",", $legendItem);
                 $where .= " opportunities.lead_source IN	($legendItems) ";
             }
             $query = "SELECT lead_source,sum(amount_usdollar/1000) as total,count(*) as opp_count FROM opportunities ";
@@ -278,7 +278,7 @@ echo "<p align='center'>".$this->gen_xml($datax, $ids, $cache_file_name, $refres
             $symbol = $sugar_config['default_currency_symbol'];
             global $current_user;
             if ($current_user->getPreference('currency')) {
-                $currency = new Currency();
+                $currency = BeanFactory::newBean('Currencies');
                 $currency->retrieve($current_user->getPreference('currency'));
                 $div = $currency->conversion_rate;
                 $symbol = $currency->symbol;
@@ -418,7 +418,7 @@ echo "<p align='center'>".$this->gen_xml($datax, $ids, $cache_file_name, $refres
             foreach ($user_id as $the_id) {
                 $id[] = "'".$the_id."'";
             }
-            $ids = join(",", $id);
+            $ids = implode(",", $id);
             $where .= "opportunities.assigned_user_id IN ($ids) ";
         }
         if (!empty($where)) {
@@ -431,7 +431,7 @@ echo "<p align='center'>".$this->gen_xml($datax, $ids, $cache_file_name, $refres
             foreach ($legends as $key=>$value) {
                 $legendItem[] = "'".$key."'";
             }
-            $legendItems = join(",", $legendItem);
+            $legendItems = implode(",", $legendItem);
             $where .= " opportunities.lead_source IN	($legendItems) ";
         }
         $query = "SELECT lead_source,sum(amount_usdollar/1000) as total,count(*) as opp_count FROM opportunities ";

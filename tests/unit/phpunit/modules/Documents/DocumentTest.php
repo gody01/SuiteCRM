@@ -1,7 +1,8 @@
 <?php
 
+use SuiteCRM\Test\SuitePHPUnitFrameworkTestCase;
 
-class DocumentTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
+class DocumentTest extends SuitePHPUnitFrameworkTestCase
 {
     protected function setUp()
     {
@@ -9,14 +10,13 @@ class DocumentTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
 
         global $current_user;
         get_sugar_config_defaults();
-        $current_user = new User();
+        $current_user = BeanFactory::newBean('Users');
     }
 
     public function testDocument()
     {
-
-        //execute the contructor and check for the Object type and  attributes
-        $document = new Document();
+        // Execute the constructor and check for the Object type and  attributes
+        $document = BeanFactory::newBean('Documents');
         $this->assertInstanceOf('Document', $document);
         $this->assertInstanceOf('File', $document);
         $this->assertInstanceOf('SugarBean', $document);
@@ -30,17 +30,7 @@ class DocumentTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
 
     public function testSaveAndGet_document_name()
     {
-        $state = new SuiteCRM\StateSaver();
-        
-        $state->pushTable('aod_indexevent');
-        $state->pushTable('cron_remove_documents');
-        $state->pushTable('documents');
-        $state->pushTable('tracker');
-        $state->pushGlobals();
-        
-        
-
-        $document = new Document();
+        $document = BeanFactory::newBean('Documents');
 
         $document->filename = 'test';
         $document->file_url = 'test_url';
@@ -64,24 +54,11 @@ class DocumentTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
         $document->mark_deleted($document->id);
         $result = $document->retrieve($document->id);
         $this->assertEquals(null, $result);
-        
-        // clean up
-        
-        $state->popGlobals();
-        $state->popTable('tracker');
-        $state->popTable('documents');
-        $state->popTable('cron_remove_documents');
-        $state->popTable('aod_indexevent');
     }
 
     public function testget_summary_text()
     {
-        $state = new SuiteCRM\StateSaver();
-        $state->pushTable('aod_indexevent');
-        $state->pushTable('cron_remove_documents');
-        
-        
-        $document = new Document();
+        $document = BeanFactory::newBean('Documents');
 
         //test without setting name
         $this->assertEquals(null, $document->get_summary_text());
@@ -89,20 +66,11 @@ class DocumentTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
         //test with name set
         $document->document_name = 'test';
         $this->assertEquals('test', $document->get_summary_text());
-        
-        // clean up
-        
-        $state->popTable('cron_remove_documents');
-        $state->popTable('aod_indexevent');
     }
 
     public function testis_authenticated()
     {
-        $state = new SuiteCRM\StateSaver();
-        $state->pushTable('aod_indexevent');
-        $state->pushTable('cron_remove_documents');
-        
-        $document = new Document();
+        $document = BeanFactory::newBean('Documents');
 
         //test without presetting attributes
         $this->assertEquals(null, $document->is_authenticated());
@@ -110,54 +78,26 @@ class DocumentTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
         //test with attributes preset
         $document->authenticated = true;
         $this->assertEquals(true, $document->is_authenticated());
-        
-        // clean up
-        
-        $state->popTable('cron_remove_documents');
-        $state->popTable('aod_indexevent');
     }
 
     public function testfill_in_additional_list_fields()
     {
-        $state = new SuiteCRM\StateSaver();
-        
-        $state->pushTable('aod_indexevent');
-        $state->pushTable('cron_remove_documents');
-        $state->pushGlobals();
-        
-        
-        
-        
-        
-        $document = new Document();
+        $document = BeanFactory::newBean('Documents');
 
-        //execute the method and test if it works and does not throws an exception.
+        // Execute the method and test that it works and doesn't throw an exception.
         try {
             $document->fill_in_additional_list_fields();
             $this->assertTrue(true);
         } catch (Exception $e) {
             $this->fail($e->getMessage() . "\nTrace:\n" . $e->getTraceAsString());
         }
-        
-        // clean up
-        
-        $state->popGlobals();
-        $state->popTable('cron_remove_documents');
-        $state->popTable('aod_indexevent');
     }
 
     public function testfill_in_additional_detail_fields()
     {
         self::markTestIncomplete('environment dependency (random generated token in url)');
-        
-        $state = new SuiteCRM\StateSaver();
-        $state->pushTable('aod_indexevent');
-        $state->pushTable('cron_remove_documents');
-        $state->pushGlobals();
-        
-        
-        $document = new Document();
-        $current_theme = SugarThemeRegistry::current();
+
+        $document = BeanFactory::newBean('Documents');
         $document->id = 'abcde-12345';
 
         //execute the method with attributes preset and verify attributes are set accordingly
@@ -167,28 +107,15 @@ class DocumentTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
         $this->assertEquals('', $document->file_url, 'file url: [[' . $document->file_url . ']]');
         //
         $this->assertEquals('', $document->file_url_noimage, 'file url noimage: [[' . $document->file_url_noimage . ']]');
-        
-        // clean up
-        
-        $state->popGlobals();
-        $state->popTable('cron_remove_documents');
-        $state->popTable('aod_indexevent');
     }
 
     public function testlist_view_parse_additional_sections()
     {
-        $state = new SuiteCRM\StateSaver();
-        
-        $state->pushTable('cron_remove_documents');
-        
-        
-        
-        
-        $document = new Document();
+        $document = BeanFactory::newBean('Documents');
 
         $xTemplateSection = null;
         
-        //execute the method and test if it works and does not throws an exception.
+        // Execute the method and test that it works and doesn't throw an exception.
         try {
             $ss = new Sugar_Smarty();
             $document->list_view_parse_additional_sections($ss, $xTemplateSection);
@@ -196,17 +123,13 @@ class DocumentTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
         } catch (Exception $e) {
             $this->fail($e->getMessage() . "\nTrace:\n" . $e->getTraceAsString());
         }
-        
-        // clean up
-        
-        $state->popTable('cron_remove_documents');
     }
 
     public function testcreate_export_query()
     {
         self::markTestIncomplete('environment dependency');
         
-        $document = new Document();
+        $document = BeanFactory::newBean('Documents');
 
         //test with empty string parameters
         $expected = "SELECT\n						documents.* FROM documents  WHERE  documents.deleted = 0 ORDER BY documents.document_name";
@@ -223,9 +146,8 @@ class DocumentTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
     {
         self::markTestIncomplete();
         
-        $document = new Document();
-        $current_theme = SugarThemeRegistry::current();
-        //execute the method and verify that it retunrs expected results
+        $document = BeanFactory::newBean('Documents');
+        // Execute the method and verify that it returns expected results
 
         $document->filename = 'test';
         $document->file_url = 'test_url';
@@ -267,28 +189,20 @@ class DocumentTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
 
     public function testmark_relationships_deleted()
     {
-        $state = new SuiteCRM\StateSaver();
-        
-        
-        
-        
-        
-        $document = new Document();
+        $document = BeanFactory::newBean('Documents');
 
-        //execute the method and test if it works and does not throws an exception.
+        // Execute the method and test that it works and doesn't throw an exception.
         try {
             $document->mark_relationships_deleted(1);
             $this->assertTrue(true);
         } catch (Exception $e) {
             $this->fail($e->getMessage() . "\nTrace:\n" . $e->getTraceAsString());
         }
-        
-        // clean up
     }
 
     public function testbean_implements()
     {
-        $document = new Document();
+        $document = BeanFactory::newBean('Documents');
         $this->assertEquals(false, $document->bean_implements('')); //test with blank value
         $this->assertEquals(false, $document->bean_implements('test')); //test with invalid value
         $this->assertEquals(true, $document->bean_implements('ACL')); //test with valid value

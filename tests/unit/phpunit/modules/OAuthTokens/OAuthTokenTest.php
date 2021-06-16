@@ -1,6 +1,8 @@
 <?php
 
-class OAuthTokenTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
+use SuiteCRM\Test\SuitePHPUnitFrameworkTestCase;
+
+class OAuthTokenTest extends SuitePHPUnitFrameworkTestCase
 {
     protected function setUp()
     {
@@ -8,14 +10,13 @@ class OAuthTokenTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
 
         global $current_user;
         get_sugar_config_defaults();
-        $current_user = new User();
+        $current_user = BeanFactory::newBean('Users');
     }
 
     public function test__construct()
     {
-
-        //execute the contructor and check for the Object type and  attributes
-        $oauthToken = new OAuthToken();
+        // Execute the constructor and check for the Object type and  attributes
+        $oauthToken = BeanFactory::newBean('OAuthTokens');
 
         $this->assertInstanceOf('OAuthToken', $oauthToken);
         $this->assertInstanceOf('SugarBean', $oauthToken);
@@ -29,24 +30,17 @@ class OAuthTokenTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
 
     public function testsetState()
     {
-        $state = new SuiteCRM\StateSaver();
-        
-        
-        
-
-        $oauthToken = new OAuthToken();
+        $oauthToken = BeanFactory::newBean('OAuthTokens');
         $oauthToken->setState($oauthToken::REQUEST);
 
         $this->assertEquals($oauthToken::REQUEST, $oauthToken->tstate);
-        
-        // clean up
     }
 
     public function testsetConsumer()
     {
-        $oauthToken = new OAuthToken();
+        $oauthToken = BeanFactory::newBean('OAuthTokens');
 
-        $oauthKey = new OAuthKey();
+        $oauthKey = BeanFactory::newBean('OAuthKeys');
         $oauthKey->id = '1';
 
         $oauthToken->setConsumer($oauthKey);
@@ -57,7 +51,7 @@ class OAuthTokenTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
 
     public function testsetCallbackURL()
     {
-        $oauthToken = new OAuthToken();
+        $oauthToken = BeanFactory::newBean('OAuthTokens');
 
         $url = 'test url';
         $oauthToken->setCallbackURL($url);
@@ -76,15 +70,6 @@ class OAuthTokenTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
 
     public function testSaveAndOthers()
     {
-
-    // save state
-
-        $state = new \SuiteCRM\StateSaver();
-        $state->pushTable('tracker');
-        $state->pushTable('aod_index');
-
-        // test
-        
         $oauthToken = OAuthToken::generate();
 
         $oauthToken->save();
@@ -105,11 +90,6 @@ class OAuthTokenTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
 
         //test mark_deleted method
         $this->mark_deleted($oauthToken->id);
-        
-        // clean up
-        
-        $state->popTable('aod_index');
-        $state->popTable('tracker');
     }
 
     public function load($id)
@@ -143,7 +123,7 @@ class OAuthTokenTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
 
     public function mark_deleted($id)
     {
-        $oauthToken = new OAuthToken();
+        $oauthToken = BeanFactory::newBean('OAuthTokens');
 
         //execute the method
         $oauthToken->mark_deleted($id);
@@ -155,17 +135,10 @@ class OAuthTokenTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
 
     public function testcreateAuthorized()
     {
-        // save state
-
-        $state = new \SuiteCRM\StateSaver();
-        $state->pushTable('tracker');
-
-        // test
-        
-        $oauthKey = new OAuthKey();
+        $oauthKey = BeanFactory::newBean('OAuthKeys');
         $oauthKey->id = '1';
 
-        $user = new User();
+        $user = BeanFactory::newBean('Users');
         $user->retrieve('1');
 
         $oauthToken = OAuthToken::createAuthorized($oauthKey, $user);
@@ -181,15 +154,11 @@ class OAuthTokenTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
 
         //finally mark deleted for cleanup
         $oauthToken->mark_deleted($oauthToken->id);
-        
-        // clean up
-        
-        $state->popTable('tracker');
     }
 
     public function copyAuthData($token)
     {
-        $oauthToken = new OAuthToken();
+        $oauthToken = BeanFactory::newBean('OAuthTokens');
 
         $oauthToken->copyAuthData($token);
         $this->assertEquals($token->authdata, $oauthToken->authdata);
@@ -198,7 +167,7 @@ class OAuthTokenTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
 
     public function testqueryString()
     {
-        $oauthToken = new OAuthToken();
+        $oauthToken = BeanFactory::newBean('OAuthTokens');
 
         $result = $oauthToken->queryString();
         $this->assertEquals('oauth_token=&oauth_token_secret=', $result);
@@ -212,21 +181,13 @@ class OAuthTokenTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
 
     public function testcleanup()
     {
-        $state = new SuiteCRM\StateSaver();
-        
-        
-        
-        
-        
-        //execute the method and test if it works and does not throws an exception.
+        // Execute the method and test that it works and doesn't throw an exception.
         try {
             OAuthToken::cleanup();
             $this->assertTrue(true);
         } catch (Exception $e) {
             $this->fail($e->getMessage() . "\nTrace:\n" . $e->getTraceAsString());
         }
-        
-        // clean up
     }
 
     public function testcheckNonce()
@@ -238,40 +199,24 @@ class OAuthTokenTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
 
     public function testdeleteByConsumer()
     {
-        $state = new SuiteCRM\StateSaver();
-        
-        
-        
-        
-        
-        //execute the method and test if it works and does not throws an exception.
+        // Execute the method and test that it works and doesn't throw an exception.
         try {
             OAuthToken::deleteByConsumer('1');
             $this->assertTrue(true);
         } catch (Exception $e) {
             $this->fail($e->getMessage() . "\nTrace:\n" . $e->getTraceAsString());
         }
-        
-        // clean up
     }
 
     public function testdeleteByUser()
     {
-        $state = new SuiteCRM\StateSaver();
-        
-        
-        
-        
-        
-        //execute the method and test if it works and does not throws an exception.
+        // Execute the method and test that it works and doesn't throw an exception.
         try {
             OAuthToken::deleteByUser('1');
             $this->assertTrue(true);
         } catch (Exception $e) {
             $this->fail($e->getMessage() . "\nTrace:\n" . $e->getTraceAsString());
         }
-        
-        // clean up
     }
 
     public function testdisplayDateFromTs()

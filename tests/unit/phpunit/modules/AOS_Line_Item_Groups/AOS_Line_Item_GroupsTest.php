@@ -1,6 +1,8 @@
 <?php
 
-class AOS_Line_Item_GroupsTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
+use SuiteCRM\Test\SuitePHPUnitFrameworkTestCase;
+
+class AOS_Line_Item_GroupsTest extends SuitePHPUnitFrameworkTestCase
 {
     protected function setUp()
     {
@@ -8,14 +10,13 @@ class AOS_Line_Item_GroupsTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstr
 
         global $current_user;
         get_sugar_config_defaults();
-        $current_user = new User();
+        $current_user = BeanFactory::newBean('Users');
     }
 
     public function testAOS_Line_Item_Groups()
     {
-
-        //execute the contructor and check for the Object type and  attributes
-        $aosLineItemGroup = new AOS_Line_Item_Groups();
+        // Execute the constructor and check for the Object type and  attributes
+        $aosLineItemGroup = BeanFactory::newBean('AOS_Line_Item_Groups');
         $this->assertInstanceOf('AOS_Line_Item_Groups', $aosLineItemGroup);
         $this->assertInstanceOf('Basic', $aosLineItemGroup);
         $this->assertInstanceOf('SugarBean', $aosLineItemGroup);
@@ -31,15 +32,7 @@ class AOS_Line_Item_GroupsTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstr
 
     public function testsave_groups()
     {
-        $state = new SuiteCRM\StateSaver();
-        
-        $state->pushTable('aos_line_item_groups');
-        $state->pushTable('tracker');
-        $state->pushTable('aod_index');
-        
-        
-
-        $aosLineItemGroup = new AOS_Line_Item_Groups();
+        $aosLineItemGroup = BeanFactory::newBean('AOS_Line_Item_Groups');
 
         //populate required values
         $post_data = array();
@@ -49,7 +42,7 @@ class AOS_Line_Item_GroupsTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstr
         $post_data['total_amount_usdollar'] = array('100', '200');
 
         //create parent bean for line item groups
-        $aosContract = new AOS_Contracts();
+        $aosContract = BeanFactory::newBean('AOS_Contracts');
         $aosContract->id = 1;
 
         $aosLineItemGroup->save_groups($post_data, $aosContract);
@@ -61,22 +54,11 @@ class AOS_Line_Item_GroupsTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstr
         foreach ($line_item_groups as $lineItem) {
             $lineItem->mark_deleted($lineItem->id);
         }
-        
-        // clean up
-        
-        $state->popTable('aod_index');
-        $state->popTable('tracker');
-        $state->popTable('aos_line_item_groups');
     }
 
     public function testsave()
     {
-        $state = new SuiteCRM\StateSaver();
-        $state->pushTable('aos_line_item_groups');
-        $state->pushTable('tracker');
-        
-        
-        $aosLineItemGroup = new AOS_Line_Item_Groups();
+        $aosLineItemGroup = BeanFactory::newBean('AOS_Line_Item_Groups');
         $aosLineItemGroup->name = 'test';
         $aosLineItemGroup->total_amount = 100;
         $aosLineItemGroup->total_amount_usdollar = 100;
@@ -91,10 +73,5 @@ class AOS_Line_Item_GroupsTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstr
         $aosLineItemGroup->mark_deleted($aosLineItemGroup->id);
         $result = $aosLineItemGroup->retrieve($aosLineItemGroup->id);
         $this->assertEquals(null, $result);
-        
-        // clean up
-        
-        $state->popTable('tracker');
-        $state->popTable('aos_line_item_groups');
     }
 }

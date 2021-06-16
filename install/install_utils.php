@@ -254,7 +254,7 @@ function commitPatch($unlink = false, $type = 'patch')
     $errors = array();
     $files = array();
     global $current_user;
-    $current_user = new User();
+    $current_user = BeanFactory::newBean('Users');
     $current_user->is_admin = '1';
     $old_mod_strings = $mod_strings;
     if (is_dir($base_upgrade_dir)) {
@@ -324,7 +324,7 @@ function commitModules($unlink = false, $type = 'module')
     $errors = array();
     $files = array();
     global $current_user;
-    $current_user = new User();
+    $current_user = BeanFactory::newBean('Users');
     $current_user->is_admin = '1';
     $old_mod_strings = $mod_strings;
     if (is_dir(sugar_cached("upload/upgrades"))) {
@@ -494,7 +494,7 @@ function uninstallLangPack()
 if (!function_exists('getLanguagePackName')) {
     function getLanguagePackName($the_file)
     {
-        require_once("$the_file");
+        require_once((string)$the_file);
         if (isset($app_list_strings["language_pack_name"])) {
             return($app_list_strings["language_pack_name"]);
         }
@@ -791,6 +791,9 @@ function handleSugarConfig()
         $sugar_config['dbconfigoption']                 = array_merge($sugar_config['dbconfigoption'], $_SESSION['setup_db_options']);
     }
 
+    $sugar_config['dbconfig']['collation']          = $_SESSION['setup_db_collation'];
+    $sugar_config['dbconfig']['charset']            = $_SESSION['setup_db_charset'];
+
     $sugar_config['cache_dir']                      = $cache_dir;
     $sugar_config['default_charset']                = $mod_strings['DEFAULT_CHARSET'];
     $sugar_config['default_email_client']           = 'sugar';
@@ -969,16 +972,20 @@ function handleHtaccess()
 {
     global $mod_strings;
     global $sugar_config;
-    $ignoreCase = (substr_count(strtolower($_SERVER['SERVER_SOFTWARE']), 'apache/2') > 0) ? '(?i)' : '';
-    $htaccess_file = ".htaccess";
+    $ignoreCase = '';
+    if (!empty($_SERVER['SERVER_SOFTWARE']) && (substr_count(strtolower($_SERVER['SERVER_SOFTWARE']), 'apache/2') > 0)) {
+        $ignoreCase = '(?i)';
+    }
+    $htaccess_file = '.htaccess';
     $contents = '';
     $basePath = parse_url($sugar_config['site_url'], PHP_URL_PATH);
     if (empty($basePath)) {
         $basePath = '/';
     }
-    $restrict_str = <<<EOQ
+    $cacheDir = $sugar_config['cache_dir'];
 
-# BEGIN SUGARCRM RESTRICTIONS
+    $restrict_str = <<<EOQ
+# BEGIN SUITECRM RESTRICTIONS
 
 EOQ;
     if (ini_get('suhosin.perdir') !== false && strpos(ini_get('suhosin.perdir'), 'e') !== false) {
@@ -987,47 +994,112 @@ EOQ;
     $restrict_str .= <<<EOQ
 RedirectMatch 403 {$ignoreCase}.*\.log$
 RedirectMatch 403 {$ignoreCase}/+not_imported_.*\.txt
-RedirectMatch 403 {$ignoreCase}/+(soap|cache|xtemplate|data|examples|include|log4php|metadata|modules)/+.*\.(php|tpl)
+RedirectMatch 403 {$ignoreCase}/+(soap|cache|xtemplate|data|examples|include|log4php|metadata|modules|vendor)/+.*\.(php|tpl)
 RedirectMatch 403 {$ignoreCase}/+emailmandelivery\.php
+RedirectMatch 403 {$ignoreCase}/+.git
+RedirectMatch 403 {$ignoreCase}/+.{$cacheDir}
+RedirectMatch 403 {$ignoreCase}/+tests
+RedirectMatch 403 {$ignoreCase}/+RoboFile\.php
+RedirectMatch 403 {$ignoreCase}/+composer\.json
+RedirectMatch 403 {$ignoreCase}/+composer\.lock
 RedirectMatch 403 {$ignoreCase}/+upload
 RedirectMatch 403 {$ignoreCase}/+custom/+blowfish
 RedirectMatch 403 {$ignoreCase}/+cache/+diagnostic
-RedirectMatch 403 {$ignoreCase}/+files\.md5$
-# END SUGARCRM RESTRICTIONS
+RedirectMatch 403 {$ignoreCase}/+files\.md5\$
+
 EOQ;
 
     $cache_headers = <<<EOQ
 
 <IfModule mod_rewrite.c>
     Options +SymLinksIfOwnerMatch
+    Options -Indexes
+    Options -MultiViews
     RewriteEngine On
     RewriteBase {$basePath}
     RewriteRule ^cache/jsLanguage/(.._..).js$ index.php?entryPoint=jslang&modulename=app_strings&lang=$1 [L,QSA]
     RewriteRule ^cache/jsLanguage/(\w*)/(.._..).js$ index.php?entryPoint=jslang&modulename=$1&lang=$2 [L,QSA]
 
     # --------- DEPRECATED --------
-    RewriteRule ^api/(.*?)$ lib/API/public/index.php/$1 [L]
     RewriteRule ^api/(.*)$ - [env=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+    RewriteRule ^api/(.*?)$ lib/API/public/index.php/$1 [L]
     # -----------------------------
 
-    RewriteRule ^Api/access_token$ Api/index.php/access_token [L]
-    RewriteRule ^Api/V8/(.*?)$ Api/index.php/V8/$1 [L]
     RewriteRule ^Api/(.*)$ - [env=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+    RewriteRule ^Api/access_token$ Api/index.php [L]
+    RewriteRule ^Api/V8/(.*?)$ Api/index.php [L]
 </IfModule>
-<FilesMatch "\.(jpg|png|gif|js|css|ico)$">
-        <IfModule mod_headers.c>
-                Header set ETag ""
-                Header set Cache-Control "max-age=2592000"
-                Header set Expires "01 Jan 2112 00:00:00 GMT"
-        </IfModule>
-</FilesMatch>
+<IfModule mod_headers.c>
+    Header unset ETag
+    FileETag None
+</IfModule>
+<IfModule mod_headers.c>
+    Header unset X-Powered-By
+    Header always unset X-Powered-By
+</IfModule>
 <IfModule mod_expires.c>
-        ExpiresByType text/css "access plus 1 month"
-        ExpiresByType text/javascript "access plus 1 month"
-        ExpiresByType application/x-javascript "access plus 1 month"
-        ExpiresByType image/gif "access plus 1 month"
-        ExpiresByType image/jpg "access plus 1 month"
-        ExpiresByType image/png "access plus 1 month"
+ ExpiresActive on
+ ExpiresDefault "access plus 1 month"
+
+ # CSS
+ ExpiresByType text/css "access plus 1 year"
+ 
+ # Data
+ ExpiresByType application/atom+xml "access plus 1 hour"
+ ExpiresByType application/rdf+xml "access plus 1 hour"
+ ExpiresByType application/rss+xml "access plus 1 hour"
+ ExpiresByType application/json "access plus 0 seconds"
+ ExpiresByType application/ld+json "access plus 0 seconds"
+ ExpiresByType application/schema+json "access plus 0 seconds"
+ ExpiresByType application/geo+json "access plus 0 seconds"
+ ExpiresByType application/xml "access plus 0 seconds"
+ ExpiresByType text/calendar "access plus 0 seconds"
+ ExpiresByType text/xml "access plus 0 seconds"
+
+ # Favicon
+ ExpiresByType image/x-icon "access plus 1 week"
+
+ # HTML
+ ExpiresByType text/html "access plus 0 seconds"
+
+ # JavaScript
+ ExpiresByType application/javascript "access plus 1 year"
+ ExpiresByType application/x-javascript "access plus 1 year"
+ ExpiresByType text/javascript "access plus 1 year"
+
+ # Markdown
+ ExpiresByType text/markdown "access plus 0 seconds"
+
+ # Media files
+ ExpiresByType audio/ogg "access plus 1 month"
+ ExpiresByType image/bmp "access plus 1 month"
+ ExpiresByType image/gif "access plus 1 month"
+ ExpiresByType image/jpeg "access plus 1 month"
+ ExpiresByType image/jpg "access plus 1 month"
+ ExpiresByType image/png "access plus 1 month"
+ ExpiresByType image/svg+xml "access plus 1 month"
+ ExpiresByType image/webp "access plus 1 month"
+ ExpiresByType video/mp4 "access plus 1 month"
+ ExpiresByType video/ogg "access plus 1 month"
+ ExpiresByType video/webm "access plus 1 month"
+
+ # Fonts
+ ExpiresByType font/eot "access plus 1 month"
+ ExpiresByType font/opentype "access plus 1 month"
+ ExpiresByType font/otf "access plus 1 month"
+ ExpiresByType application/x-font-ttf "access plus 1 month"
+ ExpiresByType font/ttf "access plus 1 month"
+ ExpiresByType application/font-woff "access plus 1 month"
+ ExpiresByType application/x-font-woff "access plus 1 month"
+ ExpiresByType font/woff "access plus 1 month"
+ ExpiresByType application/font-woff2 "access plus 1 month"
+ ExpiresByType font/woff2 "access plus 1 month"
+
+ # Other
+ ExpiresByType text/x-cross-domain-policy "access plus 1 week"
+</IfModule>
+<IfModule mod_headers.c>
+    Header set X-Content-Type-Options "nosniff"
 </IfModule>
 <IfModule mod_rewrite.c>
         RewriteEngine On
@@ -1035,29 +1107,43 @@ EOQ;
         RewriteCond %{REQUEST_URI} (.+)/$
         RewriteRule ^ %1 [R=301,L]
 </IfModule>
+# END SUITECRM RESTRICTIONS
 EOQ;
+
+    // add custom content from current '.htaccess' before "# BEGIN SUITECRM RESTRICTIONS"
+    $haveBegin = false;
     if (file_exists($htaccess_file)) {
-        $fp = fopen($htaccess_file, 'r');
-        $skip = false;
+        $fp = fopen($htaccess_file, 'rb');
         while ($line = fgets($fp)) {
-            if (preg_match("/\s*#\s*BEGIN\s*SUGARCRM\s*RESTRICTIONS/i", $line)) {
-                if (!$skip) {
-                    $contents .= $line;
-                }
-                $skip = true;
-                if (preg_match("/\s*#\s*END\s*SUGARCRM\s*RESTRICTIONS/i", $line)) {
-                    $skip = false;
-                }
+            if (preg_match("/\s*#\s*BEGIN\s*SUITECRM\s*RESTRICTIONS/i",
+                    $line) || preg_match("/\s*#\s*BEGIN\s*SUGARCRM\s*RESTRICTIONS/i", $line)) {
+                $haveBegin = true;
+                break;
+            }
+            $contents .= $line;
+        }
+        fclose($fp);
+    }
+    // add default content
+    $contents .= $restrict_str . $cache_headers;
+    // add custom content from current '.htaccess' after "# END SUITECRM RESTRICTIONS"
+    if ($haveBegin && file_exists($htaccess_file)) {
+        $skip = true;
+        $fp = fopen($htaccess_file, 'rb');
+        while ($line = fgets($fp)) {
+            if (preg_match("/\s*#\s*END\s*SUITECRM\s*RESTRICTIONS/i",
+                    $line) || preg_match("/\s*#\s*END\s*SUGARCRM\s*RESTRICTIONS/i", $line)) {
+                $skip = false;
+                $contents .= PHP_EOL;
+                continue;
             }
             if (!$skip) {
                 $contents .= $line;
             }
-            if (preg_match("/\s*#\s*END\s*SUGARCRM\s*RESTRICTIONS/i", $line)) {
-                $skip = false;
-            }
         }
+        fclose($fp);
     }
-    $status = file_put_contents($htaccess_file, $contents . $restrict_str . $cache_headers);
+    $status = file_put_contents($htaccess_file, $contents);
     if (!$status) {
         echo "<p>{$mod_strings['ERR_PERFORM_HTACCESS_1']}<span class=stop>{$htaccess_file}</span> {$mod_strings['ERR_PERFORM_HTACCESS_2']}</p>\n";
         echo "<p>{$mod_strings['ERR_PERFORM_HTACCESS_3']}</p>\n";
@@ -1214,7 +1300,7 @@ function create_default_users()
     require_once('install/UserDemoData.php');
 
     //Create default admin user
-    $user = new User();
+    $user = BeanFactory::newBean('Users');
     $user->id = 1;
     $user->new_with_id = true;
     $user->last_name = 'Administrator';
@@ -1231,7 +1317,7 @@ function create_default_users()
 
 
     if ($create_default_user) {
-        $default_user = new User();
+        $default_user = BeanFactory::newBean('Users');
         $default_user->last_name = $sugar_config['default_user_name'];
         $default_user->user_name = $sugar_config['default_user_name'];
         $default_user->status = 'Active';
@@ -1290,10 +1376,6 @@ function insert_default_settings()
 
     //insert default tracker settings
     $db->query("INSERT INTO config (category, name, value) VALUES ('tracker', 'Tracker', '1')");
-
-
-
-    $db->query("INSERT INTO config (category, name, value) VALUES ( 'system', 'skypeout_on', '1')");
 }
 
 
@@ -1770,7 +1852,7 @@ function getLangPacks($display_commit = true, $types = array('langpack'), $notic
             $md5_matches = $uh->findByMd5($the_md5);
         }
 
-        if ($manifest['type']!= 'module' || 0 == sizeof($md5_matches)) {
+        if ($manifest['type']!= 'module' || 0 == count($md5_matches)) {
             $name = empty($manifest['name']) ? $file : $manifest['name'];
             $version = empty($manifest['version']) ? '' : $manifest['version'];
             $published_date = empty($manifest['published_date']) ? '' : $manifest['published_date'];
@@ -2006,9 +2088,9 @@ function createWebAddress()
     global $seed;
     global $tlds;
 
-    $one = $seed[rand(0, count($seed)-1)];
-    $two = $seed[rand(0, count($seed)-1)];
-    $tld = $tlds[rand(0, count($tlds)-1)];
+    $one = $seed[mt_rand(0, count($seed)-1)];
+    $two = $seed[mt_rand(0, count($seed)-1)];
+    $tld = $tlds[mt_rand(0, count($tlds)-1)];
 
     return "www.{$one}{$two}{$tld}";
 }
@@ -2022,13 +2104,13 @@ function createEmailAddress()
     global $seed;
     global $tlds;
 
-    $part[0] = $seed[rand(0, count($seed)-1)];
-    $part[1] = $seed[rand(0, count($seed)-1)];
-    $part[2] = $seed[rand(0, count($seed)-1)];
+    $part[0] = $seed[mt_rand(0, count($seed)-1)];
+    $part[1] = $seed[mt_rand(0, count($seed)-1)];
+    $part[2] = $seed[mt_rand(0, count($seed)-1)];
 
-    $tld = $tlds[rand(0, count($tlds)-1)];
+    $tld = $tlds[mt_rand(0, count($tlds)-1)];
 
-    $len = rand(1, 3);
+    $len = mt_rand(1, 3);
 
     $ret = '';
     for ($i=0; $i<$len; $i++) {
@@ -2037,7 +2119,7 @@ function createEmailAddress()
     }
 
     if ($len == 1) {
-        $ret .= rand(10, 99);
+        $ret .= mt_rand(10, 99);
     }
 
     return "{$ret}@example{$tld}";
@@ -2111,7 +2193,7 @@ function post_install_modules()
 {
     if (is_file('modules_post_install.php')) {
         global $current_user, $mod_strings;
-        $current_user = new User();
+        $current_user = BeanFactory::newBean('Users');
         $current_user->is_admin = '1';
         require_once('ModuleInstall/PackageManager/PackageManager.php');
         require_once('modules_post_install.php');
@@ -2143,10 +2225,10 @@ function create_db_user_creds($numChars=10)
     //chars to select from
     $charBKT = "abcdefghijklmnpqrstuvwxyz123456789ABCDEFGHIJKLMNPQRSTUVWXYZ";
     // seed the random number generator
-    srand((double)microtime()*1000000);
+    mt_srand((double)microtime()*1000000);
     $password="";
     for ($i=0;$i<$numChars;$i++) {  // loop and create password
-        $password = $password . substr($charBKT, rand() % strlen($charBKT), 1);
+        $password = $password . substr($charBKT, mt_rand() % strlen($charBKT), 1);
     }
 
     return $password;
@@ -2159,7 +2241,7 @@ function addDefaultRoles($defaultRoles = array())
 
     foreach ($defaultRoles as $roleName=>$role) {
         $ACLField = new ACLField();
-        $role1= new ACLRole();
+        $role1= BeanFactory::newBean('ACLRoles');
         $role1->name = $roleName;
         $role1->description = $roleName." Role";
         $role1_id=$role1->save();
@@ -2187,7 +2269,7 @@ function addDefaultRoles($defaultRoles = array())
  */
 function enableSugarFeeds()
 {
-    $admin = new Administration();
+    $admin = BeanFactory::newBean('Administration');
     $admin->saveSetting('sugarfeed', 'enabled', '1');
 
     foreach (SugarFeed::getAllFeedModules() as $module) {

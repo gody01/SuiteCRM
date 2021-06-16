@@ -1,7 +1,8 @@
 <?php
 
+use SuiteCRM\Test\SuitePHPUnitFrameworkTestCase;
 
-class CallTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
+class CallTest extends SuitePHPUnitFrameworkTestCase
 {
     protected function setUp()
     {
@@ -9,13 +10,13 @@ class CallTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
 
         global $current_user;
         get_sugar_config_defaults();
-        $current_user = new User();
+        $current_user = BeanFactory::newBean('Users');
     }
 
     public function testCall()
     {
-        //execute the contructor and check for the Object type and  attributes
-        $call = new Call();
+        // Execute the constructor and check for the Object type and  attributes
+        $call = BeanFactory::newBean('Calls');
         $this->assertInstanceOf('Call', $call);
         $this->assertInstanceOf('SugarBean', $call);
 
@@ -34,12 +35,7 @@ class CallTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
 
     public function testACLAccess()
     {
-        $state = new SuiteCRM\StateSaver();
-        $state->pushGlobals();
-        
-        
-
-        $call = new Call();
+        $call = BeanFactory::newBean('Calls');
 
         //test without setting recurring_source attribute
         $this->assertTrue($call->ACLAccess(''));
@@ -48,27 +44,11 @@ class CallTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
         //test with recurring_source attribute set
         $call->recurring_source = 'test';
         $this->assertFalse($call->ACLAccess('edit'));
-        
-        // clean up
-        
-        $state->popGlobals();
     }
 
     public function testSaveAndMarkDeleted()
     {
-        // save state
-
-        $state = new \SuiteCRM\StateSaver();
-        $state->pushTable('aod_index');
-        $state->pushTable('aod_indexevent');
-        $state->pushTable('calls');
-        $state->pushTable('tracker');
-        $state->pushTable('vcals');
-        $state->pushGlobals();
-
-        // test
-        
-        $call = new Call();
+        $call = BeanFactory::newBean('Calls');
 
         $call->name = 'test';
         $call->id = $call->save();
@@ -81,20 +61,11 @@ class CallTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
         $call->mark_deleted($call->id);
         $result = $call->retrieve($call->id);
         $this->assertEquals(null, $result);
-        
-        // clean up
-        
-        $state->popGlobals();
-        $state->popTable('vcals');
-        $state->popTable('tracker');
-        $state->popTable('calls');
-        $state->popTable('aod_indexevent');
-        $state->popTable('aod_index');
     }
 
     public function testget_contacts()
     {
-        $call = new Call();
+        $call = BeanFactory::newBean('Calls');
         $call->id = 1;
 
         //execute the method and verify if it returns an array
@@ -104,7 +75,7 @@ class CallTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
 
     public function testget_summary_text()
     {
-        $call = new Call();
+        $call = BeanFactory::newBean('Calls');
 
         //test without setting name
         $this->assertEquals(null, $call->get_summary_text());
@@ -118,7 +89,7 @@ class CallTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
     {
         self::markTestIncomplete('environment dependency');
         
-        $call = new Call();
+        $call = BeanFactory::newBean('Calls');
 
         //test with empty string params
         $expected = "SELECT \n			calls.*,\n			users.user_name as assigned_user_name FROM calls \n			LEFT JOIN users\n			ON calls.assigned_user_id=users.id where  calls.deleted=0   ORDER BY calls.name";
@@ -133,7 +104,7 @@ class CallTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
 
     public function testcreate_export_query()
     {
-        $call = new Call();
+        $call = BeanFactory::newBean('Calls');
 
         //test with empty string params
         $expected = 'SELECT calls.*, users.user_name as assigned_user_name  FROM calls   LEFT JOIN users ON calls.assigned_user_id=users.id where calls.deleted=0 ORDER BY calls.name';
@@ -149,14 +120,7 @@ class CallTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
 
     public function testfill_in_additional_detail_fields()
     {
-        // save state
-
-        $state = new \SuiteCRM\StateSaver();
-        $state->pushGlobals();
-
-        // test
-        
-        $call = new Call();
+        $call = BeanFactory::newBean('Calls');
 
         //execute the method and verify it sets up the intended fields
         $call->fill_in_additional_detail_fields();
@@ -168,28 +132,13 @@ class CallTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
         $this->assertEquals(-1, $call->email_reminder_time);
         $this->assertEquals(false, $call->email_reminder_checked);
         $this->assertEquals('Accounts', $call->parent_type);
-
-        // clean up
-        
-        $state->popGlobals();
     }
 
     public function testget_list_view_data()
     {
         self::markTestIncomplete('environment dependency (php5/php7)');
-        
-        // save state
 
-        $state = new \SuiteCRM\StateSaver();
-        $state->pushGlobals();
-
-        // test
-        //
-        //self::markTestIncomplete('environment dependency');
-                
-        $call = new Call();
-
-        $current_theme = SugarThemeRegistry::current();
+        $call = BeanFactory::newBean('Calls');
 
         $call->assigned_user_id = 1;
         $call->created_by = 1;
@@ -221,15 +170,11 @@ class CallTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
         $this->assertEquals('Administrator', $call->assigned_user_name);
         $this->assertEquals('Administrator', $call->created_by_name);
         $this->assertEquals('Administrator', $call->modified_by_name);
-
-        // clean up
-        
-        $state->popGlobals();
     }
 
     public function testset_notification_body()
     {
-        $call = new Call();
+        $call = BeanFactory::newBean('Calls');
 
         //test with attributes preset and verify template variables are set accordingly
 
@@ -255,7 +200,7 @@ class CallTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
 
     public function testget_call_users()
     {
-        $call = new Call();
+        $call = BeanFactory::newBean('Calls');
         $call->id = 1;
 
         //execute the method and verify it returns an array
@@ -265,7 +210,7 @@ class CallTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
 
     public function testget_invite_calls()
     {
-        $call = new Call();
+        $call = BeanFactory::newBean('Calls');
         $user = new User(1);
 
         //execute the method and verify it returns an array
@@ -275,21 +220,11 @@ class CallTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
 
     public function testset_accept_status()
     {
-        // save state
-
-        $state = new \SuiteCRM\StateSaver();
-        $state->pushTable('calls_users');
-        $state->pushTable('tracker');
-        $state->pushTable('vcals');
-        $state->pushGlobals();
-
-        // test
-        
-        $call = new Call();
+        $call = BeanFactory::newBean('Calls');
         $call->id = 1;
 
         //test for calls Users and delete the created linked records afterwards
-        $user = new User();
+        $user = BeanFactory::newBean('Users');
         $user->id = '1';
 
         $call->set_accept_status($user, 'test');
@@ -298,18 +233,11 @@ class CallTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
         $this->assertEquals(1, count($call_users));
 
         $call->delete_linked($call->id);
-        
-        // clean up
-        
-        $state->popGlobals();
-        $state->popTable('vcals');
-        $state->popTable('tracker');
-        $state->popTable('calls_users');
     }
 
     public function testget_notification_recipients()
     {
-        $call = new Call();
+        $call = BeanFactory::newBean('Calls');
 
         //test without setting any user list
         $result = $call->get_notification_recipients();
@@ -324,7 +252,7 @@ class CallTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
 
     public function testbean_implements()
     {
-        $call = new Call();
+        $call = BeanFactory::newBean('Calls');
         $this->assertEquals(false, $call->bean_implements('')); //test with blank value
         $this->assertEquals(false, $call->bean_implements('test')); //test with invalid value
         $this->assertEquals(true, $call->bean_implements('ACL')); //test with valid value
@@ -333,48 +261,28 @@ class CallTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
     public function testlistviewACLHelper()
     {
         self::markTestIncomplete('environment dependency');
-        
-        // save state
-
-        $state = new \SuiteCRM\StateSaver();
-        $state->pushGlobals();
-
-        // test
-        
-        $call = new Call();
+        $call = BeanFactory::newBean('Calls');
         $expected = array('MAIN' => 'a', 'PARENT' => 'a', 'CONTACT' => 'a');
         $actual = $call->listviewACLHelper();
         $this->assertSame($expected, $actual);
-
-        // clean up
-        
-        $state->popGlobals();
     }
 
     public function testsave_relationship_changes()
     {
-        $state = new SuiteCRM\StateSaver();
-        
-        
-        
-        
-        
-        $call = new Call();
+        $call = BeanFactory::newBean('Calls');
 
-        //execute the method and test if it works and does not throws an exception.
+        // Execute the method and test that it works and doesn't throw an exception.
         try {
             $call->save_relationship_changes(true);
             $this->assertTrue(true);
         } catch (Exception $e) {
             $this->fail($e->getMessage() . "\nTrace:\n" . $e->getTraceAsString());
         }
-        
-        // clean up
     }
 
     public function testgetDefaultStatus()
     {
-        $call = new Call();
+        $call = BeanFactory::newBean('Calls');
         $result = $call->getDefaultStatus();
         $this->assertEquals('Planned', $result);
     }

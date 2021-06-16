@@ -310,9 +310,7 @@ class MBPackage
         }
         if (mkdir_recursive($path)) {
             $manifest = $this->getManifest() . $this->buildInstall($path);
-            $fp = sugar_fopen($this->getBuildDir() . '/manifest.php', 'w');
-            fwrite($fp, $manifest);
-            fclose($fp);
+            sugar_file_put_contents($this->getBuildDir() . '/manifest.php', $manifest);
         }
         if (file_exists('modules/ModuleBuilder/MB/LICENSE.txt')) {
             copy('modules/ModuleBuilder/MB/LICENSE.txt', $this->getBuildDir() . '/LICENSE.txt');
@@ -624,7 +622,7 @@ class MBPackage
      */
     public function getColumnsName()
     {
-        $meta = new FieldsMetaData();
+        $meta = BeanFactory::newBean('EditCustomFields');
         $arr = array();
         foreach ($meta->getFieldDefinitions() as $key => $value) {
             $arr[] = $key;
@@ -653,7 +651,7 @@ class MBPackage
             $pathmod = "$path/SugarModules/modules/$module";
             if (mkdir_recursive($pathmod)) {
                 if (file_exists("custom/modules/$module")) {
-                    copy_recursive("custom/modules/$module", "$pathmod");
+                    copy_recursive("custom/modules/$module", (string)$pathmod);
                     //Don't include cached extension files
                     if (is_dir("$pathmod/Ext")) {
                         rmdir_recursive("$pathmod/Ext");
@@ -950,7 +948,7 @@ class MBPackage
         }
 
         //if file name does not contain the current module name then it is not a relationship file,
-        //or if the module has the current module name twice seperated with an underscore, then this is a relationship within itself
+        //or if the module has the current module name twice separated with an underscore, then this is a relationship within itself
         //in both cases set the shouldExport flag to true
         $lc_mod = strtolower($module);
         $fn = strtolower($fn);
@@ -1039,9 +1037,7 @@ class MBPackage
             if (mkdir_recursive($tmppath)) {
                 copy_recursive($this->getPackageDir(), $tmppath . '/' . $this->name);
                 $manifest = $this->getManifest(true, $export) . $this->exportProjectInstall($package, $export);
-                $fp = sugar_fopen($tmppath . '/manifest.php', 'w');
-                fwrite($fp, $manifest);
-                fclose($fp);
+                sugar_file_put_contents($tmppath . '/manifest.php', $manifest);
                 if (file_exists('modules/ModuleBuilder/MB/LICENSE.txt')) {
                     copy('modules/ModuleBuilder/MB/LICENSE.txt', $tmppath . '/LICENSE.txt');
                 } else {
@@ -1050,9 +1046,7 @@ class MBPackage
                     }
                 }
                 $readme_contents = $this->readme;
-                $readmefp = sugar_fopen($tmppath . '/README.txt', 'w');
-                fwrite($readmefp, $readme_contents);
-                fclose($readmefp);
+                sugar_file_put_contents($tmppath . '/README.txt', $readme_contents);
             }
         }
         require_once 'include/utils/zip_utils.php';

@@ -48,7 +48,7 @@ global $app_list_strings, $app_strings, $current_user;
 
 $mod_strings = return_module_language($GLOBALS['current_language'], 'Users');
 
-$focus = new User();
+$focus = BeanFactory::newBean('Users');
 $focus->retrieve($_REQUEST['record']);
 if (!is_admin($focus)) {
     $sugar_smarty = new Sugar_Smarty();
@@ -74,7 +74,7 @@ if (!is_admin($focus)) {
     $names = array();
     $names = ACLAction::setupCategoriesMatrix($categories);
     if (!empty($names)) {
-        $tdwidth = 100 / sizeof($names);
+        $tdwidth = 100 / count($names);
     }
     $sugar_smarty->assign('APP', $app_list_strings);
     $sugar_smarty->assign('CATEGORIES', $categories);

@@ -43,7 +43,6 @@ if (!defined('sugarEntry') || !sugarEntry) {
  */
 
 
-require_once('include/MVC/View/views/view.detail.php');
 
 class BugsViewDetail extends ViewDetail
 {
@@ -69,7 +68,7 @@ class BugsViewDetail extends ViewDetail
 
     public function display()
     {
-        $admin = new Administration();
+        $admin = BeanFactory::newBean('Administration');
         $admin->retrieveSettings();
         if (isset($admin->settings['portal_on']) && $admin->settings['portal_on']) {
             $this->ss->assign("PORTAL_ENABLED", true);
