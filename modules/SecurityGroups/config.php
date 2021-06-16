@@ -36,7 +36,7 @@ $theme_path = "themes/".$theme."/";
 $image_path = $theme_path."images/";
 
 
-$focus = new Administration();
+$focus = BeanFactory::newBean('Administration');
 $focus->retrieveSettings(); //retrieve all admin settings.
 $GLOBALS['log']->info("SecuritySuite Configure Settings view");
 
@@ -121,8 +121,8 @@ $xtpl->assign('securitysuite_inbound_email', $securitysuite_inbound_email);
 
 
 //default security groups
-$groupFocus = new SecurityGroup();
-$defaultGroups = $groupFocus->retrieveDefaultGroups();
+$groupFocus = BeanFactory::newBean('SecurityGroups');
+$defaultGroups = SecurityGroup::retrieveDefaultGroups();
 $defaultGroup_string = "";
 foreach ($defaultGroups as $default_id => $defaultGroup) {
     $defaultGroup_string .= "
@@ -140,7 +140,7 @@ foreach ($defaultGroups as $default_id => $defaultGroup) {
 }
 $xtpl->assign("DEFAULT_GROUPS", $defaultGroup_string);
 
-$groups = $groupFocus->get_list("name");
+$groups = $groupFocus->get_list('name','',0,999999,999999);
 $options = array(""=>"");
 foreach ($groups['list'] as $group) {
     $options[$group->id] = $group->name;
@@ -153,7 +153,7 @@ $xtpl->assign("SECURITY_GROUP_OPTIONS", get_select_options_with_id($options, "")
 //$dh = new DropDownHelper();
 //$dh->getDropDownModules();
 //$moduleList = array_keys($dh->modules);
-$security_modules = $groupFocus->getSecurityModules();
+$security_modules = SecurityGroup::getSecurityModules();
 
 $security_modules["All"] = $mod_strings["LBL_ALL_MODULES"];//rost fix
 ksort($security_modules);

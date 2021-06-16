@@ -74,8 +74,8 @@ require_once 'include/HTTP_WebDAV_Server/Server.php';
 
         public function __construct()
         {
-            $this->vcal_focus = new vCal();
-            $this->user_focus = new User();
+            $this->vcal_focus = BeanFactory::newBean('vCals');
+            $this->user_focus = BeanFactory::newBean('Users');
         }
 
         /**
@@ -143,10 +143,6 @@ require_once 'include/HTTP_WebDAV_Server/Server.php';
                 }
             } else {
                 $this->path = $this->_urldecode($_SERVER["PATH_INFO"]);
-
-                if (ini_get("magic_quotes_gpc")) {
-                    $this->path = stripslashes($this->path);
-                }
 
                 $query_str = preg_replace('/^\//', '', $this->path);
                 $query_arr =  array();
@@ -380,7 +376,7 @@ require_once 'include/HTTP_WebDAV_Server/Server.php';
             }
 
             // open input stream
-            $options["stream"] = fopen("php://input", "r");
+            $options["stream"] = fopen("php://input", 'rb');
             $content = '';
 
             // read in input stream

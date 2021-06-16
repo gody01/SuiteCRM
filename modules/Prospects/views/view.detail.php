@@ -43,7 +43,6 @@ if (!defined('sugarEntry') || !sugarEntry) {
  */
 
 
-require_once('include/MVC/View/views/view.detail.php');
 
 class ProspectsViewDetail extends ViewDetail
 {
@@ -72,7 +71,7 @@ class ProspectsViewDetail extends ViewDetail
         if (isset($this->bean->lead_id) && !empty($this->bean->lead_id)) {
 
             //get lead name
-            $lead = new Lead();
+            $lead = BeanFactory::newBean('Leads');
             $lead->retrieve($this->bean->lead_id);
             $this->ss->assign('lead', $lead);
         }

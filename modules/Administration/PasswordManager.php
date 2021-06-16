@@ -65,7 +65,7 @@ function clearPasswordSettings()
 
 require_once('modules/Administration/Forms.php');
 echo getClassicModuleTitle(
-        "Administration",
+    "Administration",
     array(
     "<a href='index.php?module=Administration&action=index'>" . translate('LBL_MODULE_NAME', 'Administration') . "</a>",
     $mod_strings['LBL_MANAGE_PASSWORD_TITLE'],
@@ -75,12 +75,13 @@ echo getClassicModuleTitle(
 require_once('modules/Configurator/Configurator.php');
 $configurator = new Configurator();
 $sugarConfig = SugarConfig::getInstance();
-$focus = new Administration();
+$focus = BeanFactory::newBean('Administration');
 $configurator->parseLoggerSettings();
 $valid_public_key = true;
 if (!empty($_POST['saveConfig'])) {
     if ($_POST['captcha_on'] == '1') {
-        $handle = @fopen("http://www.google.com/recaptcha/api/challenge?k=" . $_POST['captcha_public_key'] . "&cachestop=35235354", "r");
+        $handle = @fopen("http://www.google.com/recaptcha/api/challenge?k=" . $_POST['captcha_public_key'] . "&cachestop=35235354",
+            'rb');
         $buffer = '';
         if ($handle) {
             while (!feof($handle)) {
@@ -132,6 +133,7 @@ if (!empty($_POST['saveConfig'])) {
         $configurator->config['passwordsetting']['onelower'] = $_POST['passwordsetting_onelower'];
         $configurator->config['passwordsetting']['onenumber'] = $_POST['passwordsetting_onenumber'];
         $configurator->config['passwordsetting']['onespecial'] = $_POST['passwordsetting_onespecial'];
+		$configurator->config['passwordsetting']['minpwdlength'] = $_POST['passwordsetting_minpwdlength'];
 
         $configurator->saveConfig();
 
@@ -200,7 +202,7 @@ if ($mail->Mailer == 'smtp' && $mail->Host == '') {
     $sugar_smarty->assign("SMTP_SERVER_NOT_SET", '0');
 }
 
-$focus = new InboundEmail();
+$focus = BeanFactory::newBean('InboundEmail');
 $focus->checkImap();
 $storedOptions = unserialize(base64_decode($focus->stored_options));
 $email_templates_arr = get_bean_select_array(true, 'EmailTemplate', 'name', '', 'name', true);

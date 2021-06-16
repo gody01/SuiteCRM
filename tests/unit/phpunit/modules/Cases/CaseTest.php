@@ -1,6 +1,8 @@
 <?php
 
-class aCaseTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
+use SuiteCRM\Test\SuitePHPUnitFrameworkTestCase;
+
+class aCaseTest extends SuitePHPUnitFrameworkTestCase
 {
     protected function setUp()
     {
@@ -8,14 +10,13 @@ class aCaseTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
 
         global $current_user;
         get_sugar_config_defaults();
-        $current_user = new User();
+        $current_user = BeanFactory::newBean('Users');
     }
 
     public function testaCase()
     {
-
-        //execute the contructor and check for the Object type and  attributes
-        $aCase = new aCase();
+        // Execute the constructor and check for the Object type and  attributes
+        $aCase = BeanFactory::newBean('Cases');
         $this->assertInstanceOf('aCase', $aCase);
         $this->assertInstanceOf('Basic', $aCase);
         $this->assertInstanceOf('SugarBean', $aCase);
@@ -31,48 +32,29 @@ class aCaseTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
 
     public function testget_summary_text()
     {
-        $state = new SuiteCRM\StateSaver();
-        
-        
-        
-
-        $aCase = new aCase();
+        $aCase = BeanFactory::newBean('Cases');
         $this->assertEquals(null, $aCase->get_summary_text());
 
         $aCase->name = 'test';
         $this->assertEquals('test', $aCase->get_summary_text());
-        
-        // clean up
     }
 
     public function testlistviewACLHelper()
     {
         self::markTestIncomplete('environment dependency');
-        
-        $state = new SuiteCRM\StateSaver();
-        $state->pushGlobals();
-        
-        $aCase = new aCase();
+
+
+        $aCase = BeanFactory::newBean('Cases');
         $expected = array('MAIN' => 'span', 'ACCOUNT' => 'span');
         $actual = $aCase->listviewACLHelper();
         $this->assertSame($expected, $actual);
-        
-        // clean up
-        
-        $state->popGlobals();
     }
 
     public function testsave_relationship_changes()
     {
-        $state = new SuiteCRM\StateSaver();
-        $state->pushTable('aod_indexevent');
-        
-        
-        
-        
-        $aCase = new aCase();
+        $aCase = BeanFactory::newBean('Cases');
 
-        //execute the method and test if it works and does not throws an exception.
+        // Execute the method and test that it works and doesn't throw an exception.
         try {
             $aCase->save_relationship_changes(true);
             $aCase->save_relationship_changes(false);
@@ -81,57 +63,37 @@ class aCaseTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
         } catch (Exception $e) {
             $this->fail($e->getMessage() . "\nTrace:\n" . $e->getTraceAsString());
         }
-        
-        // clean up
-        
-        $state->popTable('aod_indexevent');
     }
 
     public function testset_case_contact_relationship()
     {
-        $state = new SuiteCRM\StateSaver();
-        
-        
-        
-        
-        
-        $aCase = new aCase();
+        $aCase = BeanFactory::newBean('Cases');
 
-        //execute the method and test if it works and does not throws an exception.
+        // Execute the method and test that it works and doesn't throw an exception.
         try {
             $aCase->set_case_contact_relationship(1);
             $this->assertTrue(true);
         } catch (Exception $e) {
             $this->fail($e->getMessage() . "\nTrace:\n" . $e->getTraceAsString());
         }
-        
-        // clean up
     }
 
     public function testfill_in_additional_list_fields()
     {
-        $state = new SuiteCRM\StateSaver();
-        
-        
-        
-        
-        
-        $aCase = new aCase();
+        $aCase = BeanFactory::newBean('Cases');
 
-        //execute the method and test if it works and does not throws an exception.
+        // Execute the method and test that it works and doesn't throw an exception.
         try {
             $aCase->fill_in_additional_list_fields();
             $this->assertTrue(true);
         } catch (Exception $e) {
             $this->fail($e->getMessage() . "\nTrace:\n" . $e->getTraceAsString());
         }
-        
-        // clean up
     }
 
     public function testfill_in_additional_detail_fields()
     {
-        $aCase = new aCase();
+        $aCase = BeanFactory::newBean('Cases');
         $aCase->assigned_user_id = 1;
         $aCase->created_by = 1;
         $aCase->modified_user_id = 1;
@@ -145,7 +107,7 @@ class aCaseTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
 
     public function testget_contacts()
     {
-        $aCase = new aCase();
+        $aCase = BeanFactory::newBean('Cases');
         $result = $aCase->get_contacts();
         $this->assertFalse(is_array($result));
         $this->assertEquals(false, $result);
@@ -153,7 +115,7 @@ class aCaseTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
 
     public function testget_list_view_data()
     {
-        $aCase = new aCase();
+        $aCase = BeanFactory::newBean('Cases');
         $current_theme = SugarThemeRegistry::current();
         //test without setting attributes
         $expected = array(
@@ -209,7 +171,7 @@ class aCaseTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
 
     public function testbuild_generic_where_clause()
     {
-        $aCase = new aCase();
+        $aCase = BeanFactory::newBean('Cases');
 
         //test with string
         $expected = "(cases.name like 'test%' or accounts.name like 'test%')";
@@ -224,7 +186,7 @@ class aCaseTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
 
     public function testset_notification_body()
     {
-        $aCase = new aCase();
+        $aCase = BeanFactory::newBean('Cases');
 
         $aCase->name = 'test';
         $aCase->priority = 'P1';
@@ -241,7 +203,7 @@ class aCaseTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
 
     public function testbean_implements()
     {
-        $aCase = new aCase();
+        $aCase = BeanFactory::newBean('Cases');
         $this->assertEquals(false, $aCase->bean_implements('')); //test with blank value
         $this->assertEquals(false, $aCase->bean_implements('test')); //test with invalid value
         $this->assertEquals(true, $aCase->bean_implements('ACL')); //test with valid value
@@ -249,17 +211,7 @@ class aCaseTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
 
     public function testsave()
     {
-        $state = new SuiteCRM\StateSaver();
-        $state->pushTable('aod_indexevent');
-        $state->pushTable('aop_case_events');
-        $state->pushTable('cases');
-        $state->pushTable('sugarfeed');
-        $state->pushTable('tracker');
-        $state->pushTable('cases_cstm');
-        $state->pushGlobals();
-        
-        
-        $aCase = new aCase();
+        $aCase = BeanFactory::newBean('Cases');
         $aCase->name = 'test';
         $aCase->priority = 'P1';
 
@@ -273,28 +225,18 @@ class aCaseTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
         $aCase->mark_deleted($aCase->id);
         $result = $aCase->retrieve($aCase->id);
         $this->assertEquals(null, $result);
-        
-        // clean up
-        
-        $state->popGlobals();
-        $state->popTable('cases_cstm');
-        $state->popTable('tracker');
-        $state->popTable('sugarfeed');
-        $state->popTable('cases');
-        $state->popTable('aop_case_events');
-        $state->popTable('aod_indexevent');
     }
 
     public function testgetEmailSubjectMacro()
     {
-        $aCase = new aCase();
+        $aCase = BeanFactory::newBean('Cases');
         $result = $aCase->getEmailSubjectMacro();
         $this->assertEquals('[CASE:%1]', $result);
     }
 
     public function testgetAccount()
     {
-        $aCase = new aCase();
+        $aCase = BeanFactory::newBean('Cases');
         $result = $aCase->getAccount(1);
         $this->assertTrue(is_array($result));
         $this->assertEquals(array('account_name' => '', 'account_id' => ''), $result);

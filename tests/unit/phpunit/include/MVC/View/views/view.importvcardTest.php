@@ -1,10 +1,12 @@
 <?php
 
-class ViewImportvcardTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
+use SuiteCRM\Test\SuitePHPUnitFrameworkTestCase;
+
+class ViewImportvcardTest extends SuitePHPUnitFrameworkTestCase
 {
     public function test__construct()
     {
-        //execute the contructor and check for the Object type and type attribute
+        // Execute the constructor and check for the Object type and type attribute
         $view = new ViewImportvcard();
         $this->assertInstanceOf('ViewImportvcard', $view);
         $this->assertInstanceOf('SugarView', $view);
@@ -20,6 +22,7 @@ class ViewImportvcardTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
         //execute the method with essential parameters set. it should return some html.
         $view = new ViewImportvcard();
         $_REQUEST['module'] = 'Users';
+        $GLOBALS['mod_strings'] = return_module_language($GLOBALS['current_language'], 'Contacts');
         $view->ss = new Sugar_Smarty();
 
         ob_start();

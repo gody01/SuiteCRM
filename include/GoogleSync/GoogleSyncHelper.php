@@ -96,7 +96,8 @@ class GoogleSyncHelper
         $timeArray['gModified'] = strtotime($event->getUpdated());
 
         // Get last modified of SuiteCRM event
-        $timeArray['sModified'] = strtotime($meeting->fetched_row['date_modified'] . ' UTC'); // SuiteCRM stores the timedate as UTC in the DB
+        $date = !empty($meeting->fetched_row['date_modified']) ? $meeting->fetched_row['date_modified']. ' UTC' : 'now';
+        $timeArray['sModified'] = strtotime($date); // SuiteCRM stores the timedate as UTC in the DB
 
         // Get the last sync time of SuiteCRM event
         $timeArray['lastSync'] = 0;
@@ -210,5 +211,21 @@ class GoogleSyncHelper
         }
         $ret = array($reminders, $invitees);
         return $ret;
+    }
+
+    /**
+     * Helper Method for GoogleSyncBase::setUsersGoogleCalendar
+     *
+     * Wipe the Google Sync data (gsync_id and gsync_lastsync fields) from the users SuiteCRM records
+     *
+     * @param string $assigned_user_id The user who's events need to be fixed.
+     *
+     * @return bool True on success, False on failure
+     */
+    public function wipeLocalSyncData($assigned_user_id)
+    {
+        $db = DBManagerFactory::getInstance();
+        $query = "UPDATE meetings SET gsync_id = NULL, gsync_lastsync = NULL WHERE assigned_user_id = {$db->quoted($assigned_user_id)}";
+        $db->query($query);
     }
 }

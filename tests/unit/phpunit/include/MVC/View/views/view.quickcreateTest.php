@@ -1,6 +1,8 @@
 <?php
 
-class ViewQuickcreateTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
+use SuiteCRM\Test\SuitePHPUnitFrameworkTestCase;
+
+class ViewQuickcreateTest extends SuitePHPUnitFrameworkTestCase
 {
     protected function setUp()
     {
@@ -8,7 +10,7 @@ class ViewQuickcreateTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
 
         global $current_user;
         get_sugar_config_defaults();
-        $current_user = new User();
+        $current_user = BeanFactory::newBean('Users');
     }
 
     public function testpreDisplay()
@@ -35,9 +37,7 @@ class ViewQuickcreateTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
         $_REQUEST['record'] = 1;
         $view->preDisplay();
         $this->assertNotSame($request, $_REQUEST);
-        
-        // clean up
-        
+
         if (isset($_request)) {
             $_REQUEST = $_request;
         } else {
@@ -54,19 +54,12 @@ class ViewQuickcreateTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
         if (isset($_REQUEST)) {
             $_request = $_REQUEST;
         }
-        
-        $state = new SuiteCRM\StateSaver();
-        
-        
-        
-        
-        
 
         //execute the method with required child objects and parameters preset. it will return some html.
         $view = new ViewQuickcreate();
 
         $_REQUEST['module'] = 'Accounts';
-        $view->bean = new Account();
+        $view->bean = BeanFactory::newBean('Accounts');
 
         ob_start();
 
@@ -77,11 +70,7 @@ class ViewQuickcreateTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
 
         $this->assertGreaterThan(0, strlen($renderedContent));
         $this->assertEquals(false, json_decode($renderedContent)); //check that it doesn't return json.
-        
-        // clean up
-        
-        
-        
+
         if (isset($_session)) {
             $_SESSION = $_session;
         } else {

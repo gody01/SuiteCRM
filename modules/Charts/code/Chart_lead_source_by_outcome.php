@@ -98,7 +98,7 @@ class Chart_lead_source_by_outcome
             $GLOBALS['log']->fatal($current_user->getPreference('lsbo_lead_sources'));
         }
         //set $datax using selected sales stage keys
-        if (!empty($tempx) && sizeof($tempx) > 0) {
+        if (!empty($tempx) && count($tempx) > 0) {
             foreach ($tempx as $key) {
                 $datax[$key] = $app_list_strings['lead_source_dom'][$key];
                 array_push($selected_datax, $key);
@@ -234,7 +234,7 @@ echo "<p align='center'>".$this->gen_xml($datax, $ids, $cache_file_name, $refres
             $GLOBALS['log']->debug("user_id is: ");
             $GLOBALS['log']->debug($user_id);
             $GLOBALS['log']->debug("cache_file_name is: $cache_file_name");
-            $opp = new Opportunity();
+            $opp = BeanFactory::newBean('Opportunities');
             $where="";
             //build the where clause for the query that matches $user
             $count = count($user_id);
@@ -243,7 +243,7 @@ echo "<p align='center'>".$this->gen_xml($datax, $ids, $cache_file_name, $refres
                 foreach ($user_id as $the_id) {
                     $id[] = "'".$the_id."'";
                 }
-                $ids = join(",", $id);
+                $ids = implode(",", $id);
                 $where .= "opportunities.assigned_user_id IN ($ids) ";
             }
 
@@ -254,7 +254,7 @@ echo "<p align='center'>".$this->gen_xml($datax, $ids, $cache_file_name, $refres
                 foreach ($datay as $key=>$value) {
                     $datayArr[] = "'".$key."'";
                 }
-                $datayArr = join(",", $datayArr);
+                $datayArr = implode(",", $datayArr);
                 $where .= "AND opportunities.lead_source IN	($datayArr) ";
             }
             $query = "SELECT lead_source,sales_stage,sum(amount_usdollar/1000) as total,count(*) as opp_count FROM opportunities ";
@@ -275,7 +275,7 @@ echo "<p align='center'>".$this->gen_xml($datax, $ids, $cache_file_name, $refres
             global $current_user;
             $salesStages = array("Closed Lost"=>$app_list_strings['sales_stage_dom']["Closed Lost"],"Closed Won"=>$app_list_strings['sales_stage_dom']["Closed Won"],"Other"=>$other);
             if ($current_user->getPreference('currency')) {
-                $currency = new Currency();
+                $currency = BeanFactory::newBean('Currencies');
                 $currency->retrieve($current_user->getPreference('currency'));
                 $div = $currency->conversion_rate;
                 $symbol = $currency->symbol;
@@ -385,7 +385,7 @@ echo "<p align='center'>".$this->gen_xml($datax, $ids, $cache_file_name, $refres
             $GLOBALS['log']->fatal($current_user->getPreference('lsbo_lead_sources'));
         }
         //set $datax using selected sales stage keys
-        if (!empty($tempx) && sizeof($tempx) > 0) {
+        if (!empty($tempx) && count($tempx) > 0) {
             foreach ($tempx as $key) {
                 $datax[$key] = $app_list_strings['lead_source_dom'][$key];
                 array_push($selected_datax, $key);
@@ -416,7 +416,7 @@ echo "<p align='center'>".$this->gen_xml($datax, $ids, $cache_file_name, $refres
 
         $user_id = $ids;
 
-        $opp = new Opportunity();
+        $opp = BeanFactory::newBean('Opportunities');
         $where="";
         //build the where clause for the query that matches $user
         $count = count($user_id);
@@ -425,7 +425,7 @@ echo "<p align='center'>".$this->gen_xml($datax, $ids, $cache_file_name, $refres
             foreach ($user_id as $the_id) {
                 $id[] = "'".$the_id."'";
             }
-            $ids = join(",", $id);
+            $ids = implode(",", $id);
             $where .= "opportunities.assigned_user_id IN ($ids) ";
         }
 
@@ -436,7 +436,7 @@ echo "<p align='center'>".$this->gen_xml($datax, $ids, $cache_file_name, $refres
             foreach ($datay as $key=>$value) {
                 $datayArr[] = "'".$key."'";
             }
-            $datayArr = join(",", $datayArr);
+            $datayArr = implode(",", $datayArr);
             $where .= "AND opportunities.lead_source IN	($datayArr) ";
         }
         $query = "SELECT lead_source,sales_stage,sum(amount_usdollar/1000) as total,count(*) as opp_count FROM opportunities ";

@@ -41,13 +41,7 @@ if (!defined('sugarEntry') || !sugarEntry) {
  * display the words "Powered by SugarCRM" and "Supercharged by SuiteCRM".
  */
 
-/*********************************************************************************
 
- * Description:  TODO: To be written.
- * Portions created by SugarCRM are Copyright (C) SugarCRM, Inc.
- * All Rights Reserved.
- * Contributor(s): ______________________________________..
- ********************************************************************************/
 
 require_once('modules/MySettings/TabController.php');
 require_once('include/SugarFields/SugarFieldHandler.php');
@@ -66,7 +60,7 @@ if (isset($_POST['record']) && !is_admin($GLOBALS['current_user']) && !$GLOBALS[
     sugar_die("Unauthorized access to user administration.");
 }
 
-$focus = new Employee();
+$focus = BeanFactory::newBean('Employees');
 
 $focus->retrieve($_POST['record']);
 

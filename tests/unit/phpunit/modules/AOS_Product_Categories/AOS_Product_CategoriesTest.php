@@ -1,6 +1,8 @@
 <?php
 
-class AOS_Product_CategoriesTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
+use SuiteCRM\Test\SuitePHPUnitFrameworkTestCase;
+
+class AOS_Product_CategoriesTest extends SuitePHPUnitFrameworkTestCase
 {
     protected function setUp()
     {
@@ -8,14 +10,13 @@ class AOS_Product_CategoriesTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbs
 
         global $current_user;
         get_sugar_config_defaults();
-        $current_user = new User();
+        $current_user = BeanFactory::newBean('Users');
     }
 
     public function testAOS_Product_Categories()
     {
-
-        //execute the contructor and check for the Object type and  attributes
-        $aosProductCategories = new AOS_Product_Categories();
+        // Execute the constructor and check for the Object type and  attributes
+        $aosProductCategories = BeanFactory::newBean('AOS_Product_Categories');
         $this->assertInstanceOf('AOS_Product_Categories', $aosProductCategories);
         $this->assertInstanceOf('Basic', $aosProductCategories);
         $this->assertInstanceOf('SugarBean', $aosProductCategories);
@@ -30,16 +31,7 @@ class AOS_Product_CategoriesTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbs
 
     public function testsave()
     {
-        $state = new SuiteCRM\StateSaver();
-        $state->pushTable('aod_index');
-        $state->pushTable('aod_indexevent');
-        $state->pushTable('aos_product_categories');
-        $state->pushTable('tracker');
-        $state->pushGlobals();
-        
-        
-
-        $aosProductCategories = new AOS_Product_Categories();
+        $aosProductCategories = BeanFactory::newBean('AOS_Product_Categories');
         $aosProductCategories->name = 'test';
         $aosProductCategories->parent_category_id = 1;
 
@@ -53,13 +45,5 @@ class AOS_Product_CategoriesTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbs
         $aosProductCategories->mark_deleted($aosProductCategories->id);
         $result = $aosProductCategories->retrieve($aosProductCategories->id);
         $this->assertEquals(null, $result);
-        
-        // clean up
-        
-        $state->popGlobals();
-        $state->popTable('tracker');
-        $state->popTable('aos_product_categories');
-        $state->popTable('aod_indexevent');
-        $state->popTable('aod_index');
     }
 }

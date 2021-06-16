@@ -23,7 +23,6 @@ if (!defined('sugarEntry') || !sugarEntry) {
     die('Not A Valid Entry Point');
 }
 
-require_once('include/MVC/View/views/view.detail.php');
 class AM_ProjectTemplatesViewGanttChart extends ViewDetail
 {
 
@@ -48,7 +47,7 @@ class AM_ProjectTemplatesViewGanttChart extends ViewDetail
         echo '<script type="text/javascript" src="include/javascript/qtip/jquery.qtip.min.js"></script>';
 
 
-        $project_template = new AM_ProjectTemplates();
+        $project_template = BeanFactory::newBean('AM_ProjectTemplates');
 
         if (!isset($_REQUEST["record"]) || trim($_REQUEST["record"]) == "") {
             $_REQUEST["record"] = $_REQUEST["project_id"];

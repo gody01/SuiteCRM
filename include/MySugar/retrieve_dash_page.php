@@ -205,6 +205,7 @@ if (empty($pages)) {
 $sugar_smarty = new Sugar_Smarty();
 
 $activePage = isset($_REQUEST['page_id']) && $_REQUEST['page_id'] ? $_REQUEST['page_id'] : 0;
+$activePage = (int)$activePage;
 
 $divPages[] = $activePage;
 
@@ -330,15 +331,18 @@ $sugar_smarty->assign('module', 'Home');
 //custom chart code
 require_once('include/SugarCharts/SugarChartFactory.php');
 $sugarChart = SugarChartFactory::getInstance();
-$resources = $sugarChart->getChartResources();
-$mySugarResources = $sugarChart->getMySugarChartResources();
-$sugar_smarty->assign('chartResources', $resources);
-$sugar_smarty->assign('mySugarChartResources', $mySugarResources);
+if ($sugarChart) {
+    $resources = $sugarChart->getChartResources();
+    $mySugarResources = $sugarChart->getMySugarChartResources();
+    $sugar_smarty->assign('chartResources', $resources);
+    $sugar_smarty->assign('mySugarChartResources', $mySugarResources);
+}
 if (file_exists("custom/include/MySugar/tpls/MySugar2.tpl")) {
     echo $sugar_smarty->fetch('custom/include/MySugar/tpls/MySugar2.tpl');
 } else {
     echo $sugar_smarty->fetch('include/MySugar/tpls/MySugar2.tpl');
 }
+
 
 //init the quickEdit listeners after the dashlets have loaded on home page the first time
 echo"<script>if(typeof(qe_init) != 'undefined'){qe_init();}</script>";

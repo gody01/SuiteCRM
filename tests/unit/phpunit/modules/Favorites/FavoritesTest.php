@@ -1,12 +1,13 @@
 <?php
 
-class FavoritesTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
+use SuiteCRM\Test\SuitePHPUnitFrameworkTestCase;
+
+class FavoritesTest extends SuitePHPUnitFrameworkTestCase
 {
     public function testFavorites()
     {
-
-        //execute the contructor and check for the Object type and  attributes
-        $favorites = new Favorites();
+        // Execute the constructor and check for the Object type and  attributes
+        $favorites = BeanFactory::newBean('Favorites');
         $this->assertInstanceOf('Favorites', $favorites);
         $this->assertInstanceOf('Basic', $favorites);
         $this->assertInstanceOf('SugarBean', $favorites);
@@ -19,23 +20,16 @@ class FavoritesTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
 
     public function testdeleteFavorite()
     {
-        $state = new SuiteCRM\StateSaver();
-        
-        
-        
-
-        $favorites = new Favorites();
+        $favorites = BeanFactory::newBean('Favorites');
 
         //testing with an empty ID
         $result = $favorites->deleteFavorite('');
         $this->assertEquals(false, $result);
-        
-        // clean up
     }
 
     public function testgetFavoriteID()
     {
-        $favorites = new Favorites();
+        $favorites = BeanFactory::newBean('Favorites');
 
         //test with blank string parameters
         $result = $favorites->getFavoriteID('', '');
@@ -48,7 +42,7 @@ class FavoritesTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
 
     public function testgetCurrentUserSidebarFavorites()
     {
-        $favorites = new Favorites();
+        $favorites = BeanFactory::newBean('Favorites');
 
         //test with empty string parameter
         $result = $favorites->getCurrentUserSidebarFavorites();

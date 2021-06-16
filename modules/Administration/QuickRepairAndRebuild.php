@@ -1,14 +1,11 @@
 <?php
-if (!defined('sugarEntry') || !sugarEntry) {
-    die('Not A Valid Entry Point');
-}
 /**
  *
  * SugarCRM Community Edition is a customer relationship management program developed by
  * SugarCRM, Inc. Copyright (C) 2004-2013 SugarCRM Inc.
  *
  * SuiteCRM is an extension to SugarCRM Community Edition developed by SalesAgility Ltd.
- * Copyright (C) 2011 - 2018 SalesAgility Ltd.
+ * Copyright (C) 2011 - 2019 SalesAgility Ltd.
  *
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -40,7 +37,11 @@ if (!defined('sugarEntry') || !sugarEntry) {
  * reasonably feasible for technical reasons, the Appropriate Legal Notices must
  * display the words "Powered by SugarCRM" and "Supercharged by SuiteCRM".
  */
+if (!defined('sugarEntry') || !sugarEntry) {
+    die('Not A Valid Entry Point');
+}
 
+use Api\Core\Config\ApiConfig;
 
 class RepairAndClear
 {
@@ -283,7 +284,7 @@ class RepairAndClear
         if ($this->show_output) {
             echo "<h3>{$mod_strings['LBL_QR_CLEARTEMPLATE']}</h3>";
         }
-        if (!in_array(translate('LBL_ALL_MODULES'), (array)$this->module_list) && !empty($this->module_list)) {
+        if (!empty($this->module_list) && !in_array(translate('LBL_ALL_MODULES'), $this->module_list)) {
             foreach ($this->module_list as $module_name_singular) {
                 $this->_clearCache(sugar_cached('modules/').$this->_getModuleNamePlural($module_name_singular), '.tpl');
             }
@@ -312,7 +313,7 @@ class RepairAndClear
             echo "<h3>{$mod_strings['LBL_QR_CLEARJS']}</h3>";
         }
 
-        if (!in_array(translate('LBL_ALL_MODULES'), $this->module_list) && !empty($this->module_list)) {
+        if (!empty($this->module_list) && !in_array(translate('LBL_ALL_MODULES'), $this->module_list)) {
             foreach ($this->module_list as $module_name_singular) {
                 $this->_clearCache(sugar_cached('modules/').$this->_getModuleNamePlural($module_name_singular), '.js');
             }
@@ -326,7 +327,7 @@ class RepairAndClear
         if ($this->show_output) {
             echo "<h3>{$mod_strings['LBL_QR_CLEARJSLANG']}</h3>";
         }
-        if (!in_array(translate('LBL_ALL_MODULES'), $this->module_list) && !empty($this->module_list)) {
+        if (!empty($this->module_list) && !in_array(translate('LBL_ALL_MODULES'), $this->module_list)) {
             foreach ($this->module_list as $module_name_singular) {
                 $this->_clearCache(sugar_cached('jsLanguage/').$this->_getModuleNamePlural($module_name_singular), '.js');
             }
@@ -378,7 +379,7 @@ class RepairAndClear
         $search_dir=sugar_cached('');
         $src_file = $search_dir . 'modules/unified_search_modules.php';
         if (file_exists($src_file)) {
-            unlink("$src_file");
+            unlink((string)$src_file);
         }
     }
     public function clearExternalAPICache()
@@ -401,7 +402,7 @@ class RepairAndClear
             echo "<h3> {$mod_strings['LBL_QR_REBUILDAUDIT']}</h3>";
         }
 
-        if (!in_array(translate('LBL_ALL_MODULES'), $this->module_list) && !empty($this->module_list)) {
+        if (!empty($this->module_list) && !in_array(translate('LBL_ALL_MODULES'), $this->module_list)) {
             foreach ($this->module_list as $bean_name) {
                 if (isset($beanFiles[$bean_name]) && file_exists($beanFiles[$bean_name])) {
                     require_once($beanFiles[$bean_name]);
@@ -453,7 +454,6 @@ class RepairAndClear
 
     ///////////////////////////////////////////////////////////////
     ////END REPAIR AUDIT TABLES
-
 
     ///////////////////////////////////////////////////////////////
     //// Recursively unlink all files of the given $extension in the given $thedir.

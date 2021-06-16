@@ -41,13 +41,7 @@ if (!defined('sugarEntry') || !sugarEntry) {
  * display the words "Powered by SugarCRM" and "Supercharged by SuiteCRM".
  */
 
-/*********************************************************************************
 
- * Description: TODO:  To be written.
- * Portions created by SugarCRM are Copyright (C) SugarCRM, Inc.
- * All Rights Reserved.
- * Contributor(s): ______________________________________..
- ********************************************************************************/
 
 
 
@@ -159,7 +153,7 @@ class DocumentRevision extends SugarBean
     }
     public function get_summary_text()
     {
-        return "$this->filename";
+        return (string)$this->filename;
     }
 
     public function retrieve($id = -1, $encode=false, $deleted=true)
@@ -224,11 +218,11 @@ class DocumentRevision extends SugarBean
         $localLabels = return_module_language($current_language, 'DocumentRevisions');
 
         // prep - get source Document
-        $document = new Document();
+        $document = BeanFactory::newBean('Documents');
 
         // use passed revision ID
         if (!empty($revId)) {
-            $tempDoc = new DocumentRevision();
+            $tempDoc = BeanFactory::newBean('DocumentRevisions');
             $tempDoc->retrieve($revId);
         } else {
             $tempDoc = $this;

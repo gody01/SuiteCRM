@@ -41,13 +41,7 @@ if (!defined('sugarEntry') || !sugarEntry) {
  * display the words "Powered by SugarCRM" and "Supercharged by SuiteCRM".
  */
 
-/*********************************************************************************
 
- * Description:  TODO: To be written.
- * Portions created by SugarCRM are Copyright (C) SugarCRM, Inc.
- * All Rights Reserved.
- * Contributor(s): ______________________________________..
- ********************************************************************************/
 
 global $theme;
 global $app_strings;
@@ -64,7 +58,7 @@ global $currentModule;
 
 
 $current_module_strings = return_module_language($current_language, 'Users');
-$seed_object = new User();
+$seed_object = BeanFactory::newBean('Users');
 
 $where = "";
 if (isset($_REQUEST['query'])) {

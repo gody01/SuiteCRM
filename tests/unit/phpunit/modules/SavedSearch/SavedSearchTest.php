@@ -1,6 +1,8 @@
 <?php
 
-class SavedSearchTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
+use SuiteCRM\Test\SuitePHPUnitFrameworkTestCase;
+
+class SavedSearchTest extends SuitePHPUnitFrameworkTestCase
 {
     protected function setUp()
     {
@@ -8,14 +10,13 @@ class SavedSearchTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
 
         global $current_user;
         get_sugar_config_defaults();
-        $current_user = new User();
+        $current_user = BeanFactory::newBean('Users');
     }
 
     public function testSavedSearch()
     {
-
-        //execute the contructor and check for the Object type and  attributes
-        $savedSearch = new SavedSearch();
+        // Execute the constructor and check for the Object type and  attributes
+        $savedSearch = BeanFactory::newBean('SavedSearch');
 
         $this->assertInstanceOf('SavedSearch', $savedSearch);
         $this->assertInstanceOf('SugarBean', $savedSearch);
@@ -34,17 +35,10 @@ class SavedSearchTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
 
     public function testgetForm()
     {
-        $state = new SuiteCRM\StateSaver();
-        
-        
-        
-
         $savedSearch = new SavedSearch(array('id', 'name'), 'id', 'ASC');
         $result = $savedSearch->getForm('Leads');
 
         $this->assertGreaterThan(0, strlen($result));
-        
-        // clean up
     }
 
     public function testgetSelect()
@@ -57,7 +51,7 @@ class SavedSearchTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
 
 //    public function testMain()
 //    {
-//        $savedSearch = new SavedSearch();
+//        $savedSearch = BeanFactory::newBean('SavedSearch');
 //
 //        $savedSearch->name = 'test';
 //        $savedSearch->search_module = 'Leads';
@@ -88,8 +82,8 @@ class SavedSearchTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
 
     public function handleSaveAndRetrieveSavedSearch($id)
     {
-        $savedSearch = new SavedSearch();
-        $searchModuleBean = new Lead();
+        $savedSearch = BeanFactory::newBean('SavedSearch');
+        $searchModuleBean = BeanFactory::newBean('Leads');
 
         $_REQUEST['search_module'] = 'Leads';
         $_REQUEST['description'] = 'test description';
@@ -105,7 +99,7 @@ class SavedSearchTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
 
     public function handleDelete($id)
     {
-        $savedSearch = new SavedSearch();
+        $savedSearch = BeanFactory::newBean('SavedSearch');
 
         $savedSearch->handleDelete($id);
 
@@ -115,49 +109,33 @@ class SavedSearchTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
 
     public function returnSavedSearch($id)
     {
-        $state = new SuiteCRM\StateSaver();
-        
-        
-        
-        
-        
-        $savedSearch = new SavedSearch();
+        $savedSearch = BeanFactory::newBean('SavedSearch');
 
-        //execute the method and test if it works and does not throws an exception.
+        // Execute the method and test that it works and doesn't throw an exception.
         try {
             $savedSearch->returnSavedSearch($id);
             $this->assertTrue(true);
         } catch (Exception $e) {
             $this->fail($e->getMessage() . "\nTrace:\n" . $e->getTraceAsString());
         }
-        
-        // clean up
     }
 
     public function returnSavedSearchContents($id)
     {
-        $state = new SuiteCRM\StateSaver();
-        
-        
-        
-        
-        
-        $savedSearch = new SavedSearch();
+        $savedSearch = BeanFactory::newBean('SavedSearch');
 
-        //execute the method and test if it works and does not throws an exception.
+        // Execute the method and test that it works and doesn't throw an exception.
         try {
             $result = $savedSearch->returnSavedSearchContents($id);
             $this->assertTrue(true);
         } catch (Exception $e) {
             $this->fail($e->getMessage() . "\nTrace:\n" . $e->getTraceAsString());
         }
-        
-        // clean up
     }
 
     public function testhandleRedirect()
     {
-        $savedSearch = new SavedSearch();
+        $savedSearch = BeanFactory::newBean('SavedSearch');
 
         $search_query = '&orderBy=&sortOrder=&query=&searchFormTab=&showSSDIV=';
 
@@ -167,14 +145,7 @@ class SavedSearchTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
 
     public function testfill_in_additional_list_fields()
     {
-        // save state
-
-        $state = new \SuiteCRM\StateSaver();
-        $state->pushTable('saved_search');
-
-        // test
-        
-        $savedSearch = new SavedSearch();
+        $savedSearch = BeanFactory::newBean('SavedSearch');
 
         $savedSearch->assigned_user_id = 1;
         $savedSearch->contents = array('search_module' => 'Leads');
@@ -183,23 +154,11 @@ class SavedSearchTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
 
         $this->assertEquals('Leads', $savedSearch->search_module);
         $this->assertEquals('Administrator', $savedSearch->assigned_user_name);
-        
-        // clean up
-        
-        $state->popTable('saved_search');
     }
 
     public function testpopulateRequest()
     {
-        // save state
-
-        $state = new \SuiteCRM\StateSaver();
-        $state->pushTable('saved_search');
-        $state->pushGlobals();
-
-        // test
-        
-        $savedSearch = new SavedSearch();
+        $savedSearch = BeanFactory::newBean('SavedSearch');
 
         $savedSearch->contents = array('search_module' => 'Accounts',
                                         'description' => 'test text',
@@ -208,14 +167,9 @@ class SavedSearchTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
 
         $savedSearch->populateRequest();
 
-        //verify thhat Request parameters are set
+        // verify that Request parameters are set
         $this->assertEquals('Accounts', $_REQUEST['search_module']);
         $this->assertEquals('test text', $_REQUEST['description']);
         $this->assertEquals('some content', $_REQUEST['test_content']);
-
-        // clean up
-        
-        $state->popTable('saved_search');
-        $state->popGlobals();
     }
 }

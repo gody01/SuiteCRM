@@ -41,13 +41,7 @@ if (!defined('sugarEntry') || !sugarEntry) {
  * display the words "Powered by SugarCRM" and "Supercharged by SuiteCRM".
  */
 
-/*********************************************************************************
 
- * Description:  TODO: To be written.
- * Portions created by SugarCRM are Copyright (C) SugarCRM, Inc.
- * All Rights Reserved.
- * Contributor(s): ______________________________________..
- ********************************************************************************/
 
 
 
@@ -58,7 +52,7 @@ global $app_strings;
 global $app_list_strings;
 global $mod_strings;
 
-$admin = new Administration();
+$admin = BeanFactory::newBean('Administration');
 $admin->retrieveSettings("notify");
 
 
@@ -71,7 +65,7 @@ if (isset($_REQUEST['userOffset'])) { // ajax call to lookup timezone
     echo 'userTimezone = "' . TimeDate::guessTimezone($_REQUEST['userOffset']) . '";';
     exit();
 }
-$admin = new Administration();
+$admin = BeanFactory::newBean('Administration');
 $admin->retrieveSettings();
 $sugar_smarty = new Sugar_Smarty();
 $sugar_smarty->assign('MOD', $mod_strings);

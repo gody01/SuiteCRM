@@ -41,13 +41,7 @@ if (!defined('sugarEntry') || !sugarEntry) {
  * display the words "Powered by SugarCRM" and "Supercharged by SuiteCRM".
  */
 
-/*********************************************************************************
 
- * Description:  TODO: To be written.
- * Portions created by SugarCRM are Copyright (C) SugarCRM, Inc.
- * All Rights Reserved.
- * Contributor(s): ______________________________________..
- ********************************************************************************/
 
 
 
@@ -64,7 +58,7 @@ global $theme;
 $current_module_strings = return_module_language($current_language, 'MergeRecords');
 
 
-$focus = new MergeRecord();
+$focus = BeanFactory::newBean('MergeRecords');
 $focus->load_merge_bean($_REQUEST['merge_module'], true, $_REQUEST['record']);
 
 $this->bean = $focus->merge_bean;

@@ -1,7 +1,8 @@
 <?php
 
+use SuiteCRM\Test\SuitePHPUnitFrameworkTestCase;
 
-class AdministrationTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
+class AdministrationTest extends SuitePHPUnitFrameworkTestCase
 {
     protected function setUp()
     {
@@ -9,14 +10,13 @@ class AdministrationTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
 
         global $current_user;
         get_sugar_config_defaults();
-        $current_user = new User();
+        $current_user = BeanFactory::newBean('Users');
     }
 
     public function testAdministration()
     {
-
-        //execute the contructor and check for the Object type and type attribute
-        $admin = new Administration();
+        // Execute the constructor and check for the Object type and type attribute
+        $admin = BeanFactory::newBean('Administration');
         $this->assertInstanceOf('Administration', $admin);
         $this->assertInstanceOf('SugarBean', $admin);
 
@@ -26,12 +26,12 @@ class AdministrationTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
         $this->assertAttributeEquals(true, 'new_schema', $admin);
         $this->assertAttributeEquals(true, 'disable_custom_fields', $admin);
         $this->assertAttributeEquals(array('disclosure', 'notify', 'system', 'portal', 'proxy', 'massemailer', 'ldap', 'captcha', 'sugarpdf'), 'config_categories', $admin);
-        $this->assertAttributeEquals(array('notify_send_by_default', 'mail_smtpauth_req', 'notify_on', 'portal_on', 'skypeout_on', 'system_mailmerge_on', 'proxy_auth', 'proxy_on', 'system_ldap_enabled', 'captcha_on'), 'checkbox_fields', $admin);
+        $this->assertAttributeEquals(array('notify_send_by_default', 'mail_smtpauth_req', 'notify_on', 'portal_on', 'system_mailmerge_on', 'proxy_auth', 'proxy_on', 'system_ldap_enabled', 'captcha_on'), 'checkbox_fields', $admin);
     }
 
     public function testretrieveSettings()
     {
-        $admin = new Administration();
+        $admin = BeanFactory::newBean('Administration');
 
         //execute with default parameters and test if it returns object itself
         $result = $admin->retrieveSettings();
@@ -50,7 +50,7 @@ class AdministrationTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
         $this->assertSame($admin, $result);
 
         //execute with a valid category and clean=true and test if it returns object itself.
-        $admin = new Administration();
+        $admin = BeanFactory::newBean('Administration');
         $result = $admin->retrieveSettings('notify', true);
         $this->assertInstanceOf('Administration', $result);
         $this->assertSame($admin, $result);
@@ -59,16 +59,9 @@ class AdministrationTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
     public function testsaveConfig()
     {
         self::markTestIncomplete('environment dependency');
-        
-        // save state
-
-        $state = new \SuiteCRM\StateSaver();
-        $state->pushTable('config');
-        $state->pushGlobals();
 
         // test
-        
-        $admin = new Administration();
+        $admin = BeanFactory::newBean('Administration');
 
         $_POST['proxy_test'] = 'test value';
 
@@ -76,42 +69,25 @@ class AdministrationTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
         $admin->saveConfig();
         $actual = $admin->settings['proxy_test'];
         $this->assertEquals($actual, 'test value');
-        
-        // clean up
-        
-        $state->popGlobals();
-        $state->popTable('config');
     }
 
     public function testsaveSetting()
     {
-        // save state
-        
         self::markTestIncomplete('environment dependency');
 
-        $state = new \SuiteCRM\StateSaver();
-        $state->pushTable('config');
-        $state->pushGlobals();
-
         // test
-        
-        $admin = new Administration();
+        $admin = BeanFactory::newBean('Administration');
 
         //execute the method and verify that sets the correct config key
         $result = $admin->saveSetting('category', 'key', 'test value');
         $admin->retrieveSettings('category');
         $actual = $admin->settings['category_key'];
         $this->assertEquals($actual, 'test value');
-        
-        // clean up
-        
-        $state->popGlobals();
-        $state->popTable('config');
     }
 
     public function testget_config_prefix()
     {
-        $admin = new Administration();
+        $admin = BeanFactory::newBean('Administration');
 
         //test with empty string
         $expected = array(false, false);

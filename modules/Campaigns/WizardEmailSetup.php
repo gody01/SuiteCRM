@@ -64,10 +64,10 @@ global $theme, $currentModule, $sugar_config;
 
 
 //get administration bean for email setup
-$focus = new Administration();
+$focus = BeanFactory::newBean('Administration');
 $focus->retrieveSettings(); //retrieve all admin settings.
 $GLOBALS['log']->info("Mass Emailer(EmailMan) ConfigureSettings view");
-$email = new Email();
+$email = BeanFactory::newBean('Emails');
 $ss = new Sugar_Smarty();
 $ss->assign("MOD", $mod_strings);
 $ss->assign("APP", $app_strings);
@@ -195,7 +195,7 @@ if (!$imap->isAvailable()) {
     }
     
     //this function will copy as much information as possible from the first step in wizard
-    //onto the the second step in wizard
+    //onto the second step in wizard
     function copy_down() {
         document.getElementById("name").value = document.getElementById("notify_fromname").value;
         document.getElementById("email_user").value = document.getElementById("notify_fromaddress").value;

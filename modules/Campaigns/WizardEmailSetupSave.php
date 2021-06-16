@@ -41,13 +41,7 @@ if (!defined('sugarEntry') || !sugarEntry) {
  * display the words "Powered by SugarCRM" and "Supercharged by SuiteCRM".
  */
 
-/*********************************************************************************
 
- * Description:  TODO: To be written.
- * Portions created by SugarCRM are Copyright (C) SugarCRM, Inc.
- * All Rights Reserved.
- * Contributor(s): ______________________________________..
- ********************************************************************************/
 require_once('include/formbase.php');
 
 
@@ -55,7 +49,7 @@ global $mod_strings;
 
 
 //get new administration bean for setup
-$focus = new Administration();
+$focus = BeanFactory::newBean('Administration');
 $camp_steps[] = 'wiz_step_';
 $camp_steps[] = 'wiz_step1_';
 $camp_steps[] = 'wiz_step2_';

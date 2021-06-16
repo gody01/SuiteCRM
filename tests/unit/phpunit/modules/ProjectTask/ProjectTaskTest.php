@@ -1,6 +1,8 @@
 <?php
 
-class ProjectTaskTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
+use SuiteCRM\Test\SuitePHPUnitFrameworkTestCase;
+
+class ProjectTaskTest extends SuitePHPUnitFrameworkTestCase
 {
     protected function setUp()
     {
@@ -8,12 +10,12 @@ class ProjectTaskTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
 
         global $current_user;
         get_sugar_config_defaults();
-        $current_user = new User();
+        $current_user = BeanFactory::newBean('Users');
     }
     
     public function testcreate_export_query()
     {
-        $projectTask = new ProjectTask();
+        $projectTask = BeanFactory::newBean('ProjectTask');
 
         //test with empty string params
         $expected = "SELECT
@@ -34,8 +36,8 @@ class ProjectTaskTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
 
     public function testProjectTask()
     {
-        //execute the contructor and check for the Object type and  attributes
-        $projectTask = new ProjectTask();
+        // Execute the constructor and check for the Object type and  attributes
+        $projectTask = BeanFactory::newBean('ProjectTask');
 
         $this->assertInstanceOf('ProjectTask', $projectTask);
         $this->assertInstanceOf('SugarBean', $projectTask);
@@ -52,12 +54,7 @@ class ProjectTaskTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
 
     public function testskipParentUpdate()
     {
-        $state = new SuiteCRM\StateSaver();
-        
-        
-        
-
-        $projectTask = new ProjectTask();
+        $projectTask = BeanFactory::newBean('ProjectTask');
 
         //test with default parameter value
         $projectTask->skipParentUpdate();
@@ -66,24 +63,11 @@ class ProjectTaskTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
         //test with parameter value  = true
         $projectTask->skipParentUpdate(false);
         $this->assertAttributeEquals(false, '_skipParentUpdate', $projectTask);
-        
-        // clean up
     }
 
     public function testsave()
     {
-        // save state
-
-        $state = new \SuiteCRM\StateSaver();
-        $state->pushTable('aod_indexevent');
-        $state->pushTable('project_task');
-        $state->pushTable('tracker');
-        $state->pushTable('aod_index');
-        $state->pushGlobals();
-
-        // test
-        
-        $projectTask = new ProjectTask();
+        $projectTask = BeanFactory::newBean('ProjectTask');
 
         $projectTask->name = 'test';
         //$projectTask->project_id = "1";
@@ -104,19 +88,11 @@ class ProjectTaskTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
         $projectTask->mark_deleted($projectTask->id);
         $result = $projectTask->retrieve($projectTask->id);
         $this->assertEquals(null, $result);
-        
-        // clean up
-        
-        $state->popGlobals();
-        $state->popTable('aod_index');
-        $state->popTable('tracker');
-        $state->popTable('project_task');
-        $state->popTable('aod_indexevent');
     }
 
     public function _get_depends_on_name($id)
     {
-        $projectTask = new ProjectTask();
+        $projectTask = BeanFactory::newBean('ProjectTask');
 
         $result = $projectTask->_get_depends_on_name($id);
 
@@ -127,28 +103,20 @@ class ProjectTaskTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
 
     public function testupdateParentProjectTaskPercentage()
     {
-        $state = new SuiteCRM\StateSaver();
-        
-        
-        
-        
-        
-        $projectTask = new ProjectTask();
+        $projectTask = BeanFactory::newBean('ProjectTask');
 
-        //execute the method and test if it works and does not throws an exception.
+        // Execute the method and test that it works and doesn't throw an exception.
         try {
             $projectTask->updateParentProjectTaskPercentage();
             $this->assertTrue(true);
         } catch (Exception $e) {
             $this->fail($e->getMessage() . "\nTrace:\n" . $e->getTraceAsString());
         }
-        
-        // clean up
     }
 
     public function testgetProjectTaskParent()
     {
-        $projectTask = new ProjectTask();
+        $projectTask = BeanFactory::newBean('ProjectTask');
 
         $projectTask->parent_task_id = 1;
         $result = $projectTask->getProjectTaskParent();
@@ -157,7 +125,7 @@ class ProjectTaskTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
 
     public function testgetAllSubProjectTasks()
     {
-        $projectTask = new ProjectTask();
+        $projectTask = BeanFactory::newBean('ProjectTask');
 
         $result = $projectTask->getAllSubProjectTasks();
         $this->assertTrue(is_array($result));
@@ -165,31 +133,20 @@ class ProjectTaskTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
 
     public function testupdateStatistic()
     {
-        $state = new SuiteCRM\StateSaver();
-        
-        $state->pushGlobals();
-        
-        
-        
-        
-        $projectTask = new ProjectTask();
+        $projectTask = BeanFactory::newBean('ProjectTask');
 
-        //execute the method and test if it works and does not throws an exception.
+        // Execute the method and test that it works and doesn't throw an exception.
         try {
             $projectTask->updateStatistic();
             $this->assertTrue(true);
         } catch (Exception $e) {
             $this->fail($e->getMessage() . "\nTrace:\n" . $e->getTraceAsString());
         }
-        
-        // clean up
-        
-        $state->popGlobals();
     }
 
     public function testfill_in_additional_detail_fields()
     {
-        $projectTask = new ProjectTask();
+        $projectTask = BeanFactory::newBean('ProjectTask');
 
         //test without setting assigned_user_id
         $projectTask->fill_in_additional_detail_fields();
@@ -198,26 +155,12 @@ class ProjectTaskTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
         //test with assigned_user_id set
         $projectTask->assigned_user_id = 1;
         $projectTask->fill_in_additional_detail_fields();
-        $this->assertEquals('Administrator', $projectTask->assigned_user_name);
-    }
-
-    public function testfill_in_additional_list_fields()
-    {
-        $projectTask = new ProjectTask();
-
-        //test without setting assigned_user_id
-        $projectTask->fill_in_additional_list_fields();
-        $this->assertEquals('', $projectTask->assigned_user_name);
-
-        //test with assigned_user_id set
-        $projectTask->assigned_user_id = 1;
-        $projectTask->fill_in_additional_list_fields();
         $this->assertEquals('Administrator', $projectTask->assigned_user_name);
     }
 
     public function testget_summary_text()
     {
-        $projectTask = new ProjectTask();
+        $projectTask = BeanFactory::newBean('ProjectTask');
 
         //test without setting name
         $this->assertEquals(null, $projectTask->get_summary_text());
@@ -229,7 +172,7 @@ class ProjectTaskTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
 
     public function test_get_project_name()
     {
-        $projectTask = new ProjectTask();
+        $projectTask = BeanFactory::newBean('ProjectTask');
 
         //test with a empty string
         $result = $projectTask->_get_project_name('');
@@ -242,7 +185,7 @@ class ProjectTaskTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
 
     public function test_get_parent_name()
     {
-        $projectTask = new ProjectTask();
+        $projectTask = BeanFactory::newBean('ProjectTask');
 
         //test with a empty string
         $result = $projectTask->_get_parent_name('');
@@ -255,7 +198,7 @@ class ProjectTaskTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
 
     public function testbuild_generic_where_clause()
     {
-        $projectTask = new ProjectTask();
+        $projectTask = BeanFactory::newBean('ProjectTask');
 
         //test with empty string params
         $expected = "project_task.name like '%'";
@@ -268,35 +211,9 @@ class ProjectTaskTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
         $this->assertSame($expected, $actual);
     }
 
-    public function testget_list_view_data()
-    {
-        $projectTask = new ProjectTask();
-
-        $projectTask->name = 'tes user';
-        $projectTask->description = 'test assigned user';
-        $projectTask->parent_type = 'Project';
-
-        $expected = array(
-                'NAME' => 'tes user',
-                'DESCRIPTION' => 'test assigned user',
-                'ORDER_NUMBER' => '1',
-                'DELETED' => 0,
-                'UTILIZATION' => 100,
-                'PARENT_MODULE' => 'Project',
-                'FIRST_NAME' => '',
-                'LAST_NAME' => '',
-                'CONTACT_NAME' => ' ',
-                'TITLE' => ':  ',
-        );
-
-        $actual = $projectTask->get_list_view_data();
-
-        $this->assertSame($expected, $actual);
-    }
-
     public function testbean_implements()
     {
-        $projectTask = new ProjectTask();
+        $projectTask = BeanFactory::newBean('ProjectTask');
 
         $this->assertEquals(false, $projectTask->bean_implements('')); //test with blank value
         $this->assertEquals(false, $projectTask->bean_implements('test')); //test with invalid value
@@ -305,29 +222,16 @@ class ProjectTaskTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
 
     public function testlistviewACLHelper()
     {
-        // save state
-
-        $state = new \SuiteCRM\StateSaver();
-        $state->pushGlobals();
-
-        // test
-        
-        $projectTask = new ProjectTask();
+        $projectTask = BeanFactory::newBean('ProjectTask');
 
         $expected = array('MAIN' => 'a', 'PARENT' => 'a', 'PARENT_TASK' => 'a');
         $actual = $projectTask->listviewACLHelper();
         $this->assertSame($expected, $actual);
-        
-        // clean up
-        
-        $state->popGlobals();
     }
-
-
 
     public function testgetUtilizationDropdown()
     {
-        $projectTask = new ProjectTask();
+        $projectTask = BeanFactory::newBean('ProjectTask');
 
         $expected = "<select name=\"utilization\">\n<OPTION value='0'>none</OPTION>\n<OPTION value='25'>25</OPTION>\n<OPTION value='50'>50</OPTION>\n<OPTION value='75'>75</OPTION>\n<OPTION value='100'>100</OPTION></select>";
         $actual = getUtilizationDropdown($projectTask, 'utilization', '0', 'EditView');
