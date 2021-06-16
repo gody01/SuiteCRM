@@ -1,14 +1,11 @@
 <?php
-if (!defined('sugarEntry') || !sugarEntry) {
-    die('Not A Valid Entry Point');
-}
 /**
  *
  * SugarCRM Community Edition is a customer relationship management program developed by
  * SugarCRM, Inc. Copyright (C) 2004-2013 SugarCRM Inc.
  *
  * SuiteCRM is an extension to SugarCRM Community Edition developed by SalesAgility Ltd.
- * Copyright (C) 2011 - 2018 SalesAgility Ltd.
+ * Copyright (C) 2011 - 2021 SalesAgility Ltd.
  *
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -41,8 +38,9 @@ if (!defined('sugarEntry') || !sugarEntry) {
  * display the words "Powered by SugarCRM" and "Supercharged by SuiteCRM".
  */
 
-
-
+if (!defined('sugarEntry') || !sugarEntry) {
+    die('Not A Valid Entry Point');
+}
 
 require_once('include/utils/progress_bar_utils.php');
 require_once('include/utils/zip_utils.php');
@@ -168,7 +166,7 @@ function array_as_table($header, $values)
         $contents .= "<tr>";
         foreach ($field as $item) {
             if (is_array($item)) {
-                $item = join(",", $item);
+                $item = implode(",", $item);
             }
             $contents .= "<td class=\"tabDetailViewDF\">$item</td>";
         }
@@ -592,14 +590,10 @@ function executemd5($filesmd5, $md5calculated)
     global $skip_md5_diff;
     global $sod_guid;
 
-    $md5_string_calculated = [];
     $md5_string = [];
 
     if (file_exists('files.md5')) {
         include 'files.md5';
-        if (isset($md5_string_calculated)) {
-            $md5_string = $md5_string_calculated;
-        }
     }
     //create dir for md5s
     $md5_directory = create_cache_directory('diagnostic/' . $sod_guid . '/diagnostic' . $curdatetime . '/md5/');
@@ -613,8 +607,11 @@ function executemd5($filesmd5, $md5calculated)
     $md5_string_calculated = generateMD5array('./');
 
     if ($md5calculated) {
-        write_array_to_file('md5_string_calculated', $md5_string_calculated,
-            $md5_directory . 'md5_array_calculated.php');
+        write_array_to_file(
+            'md5_string_calculated',
+            $md5_string_calculated,
+            $md5_directory . 'md5_array_calculated.php'
+        );
     }
 
 
@@ -647,14 +644,15 @@ function executevardefs()
 
     ob_start();
     foreach ($beanList as $beanz) {
-        // echo "Module: ".$beanz."<br>";
 
-        $path_parts = pathinfo($beanFiles[ $beanz ]);
-        $vardefFileName = $path_parts[ 'dirname' ]."/vardefs.php";
-        if (file_exists($vardefFileName)) {
-            // echo "<br>".$vardefFileName."<br>";
+        if(!empty($beanFiles[ $beanz ])) {
+            $path_parts = pathinfo($beanFiles[$beanz]);
+            $vardefFileName = $path_parts['dirname'] . "/vardefs.php";
+            if (file_exists($vardefFileName)) {
+                include_once($vardefFileName);
+            }
         }
-        include_once($vardefFileName);
+
     }
 
     echo "<html lang='en'>";
@@ -668,8 +666,8 @@ function executevardefs()
     $tables = array();
     foreach ($dictionary as $vardef) {
         $tables[] = $vardef['table'];
-        $fields[$vardef['table']] = $vardef['fields'];
-        $comments[$vardef['table']] = $vardef['comment'];
+        $fields[$vardef['table']] = !empty($vardef['fields']) ? $vardef['fields'] : [];
+        $comments[$vardef['table']] = !empty($vardef['comment']) ? $vardef['comment'] : '';
     }
 
     asort($tables);
@@ -698,12 +696,12 @@ function executevardefs()
             if (isset($v[ 'source' ])) {
                 continue;
             }
-            $columnname = $v[ 'name' ];
-            $columntype = $v[ 'type' ];
-            $columndbtype = $v[ 'dbType' ];
-            $columnlen = $v[ 'len' ];
-            $columncomment = $v[ 'comment' ];
-            $columnrequired = $v[ 'required' ];
+            $columnname = !empty($v['name']) ? $v['name'] : '';
+            $columntype = !empty($v['type']) ? $v['type'] : '';
+            $columndbtype = !empty($v['dbType']) ? $v['dbType'] : '';
+            $columnlen = !empty($v['len']) ? $v['len'] : '';
+            $columncomment = !empty($v['comment']) ? $v['comment'] : '';
+            $columnrequired = !empty($v['required']) ? $v['required'] : '';
 
             if (empty($columnlen)) {
                 $columnlen = '<i>n/a</i>';
@@ -766,7 +764,7 @@ function finishDiag()
     deleteDir($cacheDir);
 
 
-    print "<a href=\"index.php?module=Administration&action=DiagnosticDownload&guid=$sod_guid&time=$curdatetime&to_pdf=1\">".$mod_strings['LBL_DIAGNOSTIC_DOWNLOADLINK']."</a><BR>";
+    print "<a href=\"index.php?module=Administration&action=DiagnosticDelete&file=diagnostic".$curdatetime."&guid=".$sod_guid."\">".$mod_strings['LBL_DIAGNOSTIC_DELETELINK']."</a><br>";
 }
 
 //BEGIN check for what we are executing

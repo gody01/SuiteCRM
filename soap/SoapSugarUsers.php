@@ -70,9 +70,8 @@ function is_user_admin($session)
         global $current_user;
 
         return is_admin($current_user);
-    } else {
-        return 0;
     }
+    return 0;
 }
 
 
@@ -98,10 +97,10 @@ function login($user_auth, $application)
     global $sugar_config, $system_config;
 
     $error = new SoapError();
-    $user = new User();
+    $user = BeanFactory::newBean('Users');
     $success = false;
     //rrs
-    $system_config = new Administration();
+    $system_config = BeanFactory::newBean('Administration');
     $system_config->retrieveSettings('system');
     $authController = new AuthenticationController();
     //rrs
@@ -137,18 +136,17 @@ function login($user_auth, $application)
             $GLOBALS['logic_hook']->call_custom_logic('Users', 'login_failed');
 
             return array('id' => -1, 'error' => $error);
-        } else {
-            if (function_exists('openssl_decrypt')) {
-                $password = decrypt_string($user_auth['password']);
-                $authController = new AuthenticationController();
-                if ($authController->login(
-                    $user_auth['user_name'],
-                        $password
+        }
+        if (function_exists('openssl_decrypt')) {
+            $password = decrypt_string($user_auth['password']);
+            $authController = new AuthenticationController();
+            if ($authController->login(
+                $user_auth['user_name'],
+                $password
                 ) && isset($_SESSION['authenticated_user_id'])
                 ) {
-                    $success = true;
-                } // if
-            }
+                $success = true;
+            } // if
         }
     } // else if
 
@@ -218,7 +216,7 @@ function validate_authenticated($session_id)
         if (!empty($_SESSION['is_valid_session']) && is_valid_ip_address('ip_address') && $_SESSION['type'] == 'user') {
             global $current_user;
 
-            $current_user = new User();
+            $current_user = BeanFactory::newBean('Users');
             $current_user->retrieve($_SESSION['user_id']);
             login_success();
 
@@ -261,10 +259,9 @@ function is_valid_ip_address($session_var)
                     if ($session_parts[$i] == $client_parts[$i]) {
                         $classCheck = 1;
                         continue;
-                    } else {
-                        $classCheck = 0;
-                        break;
                     }
+                    $classCheck = 0;
+                    break;
                 }
             }
             // we have a different IP address
@@ -475,10 +472,10 @@ function get_entry_list(
     $field_list = filter_return_list($field_list, $select_fields, $module_name);
 
     // Calculate the offset for the start of the next page
-    $next_offset = $offset + sizeof($output_list);
+    $next_offset = $offset + count($output_list);
 
     return array(
-        'result_count' => sizeof($output_list),
+        'result_count' => count($output_list),
         'next_offset' => $next_offset,
         'field_list' => $field_list,
         'entry_list' => $output_list,
@@ -663,9 +660,8 @@ function set_entry($session, $module_name, $name_value_list)
                 $error->set_error('no_access');
 
                 return array('id' => -1, 'error' => $error->get_soap_array());
-            } else {
-                break;
             }
+            break;
         }
     }
     foreach ($name_value_list as $value) {
@@ -780,7 +776,7 @@ function get_note_attachment($session, $id)
         return array('result_count' => -1, 'entry_list' => array(), 'error' => $error->get_soap_array());
     }
 
-    $note = new Note();
+    $note = BeanFactory::newBean('Notes');
 
     $note->retrieve($id);
     if (!$note->ACLAccess('DetailView')) {
@@ -938,7 +934,7 @@ function get_related_notes($session, $module_name, $module_id, $select_fields)
     $field_list = filter_field_list($field_list, $select_fields, $module_name);
 
     return array(
-        'result_count' => sizeof($output_list),
+        'result_count' => count($output_list),
         'next_offset' => 0,
         'field_list' => $field_list,
         'entry_list' => $output_list,
@@ -1026,15 +1022,14 @@ function get_module_fields($session, $module_name)
     $seed = new $class_name();
     if ($seed->ACLAccess('ListView', true) || $seed->ACLAccess('DetailView', true) || $seed->ACLAccess(
         'EditView',
-            true
+        true
     )
     ) {
         return get_return_module_fields($seed, $module_name, $error);
-    } else {
-        $error->set_error('no_access');
-
-        return array('module_fields' => $module_fields, 'error' => $error->get_soap_array());
     }
+    $error->set_error('no_access');
+
+    return array('module_fields' => $module_fields, 'error' => $error->get_soap_array());
 }
 
 $server->register(
@@ -1090,7 +1085,7 @@ function update_portal_user($session, $portal_name, $name_value_list)
 
         return $error->get_soap_array();
     }
-    $contact = new Contact();
+    $contact = BeanFactory::newBean('Contacts');
 
     $searchBy = array('deleted' => 0);
     foreach ($name_value_list as $name_value) {
@@ -1137,9 +1132,8 @@ function get_user_id($session)
         global $current_user;
 
         return $current_user->id;
-    } else {
-        return '-1';
     }
+    return '-1';
 }
 
 $server->register(
@@ -1161,9 +1155,8 @@ function get_user_team_id($session)
 {
     if (validate_authenticated($session)) {
         return 1;
-    } else {
-        return '-1';
     }
+    return '-1';
 }
 
 $server->register(
@@ -1185,9 +1178,8 @@ function get_user_team_set_id($session)
 {
     if (validate_authenticated($session)) {
         return 1;
-    } else {
-        return '-1';
     }
+    return '-1';
 }
 
 $server->register(
@@ -1261,13 +1253,12 @@ $server->register(
  */
 function get_server_version()
 {
-    $admin = new Administration();
+    $admin = BeanFactory::newBean('Administration');
     $admin->retrieveSettings('info');
     if (isset($admin->settings['info_sugar_version'])) {
         return $admin->settings['info_sugar_version'];
-    } else {
-        return '1.0';
     }
+    return '1.0';
 }
 
 $server->register(
@@ -1366,6 +1357,22 @@ function get_relationships($session, $module_name, $module_id, $related_module, 
     if (!empty($related_module_query)) {
         $sql .= " AND ( {$related_module_query} )";
     }
+
+	/* BEGIN - SECURITY GROUPS */
+	global $current_user;
+	if($mod->bean_implements('ACL') && ACLController::requireSecurityGroup($mod->module_dir, 'list') )
+	{
+		require_once('modules/SecurityGroups/SecurityGroup.php');
+		global $current_user;
+		$owner_where = $mod->getOwnerWhere($current_user->id);
+		$group_where = SecurityGroup::getGroupWhere($mod->table_name,$mod->module_dir,$current_user->id);
+    	if(!empty($owner_where)){
+    		$sql .= " AND (".  $owner_where." or ".$group_where.") ";
+		} else {
+			$sql .= ' AND '.  $group_where;
+		}
+	}
+	/* END - SECURITY GROUPS */
 
     $result = $related_mod->db->query($sql);
     while ($row = $related_mod->db->fetchByAssoc($result)) {
@@ -1883,10 +1890,10 @@ function search_by_module($user_name, $password, $search_string, $modules, $offs
         }//end foreach
     }
 
-    $next_offset = $offset + sizeof($output_list);
+    $next_offset = $offset + count($output_list);
 
     return array(
-        'result_count' => sizeof($output_list),
+        'result_count' => count($output_list),
         'next_offset' => $next_offset,
         'field_list' => $field_list,
         'entry_list' => $output_list,
@@ -2208,7 +2215,7 @@ function get_document_revision($session, $id)
     }
 
 
-    $dr = new DocumentRevision();
+    $dr = BeanFactory::newBean('DocumentRevisions');
     $dr->retrieve($id);
     if (!empty($dr->filename)) {
         $filename = "upload://{$dr->id}";
@@ -2224,11 +2231,10 @@ function get_document_revision($session, $id)
             ),
             'error' => $error->get_soap_array()
         );
-    } else {
-        $error->set_error('no_records');
-
-        return array('id' => -1, 'error' => $error->get_soap_array());
     }
+    $error->set_error('no_records');
+
+    return array('id' => -1, 'error' => $error->get_soap_array());
 }
 
 $server->register(
@@ -2238,7 +2244,7 @@ $server->register(
     $NAMESPACE
 );
 /**
- *   Once we have successfuly done a mail merge on a campaign, we need to notify Sugar of the targets
+ *   Once we have successfully done a mail merge on a campaign, we need to notify Sugar of the targets
  *   and the campaign_id for tracking purposes
  *
  * @param session        the session id of the authenticated user
@@ -2430,7 +2436,7 @@ function handle_set_entries($module_name, $name_value_lists, $select_fields = fa
     require_once($beanFiles[$class_name]);
     $ids = array();
     $count = 1;
-    $total = sizeof($name_value_lists);
+    $total = count($name_value_lists);
 
     foreach ($name_value_lists as $name_value_list) {
         $seed = new $class_name();
@@ -2615,10 +2621,9 @@ function handle_set_entries($module_name, $name_value_lists, $select_fields = fa
             'name_value_lists' => $ret_values,
             'error' => $error->get_soap_array()
         );
-    } else {
-        return array(
+    }
+    return array(
             'ids' => $ids,
             'error' => $error->get_soap_array()
         );
-    }
 }

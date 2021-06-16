@@ -202,7 +202,7 @@ class Note extends File
 
     public function get_summary_text()
     {
-        return "$this->name";
+        return (string)$this->name;
     }
 
     /**
@@ -273,7 +273,7 @@ class Note extends File
         }
 
         if (isset($this->contact_id) && $this->contact_id != '') {
-            $contact = new Contact();
+            $contact = BeanFactory::newBean('Contacts');
             $contact->retrieve($this->contact_id);
             if (isset($contact->id)) {
                 $this->contact_name = $contact->full_name;
@@ -298,7 +298,7 @@ class Note extends File
             }
         }
         if (isset($this->contact_id) && $this->contact_id != '') {
-            $contact = new Contact();
+            $contact = BeanFactory::newBean('Contacts');
             $contact->retrieve($this->contact_id);
             if (isset($contact->id)) {
                 $this->contact_name = $contact->full_name;
@@ -348,7 +348,7 @@ class Note extends File
          */
         if (!ACLController::moduleSupportsACL($this->parent_type) || ACLController::checkAccess(
             $this->parent_type,
-                'view',
+            'view',
             $is_owner,
             'module',
             $in_group

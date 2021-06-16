@@ -80,7 +80,7 @@ function getModuleFields(
                     if (array_key_exists($mod->module_dir, $blockedModuleFields)) {
                         if (in_array(
                             $arr['name'],
-                                $blockedModuleFields[$mod->module_dir]
+                            $blockedModuleFields[$mod->module_dir]
                             ) && !$current_user->isAdmin()
                         ) {
                             $GLOBALS['log']->debug('hiding ' . $arr['name'] . ' field from ' . $current_user->name);
@@ -121,9 +121,8 @@ function getModuleFields(
     }
     if ($view == 'EditView') {
         return get_select_options_with_id($fields, $value);
-    } else {
-        return $fields[$value];
     }
+    return $fields[$value];
 }
 
 function getRelModuleFields($module, $rel_field, $view='EditView', $value = '')
@@ -190,10 +189,8 @@ function getModuleTreeData($module)
             foreach ($mod->get_linked_fields() as $name => $arr) {
                 if (isset($arr['module']) && $arr['module'] != '') {
                     $rel_module = $arr['module'];
-                } else {
-                    if ($mod->load_relationship($name)) {
-                        $rel_module = $mod->$name->getRelatedModuleName();
-                    }
+                } elseif ($mod->load_relationship($name)) {
+                    $rel_module = $mod->$name->getRelatedModuleName();
                 }
 
                 if (!ACLController::checkAccess($rel_module, 'list', true)) {
@@ -244,10 +241,8 @@ function getModuleRelationships($module, $view='EditView', $value = '')
             foreach ($mod->get_linked_fields() as $name => $arr) {
                 if (isset($arr['module']) && $arr['module'] != '') {
                     $rel_module = $arr['module'];
-                } else {
-                    if ($mod->load_relationship($name)) {
-                        $rel_module = $mod->$name->getRelatedModuleName();
-                    }
+                } elseif ($mod->load_relationship($name)) {
+                    $rel_module = $mod->$name->getRelatedModuleName();
                 }
                 if (!in_array($rel_module, $invalid_modules)) {
                     $relModuleName = isset($app_list_strings['moduleList'][$rel_module]) ? $app_list_strings['moduleList'][$rel_module] : $rel_module;
@@ -269,9 +264,8 @@ function getModuleRelationships($module, $view='EditView', $value = '')
     }
     if ($view == 'EditView') {
         return get_select_options_with_id($fields, $value);
-    } else {
-        return $fields[$value];
     }
+    return $fields[$value];
 }
 
 function getValidFieldsTypes($module, $field)
@@ -365,6 +359,7 @@ function getModuleField(
     $displayParams = array();
 
     if (!is_file($file)
+        || $view === 'EditView'
         || inDeveloperMode()
         || !empty($_SESSION['developerMode'])) {
         if (!isset($vardef)) {
@@ -483,7 +478,7 @@ function getModuleField(
 
         // Save it to the cache file
         if ($fh = @sugar_fopen($file, 'w')) {
-            fputs($fh, $contents);
+            fwrite($fh, $contents);
             fclose($fh);
         }
     }
@@ -534,7 +529,8 @@ function getModuleField(
             $fieldlist[$name]['options'] = $mod_strings[$fieldlist[$name]['options']];
         }
         // Bug 22730: make sure all enums have the ability to select blank as the default value.
-        if (!isset($fieldlist[$name]['options'][''])) {
+        // Make sure the enum has an 'options' array to append a new value to.
+        if (isset($fieldlist[$name]['options']) && is_array($fieldlist[$name]['options']) && !isset($fieldlist[$name]['options'][''])) {
             $fieldlist[$name]['options'][''] = '';
         }
     }
@@ -573,28 +569,30 @@ function getModuleField(
     if (isset($fieldlist[$fieldname]['id_name']) && $fieldlist[$fieldname]['id_name'] != '' && $fieldlist[$fieldname]['id_name'] != $fieldlist[$fieldname]['name']) {
         $rel_value = $value;
 
-        require_once("include/TemplateHandler/TemplateHandler.php");
-        $template_handler = new TemplateHandler();
-        $quicksearch_js = $template_handler->createQuickSearchCode($fieldlist, $fieldlist, $view);
-        $quicksearch_js = str_replace($fieldname, $aow_field.'_display', $quicksearch_js);
-        $quicksearch_js = str_replace($fieldlist[$fieldname]['id_name'], $aow_field, $quicksearch_js);
+        // avoid printing js content in CLI commands for example cron
+        $sapi_type = php_sapi_name();
+        if (substr($sapi_type, 0, 3) != 'cli') {
+            require_once("include/TemplateHandler/TemplateHandler.php");
+            $template_handler = new TemplateHandler();
+            $quicksearch_js = $template_handler->createQuickSearchCode($fieldlist, $fieldlist, $view);
+            $quicksearch_js = str_replace($fieldname, $aow_field.'_display', $quicksearch_js);
+            $quicksearch_js = str_replace($fieldlist[$fieldname]['id_name'], $aow_field, $quicksearch_js);
 
-        echo $quicksearch_js;
+        	echo $quicksearch_js;
+        }
 
         if (isset($fieldlist[$fieldname]['module']) && $fieldlist[$fieldname]['module'] == 'Users') {
             $rel_value = get_assigned_user_name($value);
-        } else {
-            if (isset($fieldlist[$fieldname]['module'])) {
-                require_once($beanFiles[$beanList[$fieldlist[$fieldname]['module']]]);
-                $rel_focus = new $beanList[$fieldlist[$fieldname]['module']];
-                $rel_focus->retrieve($value);
-                if (isset($fieldlist[$fieldname]['rname']) && $fieldlist[$fieldname]['rname'] != '') {
-                    $relDisplayField = $fieldlist[$fieldname]['rname'];
-                } else {
-                    $relDisplayField = 'name';
-                }
-                $rel_value = $rel_focus->$relDisplayField;
+        } elseif (isset($fieldlist[$fieldname]['module'])) {
+            require_once($beanFiles[$beanList[$fieldlist[$fieldname]['module']]]);
+            $rel_focus = new $beanList[$fieldlist[$fieldname]['module']];
+            $rel_focus->retrieve($value);
+            if (isset($fieldlist[$fieldname]['rname']) && $fieldlist[$fieldname]['rname'] != '') {
+                $relDisplayField = $fieldlist[$fieldname]['rname'];
+            } else {
+                $relDisplayField = 'name';
             }
+            $rel_value = $rel_focus->$relDisplayField;
         }
 
         $fieldlist[$fieldlist[$fieldname]['id_name']]['value'] = $value;
@@ -602,38 +600,30 @@ function getModuleField(
         $fieldlist[$fieldname]['id_name'] = $aow_field;
         $fieldlist[$fieldlist[$fieldname]['id_name']]['name'] = $aow_field;
         $fieldlist[$fieldname]['name'] = $aow_field.'_display';
-    } else {
-        if (isset($fieldlist[$fieldname]['type']) && $view == 'DetailView' && ($fieldlist[$fieldname]['type'] == 'datetimecombo' || $fieldlist[$fieldname]['type'] == 'datetime' || $fieldlist[$fieldname]['type'] == 'date')) {
-            $value = $focus->convertField($value, $fieldlist[$fieldname]);
-            if (!empty($params['date_format']) && isset($params['date_format'])) {
-                $convert_format = "Y-m-d H:i:s";
-                if ($fieldlist[$fieldname]['type'] == 'date') {
-                    $convert_format = "Y-m-d";
-                }
-                $fieldlist[$fieldname]['value'] = $timedate->to_display($value, $convert_format, $params['date_format']);
-            } else {
-                if ($fieldlist[$fieldname]['type'] == 'date') {
-                    $fieldlist[$fieldname]['value'] = $timedate->to_display_date($value, true, true);
-                } else {
-                    $fieldlist[$fieldname]['value'] = $timedate->to_display_date_time($value, true, true);
-                }
+    } elseif (isset($fieldlist[$fieldname]['type']) && $view == 'DetailView' && ($fieldlist[$fieldname]['type'] == 'datetimecombo' || $fieldlist[$fieldname]['type'] == 'datetime' || $fieldlist[$fieldname]['type'] == 'date')) {
+        $value = $focus->convertField($value, $fieldlist[$fieldname]);
+        if (!empty($params['date_format']) && isset($params['date_format'])) {
+            $convert_format = "Y-m-d H:i:s";
+            if ($fieldlist[$fieldname]['type'] == 'date') {
+                $convert_format = "Y-m-d";
             }
-            $fieldlist[$fieldname]['name'] = $aow_field;
+            $fieldlist[$fieldname]['value'] = $timedate->to_display($value, $convert_format, $params['date_format']);
         } else {
-            if (isset($fieldlist[$fieldname]['type']) && ($fieldlist[$fieldname]['type'] == 'datetimecombo' || $fieldlist[$fieldname]['type'] == 'datetime' || $fieldlist[$fieldname]['type'] == 'date')) {
-                $value = $focus->convertField($value, $fieldlist[$fieldname]);
-                if($fieldlist[$fieldname]['type'] == 'date') {
-                    $displayValue = $timedate->to_display_date($value, false);
-                }else{
-                    $displayValue = $timedate->to_display_date_time($value, true, true);
-                }
-                $fieldlist[$fieldname]['value'] = $fieldlist[$aow_field]['value'] = $displayValue;
-                $fieldlist[$fieldname]['name'] = $aow_field;
+            if ($fieldlist[$fieldname]['type'] == 'date') {
+                $fieldlist[$fieldname]['value'] = $timedate->to_display_date($value, true, true);
             } else {
-                $fieldlist[$fieldname]['value'] = $value;
-                $fieldlist[$fieldname]['name'] = $aow_field;
+                $fieldlist[$fieldname]['value'] = $timedate->to_display_date_time($value, true, true);
             }
         }
+        $fieldlist[$fieldname]['name'] = $aow_field;
+    } elseif (isset($fieldlist[$fieldname]['type']) && ($fieldlist[$fieldname]['type'] == 'datetimecombo' || $fieldlist[$fieldname]['type'] == 'datetime' || $fieldlist[$fieldname]['type'] == 'date')) {
+        $value = $focus->convertField($value, $fieldlist[$fieldname]);
+        $displayValue = $timedate->to_display_date_time($value);
+        $fieldlist[$fieldname]['value'] = $fieldlist[$aow_field]['value'] = $displayValue;
+        $fieldlist[$fieldname]['name'] = $aow_field;
+    } else {
+        $fieldlist[$fieldname]['value'] = $value;
+        $fieldlist[$fieldname]['name'] = $aow_field;
     }
 
     if (isset($fieldlist[$fieldname]['type']) && $fieldlist[$fieldname]['type'] == 'datetimecombo' || $fieldlist[$fieldname]['type'] == 'datetime') {
@@ -652,7 +642,7 @@ function getModuleField(
         if ($currency_id != '' && !stripos($fieldname, '_USD')) {
             $userCurrencyId = $current_user->getPreference('currency');
             if ($currency_id != $userCurrencyId) {
-                $currency = new Currency();
+                $currency = BeanFactory::newBean('Currencies');
                 $currency->retrieve($currency_id);
                 $value = $currency->convertToDollar($value);
                 $currency->retrieve($userCurrencyId);
@@ -763,9 +753,8 @@ function getDateFields($module, $view='EditView', $value = '', $field_option = t
     }
     if ($view == 'EditView') {
         return get_select_options_with_id($fields, $value);
-    } else {
-        return $fields[$value];
     }
+    return $fields[$value];
 }
 
 function getAssignField($aow_field, $view, $value)
@@ -813,12 +802,10 @@ function getDropdownList($list_id, $selected_value)
     foreach ($app_list_strings[$list_id] as $key => $value) {
         if (base64_decode($selected_value) == $key) {
             $option .= '<option value="'.$key.'" selected>'.$value.'</option>';
+        } elseif ($selected_value == $key) {
+            $option .= '<option value="'.$key.'" selected>'.$value.'</option>';
         } else {
-            if ($selected_value == $key) {
-                $option .= '<option value="'.$key.'" selected>'.$value.'</option>';
-            } else {
-                $option .= '<option value="'.$key.'">'.$value.'</option>';
-            }
+            $option .= '<option value="'.$key.'">'.$value.'</option>';
         }
     }
     return $option;
@@ -845,15 +832,13 @@ function getRoundRobinUser($users, $id)
         if (!empty($users[$key])) {
             return $users[$key];
         }
-    } else {
-        if (is_file($file)) {
-            require_once($file);
-            if (isset($lastUser['User']) && $lastUser['User'] != '') {
-                $users_by_key = array_flip($users); // now keys are values
-                $key = $users_by_key[$lastUser['User']] + 1;
-                if (!empty($users[$key])) {
-                    return $users[$key];
-                }
+    } elseif (is_file($file)) {
+        require_once($file);
+        if (isset($lastUser['User']) && $lastUser['User'] != '') {
+            $users_by_key = array_flip($users); // now keys are values
+            $key = $users_by_key[$lastUser['User']] + 1;
+            if (!empty($users[$key])) {
+                return $users[$key];
             }
         }
     }
@@ -876,7 +861,7 @@ function setLastUser($user_id, $id)
 eoq;
 
     if ($fh = @sugar_fopen($file, 'w')) {
-        fputs($fh, $content);
+        fwrite($fh, $content);
         fclose($fh);
     }
     return true;
@@ -924,11 +909,9 @@ function getRelatedEmailableFields($module)
                 if (!in_array($field['name'], $checked_link) && !in_array($field['relationship'], $checked_link)) {
                     if (isset($field['module']) && $field['module'] != '') {
                         $rel_module = $field['module'];
-                    } else {
-                        if ($mod->load_relationship($field['name'])) {
-                            $relField = $field['name'];
-                            $rel_module = $mod->$relField->getRelatedModuleName();
-                        }
+                    } elseif ($mod->load_relationship($field['name'])) {
+                        $relField = $field['name'];
+                        $rel_module = $mod->$relField->getRelatedModuleName();
                     }
 
                     if (in_array($rel_module, $emailableModules)) {
@@ -1024,20 +1007,13 @@ function fixUpFormatting($module, $field, $value)
         case 'bool':
             if (empty($value)) {
                 $value = false;
+            } elseif (true === $value || 1 == $value) {
+                $value = true;
+            } elseif (in_array((string)$value, $boolean_false_values)) {
+                $value = false;
             } else {
-                if (true === $value || 1 == $value) {
-                    $value = true;
-                } else {
-                    if (in_array(strval($value), $boolean_false_values)) {
-                        $value = false;
-                    } else {
-                        $value = true;
-                    }
-                }
+                $value = true;
             }
-            break;
-        case 'encrypt':
-            $value = $this->encrpyt_before_save($value);
             break;
     }
     return $value;

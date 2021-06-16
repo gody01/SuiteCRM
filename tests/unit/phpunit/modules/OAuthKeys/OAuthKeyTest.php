@@ -1,7 +1,8 @@
 <?php
 
+use SuiteCRM\Test\SuitePHPUnitFrameworkTestCase;
 
-class OAuthKeyTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
+class OAuthKeyTest extends SuitePHPUnitFrameworkTestCase
 {
     protected function setUp()
     {
@@ -9,14 +10,13 @@ class OAuthKeyTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
 
         global $current_user;
         get_sugar_config_defaults();
-        $current_user = new User();
+        $current_user = BeanFactory::newBean('Users');
     }
 
     public function testOAuthKey()
     {
-
-        //execute the contructor and check for the Object type and  attributes
-        $oauthKey = new OAuthKey();
+        // Execute the constructor and check for the Object type and  attributes
+        $oauthKey = BeanFactory::newBean('OAuthKeys');
 
         $this->assertInstanceOf('OAuthKey', $oauthKey);
         $this->assertInstanceOf('Basic', $oauthKey);
@@ -31,14 +31,8 @@ class OAuthKeyTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
 
     public function testMain()
     {
-        $state = new SuiteCRM\StateSaver();
-        
-        $state->pushTable('tracker');
-        $state->pushTable('aod_index');
-        
-        
-
-        $oauthKey = new OAuthKey();
+        // test
+        $oauthKey = BeanFactory::newBean('OAuthKeys');
 
         //preset required attributes
         $oauthKey->name = 'test';
@@ -55,16 +49,11 @@ class OAuthKeyTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
 
         //test mark_deleted method
         $this->mark_deleted($oauthKey->id);
-        
-        // clean up
-        
-        $state->popTable('aod_index');
-        $state->popTable('tracker');
     }
 
     public function getByKey($key)
     {
-        $oauthKey = new OAuthKey();
+        $oauthKey = BeanFactory::newBean('OAuthKeys');
 
         //test with a invalid id
         $result = $oauthKey->getByKey('');
@@ -77,7 +66,6 @@ class OAuthKeyTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
 
     public function fetchKey($key)
     {
-
         //test with a invalid id
         $result = OAuthKey::fetchKey('');
         $this->assertEquals(false, $result);
@@ -89,7 +77,7 @@ class OAuthKeyTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
 
     public function mark_deleted($id)
     {
-        $oauthKey = new OAuthKey();
+        $oauthKey = BeanFactory::newBean('OAuthKeys');
 
         $oauthKey->mark_deleted($id);
 

@@ -6,7 +6,7 @@ use Api\V8\JsonApi\Helper\AttributeObjectHelper;
 use Api\V8\JsonApi\Helper\PaginationObjectHelper;
 use Api\V8\JsonApi\Helper\RelationshipObjectHelper;
 use Api\V8\Service;
-use Interop\Container\ContainerInterface as Container;
+use Psr\Container\ContainerInterface as Container;
 use Api\Core\Loader\CustomLoader;
 
 return CustomLoader::mergeCustomArray([
@@ -57,7 +57,8 @@ return CustomLoader::mergeCustomArray([
     Service\RelationshipService::class => function (Container $container) {
         return new Service\RelationshipService(
             $container->get(BeanManager::class),
-            $container->get(AttributeObjectHelper::class)
+            $container->get(AttributeObjectHelper::class),
+            $container->get(PaginationObjectHelper::class)
         );
     },
 ], basename(__FILE__));

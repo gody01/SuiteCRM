@@ -381,12 +381,21 @@ class SugarController
         }
     }
 
+    /**
+     * @param Exception $e
+     */
     protected function showException(Exception $e)
     {
-        $GLOBALS['log']->fatal('Exception in Controller: ' . $e->getMessage());
-        $GLOBALS['log']->fatal("backtrace:\n" . $e->getTraceAsString());
+        global $sugar_config;
+
+        LoggerManager::getLogger()->fatal('Exception in Controller: ' . $e->getMessage());
+
+        if ($sugar_config['stackTrace']) {
+            LoggerManager::getLogger()->fatal("backtrace:\n" . $e->getTraceAsString());
+        }
+
         if ($prev = $e->getPrevious()) {
-            $GLOBALS['log']->fatal("Previous:\n");
+            LoggerManager::getLogger()->fatal("Previous:\n");
             $this->showException($prev);
         }
     }
@@ -973,7 +982,7 @@ class SugarController
 
             if (!empty($this->file_access_control_map['modules'][$module]['actions']) && (in_array(
                 $action,
-                        $this->file_access_control_map['modules'][$module]['actions']
+                $this->file_access_control_map['modules'][$module]['actions']
             ) || !empty($this->file_access_control_map['modules'][$module]['actions'][$action]))
             ) {
                 //check params
@@ -1106,8 +1115,8 @@ class SugarController
             $this->do_action = $this->action;
         }
     }
-    
-        
+
+
     /**
      * action: Send Confirm Opt In Email to Contact/Lead/Account/Prospect
      *
@@ -1129,12 +1138,12 @@ class SugarController
             } else {
                 $emailAddressStringCaps = strtoupper($this->bean->email1);
                 if ($emailAddressStringCaps) {
-                    $emailAddress = new EmailAddress();
+                    $emailAddress = BeanFactory::newBean('EmailAddresses');
                     $emailAddress->retrieve_by_string_fields(array(
                         'email_address_caps' => $emailAddressStringCaps,
                     ));
 
-                    $emailMan = new EmailMan();
+                    $emailMan = BeanFactory::newBean('EmailMan');
 
                     $success = $emailMan->sendOptInEmail($emailAddress, $this->bean->module_name, $this->bean->id);
 

@@ -132,7 +132,7 @@ class AOR_ReportsController extends SugarController
         require_once('modules/Relationships/Relationship.php');
         require_once('modules/ProspectLists/ProspectList.php');
 
-        $prospectList = new ProspectList();
+        $prospectList = BeanFactory::newBean('ProspectLists');
         $prospectList->retrieve($_REQUEST['prospect_id']);
 
         $module = new $beanList[$this->bean->report_module]();
@@ -188,11 +188,10 @@ class AOR_ReportsController extends SugarController
             sugar_die('');
         }
 
-        $state = new \SuiteCRM\StateSaver();
-        $state->pushErrorLevel();
+        $errorLevelStored = error_reporting();
         error_reporting(0);
         require_once('modules/AOS_PDF_Templates/PDF_Lib/mpdf.php');
-        $state->popErrorLevel();
+        error_reporting($errorLevelStored);
 
         $d_image = explode('?', SugarThemeRegistry::current()->getImageURL('company_logo.png'));
         $graphs = $_POST["graphsForPDF"];
@@ -257,12 +256,12 @@ class AOR_ReportsController extends SugarController
         try {
             $pdf = new mPDF('en', 'A4', '', 'DejaVuSansCondensed');
             $pdf->SetAutoFont();
+            $pdf->setFooter('{PAGENO}');
             $pdf->WriteHTML($stylesheet, 1);
             $pdf->SetDefaultBodyCSS('background-color', '#FFFFFF');
             unset($pdf->cssmgr->CSS['INPUT']['FONT-SIZE']);
             $pdf->WriteHTML($head, 2);
             $pdf->WriteHTML($printable, 3);
-            $pdf->setFooter('{PAGENO}');
             $pdf->Output($this->bean->name . '.pdf', "D");
         } catch (mPDF_exception $e) {
             echo $e;
@@ -284,7 +283,7 @@ class AOR_ReportsController extends SugarController
         if ($view == 'EditView') {
             echo "<select type='text' style='width:100px;' name='$aor_field' id='$aor_field' title='' tabindex='116'>" . get_select_options_with_id(
                 $app_list_strings['aor_function_list'],
-                    $value
+                $value
             ) . "</select>";
         } else {
             echo $app_list_strings['aor_function_list'][$value];
@@ -364,8 +363,10 @@ class AOR_ReportsController extends SugarController
                 );
                 break;
             case 'enum':
-            case 'multienum':
                 $valid_opp = array('Equal_To', 'Not_Equal_To');
+                break;
+            case 'multienum':
+                $valid_opp = array('Equal_To', 'Not_Equal_To', 'Contains');
                 break;
             default:
                 $valid_opp = array('Equal_To', 'Not_Equal_To', 'Contains', 'Starts_With', 'Ends_With',);
@@ -383,7 +384,7 @@ class AOR_ReportsController extends SugarController
         if ($view == 'EditView') {
             echo "<select type='text' style='width:178px;' name='$aor_field' id='$aor_field' title='' tabindex='116'>" . get_select_options_with_id(
                 $app_list_strings['aor_operator_list'],
-                    $value
+                $value
             ) . "</select>";
         } else {
             echo $app_list_strings['aor_operator_list'][$value];
@@ -465,7 +466,7 @@ class AOR_ReportsController extends SugarController
         if ($view == 'EditView') {
             echo "<select type='text' style='width:178px;' name='$aor_field' id='$aor_field' title='' tabindex='116'>" . get_select_options_with_id(
                 $app_list_strings['aor_condition_type_list'],
-                    $value
+                $value
             ) . "</select>";
         } else {
             echo $app_list_strings['aor_condition_type_list'][$value];
@@ -547,7 +548,7 @@ class AOR_ReportsController extends SugarController
         if ($view == 'EditView') {
             echo "<select type='text' style='width:178px;' name='$aor_field' id='$aor_field' title='' tabindex='116'>" . get_select_options_with_id(
                 $app_list_strings['aor_action_type_list'],
-                    $value
+                $value
             ) . "</select>";
         } else {
             echo $app_list_strings['aor_action_type_list'][$value];
@@ -589,7 +590,7 @@ class AOR_ReportsController extends SugarController
                 if ($view == 'EditView') {
                     echo "<select type='text' style='width:178px;' name='$aor_field' id='$aor_field' title='' tabindex='116'>" . getModuleFields(
                         $module,
-                            $view,
+                        $view,
                         $value
                     ) . "</select>";
                 } else {
@@ -606,7 +607,7 @@ class AOR_ReportsController extends SugarController
                 if ($view == 'EditView') {
                     echo "<select type='text' style='width:178px;' name='$aor_field' id='$aor_field' title='' tabindex='116'>" . getDropdownList(
                         'date_time_period_list',
-                            $_REQUEST['aor_value']
+                        $_REQUEST['aor_value']
                     ) . "</select>";
                 } else {
                     echo getDropdownList('date_time_period_list', $_REQUEST['aor_value']);
@@ -649,7 +650,7 @@ class AOR_ReportsController extends SugarController
                 if ($view == 'EditView') {
                     echo "<select type='text' style='width:178px;' name='$aor_field' id='$aor_field' title='' tabindex='116'>" . getModuleFields(
                         $module,
-                            $view,
+                        $view,
                         $value
                     ) . "</select>";
                 } else {
@@ -725,7 +726,7 @@ class AOR_ReportsController extends SugarController
                 if ($view == 'EditView') {
                     echo "<select type='text' style='width:178px;' name='$aor_field' id='$aor_field' title='' tabindex='116'>" . getModuleFields(
                         $module,
-                            $view,
+                        $view,
                         $value
                     ) . "</select>";
                 } else {
@@ -784,7 +785,7 @@ class AOR_ReportsController extends SugarController
         if ($view == 'EditView') {
             echo "<select type='text' style='width:178px;' name='$aor_field' id='$aor_field' title='' tabindex='116'>" . get_select_options_with_id(
                 $app_list_strings['aor_rel_action_type_list'],
-                    $value
+                $value
             ) . "</select>";
         } else {
             echo $app_list_strings['aor_rel_action_type_list'][$value];

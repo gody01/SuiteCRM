@@ -38,17 +38,15 @@
  * display the words "Powered by SugarCRM" and "Supercharged by SuiteCRM".
  */
 *}
-{include file="_head.tpl" theme_template=true}
+{include file="themes/SuiteP/tpls/_head.tpl"}
 <body onMouseOut="closeMenus();">
 
 {if $AUTHENTICATED}
     <div id="ajaxHeader">
-        {include file="_headerModuleList.tpl" theme_template=true}
+        {include file="themes/SuiteP/tpls/_headerModuleList.tpl"}
     </div>
 {/if}
 {literal}
-    <iframe id='ajaxUI-history-iframe' src='index.php?entryPoint=getImage&imageName=blank.png' title='empty'
-            style='display:none'></iframe>
 <input id='ajaxUI-history-field' type='hidden'>
 <script type='text/javascript'>
     if (SUGAR.ajaxUI && !SUGAR.ajaxUI.hist_loaded) {

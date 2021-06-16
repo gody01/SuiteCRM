@@ -58,8 +58,7 @@ if (!is_windows()) {
  
     if ($cronUser == '') {
         $GLOBALS['log']->warning('cron.php: can\'t determine running user. No cron user checks will occur.');
-    } 
-    elseif (array_key_exists('cron', $sugar_config) && array_key_exists('allowed_cron_users', $sugar_config['cron'])) {
+    } elseif (array_key_exists('cron', $sugar_config) && array_key_exists('allowed_cron_users', $sugar_config['cron'])) {
         if (!in_array($cronUser, $sugar_config['cron']['allowed_cron_users'])) {
             $GLOBALS['log']->fatal("cron.php: running as $cronUser is not allowed in allowed_cron_users ".
                                    "in config.php. Exiting.");
@@ -70,8 +69,7 @@ if (!is_windows()) {
             }
             sugar_die('cron.php running with user that is not in allowed_cron_users in config.php');
         }
-    } 
-    else {
+    } else {
         $GLOBALS['log']->warning('cron.php: missing expected allowed_cron_users entry in config.php. ' .
                                  'No cron user checks will occur.');
     }
@@ -85,7 +83,7 @@ $app_list_strings = return_app_list_strings_language($current_language);
 $app_strings = return_application_language($current_language);
 
 global $current_user;
-$current_user = new User();
+$current_user = BeanFactory::newBean('Users');
 $current_user->getSystemUser();
 
 $GLOBALS['log']->debug('--------------------------------------------> at cron.php <--------------------------------------------');

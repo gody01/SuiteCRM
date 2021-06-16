@@ -191,7 +191,7 @@ class TemplateHandler
                 $mod = 'Case';
             }
 
-            $defs = $dictionary[$mod]['fields'];
+            $defs = isset($dictionary[$mod]['fields']) ? $dictionary[$mod]['fields'] : [];
             $defs2 = array();
             //Retrieve all panel field definitions with displayParams Array field set
             $panelFields = array();
@@ -314,7 +314,7 @@ class TemplateHandler
                         $mod = 'Case';
                     }
 
-                    $defs = $dictionary[$mod]['fields'];
+                    $defs = isset($dictionary[$mod]['fields']) ? $dictionary[$mod]['fields'] : [];
                     $contents .= '{literal}';
                     $contents .= $this->createQuickSearchCode($defs, array(), $view);
                     $contents .= '{/literal}';
@@ -565,7 +565,7 @@ class TemplateHandler
 
                 if ($field['type'] === 'relate' && isset($field['module']) && (preg_match(
                     '/_name$|_c$/si',
-                            $name
+                    $name
                 ) || !empty($field['quicksearch']))
                 ) {
                     if (!preg_match('/_c$/si', $name)

@@ -74,7 +74,7 @@ require_once('modules/DynamicFields/DynamicField.php');
          require_once($beanFiles[$class_name]);
          $mod = new $class_name();
          if (!$db->tableExists($mod->table_name . "_cstm")) {
-             $mod->custom_fields = new DynamicField();
+             $mod->custom_fields = BeanFactory::newBean('DynamicFields');
              $mod->custom_fields->setup($mod);
              $mod->custom_fields->createCustomTable();
          }
@@ -108,7 +108,7 @@ require_once('modules/DynamicFields/DynamicField.php');
              }
          }
 
-         echo sizeof($fields) . " field(s) missing from $mod->table_name" . "_cstm<br>";
+         echo count($fields) . " field(s) missing from $mod->table_name" . "_cstm<br>";
          foreach ($fields as $field) {
              echo "Adding Column $field to $mod->table_name" . "_cstm<br>";
              if (!$simulate) {

@@ -57,7 +57,7 @@ class AM_ProjectTemplatesTable
 
 
         //Get resources
-        $project_template = new AM_ProjectTemplates();
+        $project_template = BeanFactory::newBean('AM_ProjectTemplates');
         $project_template->retrieve($project_template_id);
         //Get project resources (users & contacts)
         $resources1 = $project_template->get_linked_beans('am_projecttemplates_users_1', 'User');
@@ -83,7 +83,7 @@ class AM_ProjectTemplatesTable
             foreach ($tasks as $task) {
                 $task->duration_unit = "Days";
                 $task->date_start =  Date('Y-m-d');
-                $task->date_finish = Date('Y-m-d', strtotime("+" . $task->duration -1 . " days"));
+                $task->date_finish = Date('Y-m-d', strtotime("+" . ($task->duration - 1) . " days"));
 
                 echo '<tr class="row_sortable">
                         <td class="project_table_cells"><input class="order_number" name="order_number[]" rel="'.$task->id.'" type="hidden" value="'.$task->order_number.'" />'.$task->task_number.'</td>';
