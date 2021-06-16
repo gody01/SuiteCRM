@@ -125,7 +125,7 @@ class Opportunity extends SugarBean
 
     public function get_summary_text()
     {
-        return "$this->name";
+        return (string)$this->name;
     }
 
     public function create_list_query($order_by, $where, $show_deleted = 0)
@@ -226,7 +226,7 @@ class Opportunity extends SugarBean
         parent::fill_in_additional_detail_fields();
 
         if (!empty($this->currency_id)) {
-            $currency = new Currency();
+            $currency = BeanFactory::newBean('Currencies');
             $currency->retrieve($this->currency_id);
             if ($currency->id != $this->currency_id || $currency->deleted == 1) {
                 $this->amount = $this->amount_usdollar;
@@ -235,7 +235,7 @@ class Opportunity extends SugarBean
         }
         //get campaign name
         if (!empty($this->campaign_id)) {
-            $camp = new Campaign();
+            $camp = BeanFactory::newBean('Campaigns');
             $camp->retrieve($this->campaign_id);
             $this->campaign_name = $camp->name;
         }
@@ -273,7 +273,7 @@ class Opportunity extends SugarBean
             $query.=' '.$qstring;
         }
         $temp = array('id', 'first_name', 'last_name', 'title', 'email1', 'phone_work', 'opportunity_role', 'opportunity_rel_id');
-        $contact = new Contact();
+        $contact = BeanFactory::newBean('Contacts');
         return $this->build_related_list2($query, $contact, $temp);
     }
 
@@ -283,7 +283,7 @@ class Opportunity extends SugarBean
     {
         $idequals = '';
 
-        $currency = new Currency();
+        $currency = BeanFactory::newBean('Currencies');
         $currency->retrieve($toid);
         foreach ($fromid as $f) {
             if (!empty($idequals)) {

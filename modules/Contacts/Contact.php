@@ -215,7 +215,7 @@ class Contact extends Person implements EmailInterface
         if (!ACLController::moduleSupportsACL('Accounts') || ACLController::checkAccess(
             'Accounts',
             'view',
-                $is_owner
+            $is_owner
         )
         ) {
             $array_assign['ACCOUNT'] = 'a';
@@ -252,27 +252,26 @@ class Contact extends Person implements EmailInterface
                 $singleSelect,
                 $ifListForExport
             );
-        } else {
-            //any other action goes to parent function in sugarbean
-            if (strpos($order_by, 'sync_contact') !== false) {
-                //we have found that the user is ordering by the sync_contact field, it would be troublesome to sort by this field
-                //and perhaps a performance issue, so just remove it
-                $order_by = '';
-            }
-
-            return parent::create_new_list_query(
-                $order_by,
-                $where,
-                $filter,
-                $params,
-                $show_deleted,
-                $join_type,
-                $return_array,
-                $parentbean,
-                $singleSelect,
-                $ifListForExport
-            );
         }
+        //any other action goes to parent function in sugarbean
+        if (strpos($order_by, 'sync_contact') !== false) {
+            //we have found that the user is ordering by the sync_contact field, it would be troublesome to sort by this field
+            //and perhaps a performance issue, so just remove it
+            $order_by = '';
+        }
+
+        return parent::create_new_list_query(
+            $order_by,
+            $where,
+            $filter,
+            $params,
+            $show_deleted,
+            $join_type,
+            $return_array,
+            $parentbean,
+            $singleSelect,
+            $ifListForExport
+            );
     }
 
 
@@ -305,7 +304,7 @@ class Contact extends Person implements EmailInterface
         $custom_join = $this->getCustomJoin();
         // MFH - BUG #14208 creates alias name for select
         $select_query = "SELECT ";
-        $select_query .= db_concat($this->table_name, array('first_name', 'last_name')) . " name, ";
+        $select_query .= $this->db->concat($this->table_name, array('first_name', 'last_name')) . " name, ";
         $select_query .= "
 				$this->table_name.*,
                 accounts.name as account_name,
@@ -486,7 +485,7 @@ class Contact extends Person implements EmailInterface
         }
         // Set campaign name if there is a campaign id
         if (!empty($this->campaign_id)) {
-            $camp = new Campaign();
+            $camp = BeanFactory::newBean('Campaigns');
             $where = "campaigns.id='{$this->campaign_id}'";
             $campaign_list = $camp->get_full_list("campaigns.name", $where, true);
             if (!empty($campaign_list) && !empty($campaign_list[0]->name)) {
@@ -646,7 +645,7 @@ class Contact extends Person implements EmailInterface
 
         // cache this object since we'll be reusing it a bunch
         if (!($focus_user instanceof User)) {
-            $focus_user = new User();
+            $focus_user = BeanFactory::newBean('Users');
         }
 
 

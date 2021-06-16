@@ -153,7 +153,7 @@ class Popup_Picker
                     'type' => "Task",
                     'direction' => '',
                     'module' => "Tasks",
-                    'status' => $task->status,
+                    'status' => $app_list_strings['task_status_dom'][$task->status],
                     'parent_id' => $task->parent_id,
                     'parent_type' => $task->parent_type,
                     'parent_name' => $task->parent_name,
@@ -171,7 +171,7 @@ class Popup_Picker
                     'type' => "Task",
                     'direction' => '',
                     'module' => "Tasks",
-                    'status' => $task->status,
+                    'status' => $app_list_strings['task_status_dom'][$task->status],
                     'parent_id' => $task->parent_id,
                     'parent_type' => $task->parent_type,
                     'parent_name' => $task->parent_name,
@@ -319,7 +319,7 @@ class Popup_Picker
                 'parent_name' => $email->parent_name,
                 'contact_id' => $email->contact_id,
                 'contact_name' => $email->contact_name,
-                'date_modified' => $email->date_entered,
+                'date_modified' => $email->date_sent_received,
                 'description' => $this->getEmailDetails($email),
                 'date_type' => $mod_strings['LBL_DATA_TYPE_SENT'],
                 'sort_value' => $ts,
@@ -341,7 +341,7 @@ class Popup_Picker
             }
             $query .= $queryArray['join'];
             $query .= $queryArray['where'];
-            $emails = new Email();
+            $emails = BeanFactory::newBean('Emails');
             $focus_unlinked_emails_list = $emails->process_list_query($query, 0);
             $focus_unlinked_emails_list = $focus_unlinked_emails_list['list'];
             foreach ($focus_unlinked_emails_list as $email) {
@@ -359,7 +359,7 @@ class Popup_Picker
                     'parent_name' => $email->parent_name,
                     'contact_id' => $email->contact_id,
                     'contact_name' => $email->contact_name,
-                    'date_modified' => $email->date_start . ' ' . $email->time_start,
+                    'date_modified' => $email->date_sent_received . ' ' . $email->time_start,
                     'description' => $this->getEmailDetails($email),
                     'date_type' => $mod_strings['LBL_DATA_TYPE_SENT'],
                     'sort_value' => strtotime($email->fetched_row['date_sent_received'] . ' GMT'),

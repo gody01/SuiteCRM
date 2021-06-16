@@ -1,7 +1,10 @@
 <?php
 
+use SuiteCRM\Test\SuitePHPUnitFrameworkTestCase;
 
-class CampaignTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
+require_once 'modules/Campaigns/utils.php';
+
+class CampaignTest extends SuitePHPUnitFrameworkTestCase
 {
     protected function setUp()
     {
@@ -9,14 +12,54 @@ class CampaignTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
 
         global $current_user;
         get_sugar_config_defaults();
-        $current_user = new User();
+        $current_user = BeanFactory::newBean('Users');
+    }
+
+    public function testSubscribeUnsubscribeFromNewsLetterCampaign()
+    {
+        $campaign = BeanFactory::newBean('Campaigns');
+        $campaign->name = create_guid();
+        $campaign->campaign_type = "NewsLetter";
+        $campaign->save();
+        $campaign->load_relationship('prospectlists');
+
+        // Add the lists to the campaign
+        $exempt_list = BeanFactory::newBean('ProspectLists');
+        $exempt_list->list_type = "exempt";
+        $exempt_list->save();
+        $campaign->prospectlists->add($exempt_list->id);
+
+        $default_list = BeanFactory::newBean('ProspectLists');
+        $default_list->list_type = "default";
+        $default_list->save();
+        $campaign->prospectlists->add($default_list->id);
+
+        $test_list = BeanFactory::newBean('ProspectLists');
+        $test_list->list_type = "test";
+        $test_list->save();
+        $campaign->prospectlists->add($test_list->id);
+
+        $lead = BeanFactory::newBean('Leads');
+        $lead->save();
+
+        // Subscribe
+        subscribe($campaign->id, null, $lead, true);
+        $keyed = get_subscription_lists_keyed($lead);
+        $this->assertArrayHasKey($campaign->name, $keyed['subscribed']);
+        $this->assertEquals($default_list->id, $keyed['subscribed'][$campaign->name]['prospect_list_id']);
+
+        // Unsubscribe
+        unsubscribe($campaign->id, $lead);
+        $keyed = get_subscription_lists_keyed($lead);
+        $this->assertArrayNotHasKey($campaign->name, $keyed['subscribed']);
+        $this->assertArrayHasKey($campaign->name, $keyed['unsubscribed']);
+        $this->assertEquals($default_list->id, $keyed['unsubscribed'][$campaign->name]['prospect_list_id']);
     }
 
     public function testCampaign()
     {
-
-        //execute the contructor and check for the Object type and  attributes
-        $campaign = new Campaign();
+        // Execute the constructor and check for the Object type and  attributes
+        $campaign = BeanFactory::newBean('Campaigns');
         $this->assertInstanceOf('Campaign', $campaign);
         $this->assertInstanceOf('SugarBean', $campaign);
 
@@ -29,24 +72,17 @@ class CampaignTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
 
     public function testlist_view_parse_additional_sections()
     {
-        $state = new SuiteCRM\StateSaver();
-        
-        
-        
-
-        $campaign = new Campaign();
+        $campaign = BeanFactory::newBean('Campaigns');
 
         //test with attributes preset and verify template variables are set accordingly
         $tpl = new Sugar_Smarty();
         $campaign->list_view_parse_additional_sections($tpl);
         $this->assertEquals('', isset($tpl->_tpl_vars['ASSIGNED_USER_NAME']) ? $tpl->_tpl_vars['ASSIGNED_USER_NAME'] : null);
-        
-        // clean up
     }
 
     public function testget_summary_text()
     {
-        $campaign = new Campaign();
+        $campaign = BeanFactory::newBean('Campaigns');
 
         //test without setting name
         $this->assertEquals(null, $campaign->get_summary_text());
@@ -59,7 +95,7 @@ class CampaignTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
     public function testcreate_export_query()
     {
         self::markTestIncomplete('#Warning: Strings contain different line endings!');
-        $campaign = new Campaign();
+        $campaign = BeanFactory::newBean('Campaigns');
 
         //test with empty string params
         $expected = "SELECT\n            campaigns.*,\n            users.user_name as assigned_user_name  FROM campaigns LEFT JOIN users\n                      ON campaigns.assigned_user_id=users.id where  campaigns.deleted=0 ORDER BY campaigns.name";
@@ -74,15 +110,9 @@ class CampaignTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
 
     public function testclear_campaign_prospect_list_relationship()
     {
-        $state = new SuiteCRM\StateSaver();
-        
-        
-        
-        
-        
-        $campaign = new Campaign();
+        $campaign = BeanFactory::newBean('Campaigns');
 
-        //execute the method and test if it works and does not throws an exception.
+        // Execute the method and test that it works and doesn't throw an exception.
         try {
             $campaign->clear_campaign_prospect_list_relationship('');
             $campaign->clear_campaign_prospect_list_relationship('1');
@@ -90,21 +120,13 @@ class CampaignTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
         } catch (Exception $e) {
             $this->fail($e->getMessage() . "\nTrace:\n" . $e->getTraceAsString());
         }
-        
-        // clean up
     }
 
     public function testmark_relationships_deleted()
     {
-        $state = new SuiteCRM\StateSaver();
-        
-        
-        
-        
-        
-        $campaign = new Campaign();
+        $campaign = BeanFactory::newBean('Campaigns');
 
-        //execute the method and test if it works and does not throws an exception.
+        // Execute the method and test that it works and doesn't throw an exception.
         try {
             $campaign->mark_relationships_deleted('');
             $campaign->mark_relationships_deleted('1');
@@ -112,80 +134,52 @@ class CampaignTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
         } catch (Exception $e) {
             $this->fail($e->getMessage() . "\nTrace:\n" . $e->getTraceAsString());
         }
-        
-        // clean up
     }
 
     public function testfill_in_additional_list_fields()
     {
-        $state = new SuiteCRM\StateSaver();
-        
-        
-        
-        
-        
-        $campaign = new Campaign();
+        $campaign = BeanFactory::newBean('Campaigns');
 
-        //execute the method and test if it works and does not throws an exception.
+        // Execute the method and test that it works and doesn't throw an exception.
         try {
             $campaign->fill_in_additional_list_fields();
             $this->assertTrue(true);
         } catch (Exception $e) {
             $this->fail($e->getMessage() . "\nTrace:\n" . $e->getTraceAsString());
         }
-        
-        // clean up
     }
 
     public function testfill_in_additional_detail_fields()
     {
-        $state = new SuiteCRM\StateSaver();
-        
-        
-        
-        
-        
-        $campaign = new Campaign();
+        $campaign = BeanFactory::newBean('Campaigns');
 
-        //execute the method and test if it works and does not throws an exception.
+        // Execute the method and test that it works and doesn't throw an exception.
         try {
             $campaign->fill_in_additional_detail_fields();
             $this->assertTrue(true);
         } catch (Exception $e) {
             $this->fail($e->getMessage() . "\nTrace:\n" . $e->getTraceAsString());
         }
-        
-        // clean up
     }
 
     public function testupdate_currency_id()
     {
-        $state = new SuiteCRM\StateSaver();
-        
-        
-        
-        
-        
-        $campaign = new Campaign();
+        $campaign = BeanFactory::newBean('Campaigns');
 
-        //execute the method and test if it works and does not throws an exception.
+        // Execute the method and test that it works and doesn't throw an exception.
         try {
             $campaign->update_currency_id('', '');
             $this->assertTrue(true);
         } catch (Exception $e) {
             $this->fail($e->getMessage() . "\nTrace:\n" . $e->getTraceAsString());
         }
-        
-        // clean up
     }
 
     public function testget_list_view_data()
     {
-        $campaign = new Campaign();
+        $campaign = BeanFactory::newBean('Campaigns');
 
-        $current_theme = SugarThemeRegistry::current();
         //execute the method and verify that it returns expected results
-
         $expected = array(
                 'DELETED' => 0,
                 'TRACKER_COUNT' => '0',
@@ -214,7 +208,7 @@ class CampaignTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
 
     public function testbuild_generic_where_clause()
     {
-        $campaign = new Campaign();
+        $campaign = BeanFactory::newBean('Campaigns');
 
         //test with blank parameter
         $expected = "campaigns.name like '%'";
@@ -229,19 +223,7 @@ class CampaignTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
 
     public function testSaveAndMarkDeleted()
     {
-        
-    // save state
-
-        $state = new \SuiteCRM\StateSaver();
-        $state->pushTable('aod_index');
-        $state->pushTable('aod_indexevent');
-        $state->pushTable('campaigns');
-        $state->pushTable('tracker');
-        $state->pushGlobals();
-
-        // test
-        
-        $campaign = new Campaign();
+        $campaign = BeanFactory::newBean('Campaigns');
         $campaign->name = 'test';
         $campaign->amount = 100;
 
@@ -255,19 +237,11 @@ class CampaignTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
         $campaign->mark_deleted($campaign->id);
         $result = $campaign->retrieve($campaign->id);
         $this->assertEquals(null, $result);
-        
-        // clean up
-        
-        $state->popGlobals();
-        $state->popTable('tracker');
-        $state->popTable('campaigns');
-        $state->popTable('aod_indexevent');
-        $state->popTable('aod_index');
     }
 
     public function testset_notification_body()
     {
-        $campaign = new Campaign();
+        $campaign = BeanFactory::newBean('Campaigns');
 
         //test with attributes preset and verify template variables are set accordingly
         $campaign->name = 'test';
@@ -287,7 +261,7 @@ class CampaignTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
 
     public function testtrack_log_leads()
     {
-        $campaign = new Campaign();
+        $campaign = BeanFactory::newBean('Campaigns');
 
         $expected = "SELECT campaign_log.*  FROM campaign_log WHERE campaign_log.campaign_id = '' AND campaign_log.deleted=0 AND activity_type = 'lead' AND archived = 0 AND target_id IS NOT NULL ";
         $actual = $campaign->track_log_leads();
@@ -296,7 +270,7 @@ class CampaignTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
 
     public function testtrack_log_entries()
     {
-        $campaign = new Campaign();
+        $campaign = BeanFactory::newBean('Campaigns');
 
         //test without parameters
         $expected = "SELECT campaign_log.*  FROM campaign_log WHERE campaign_log.campaign_id = '' AND campaign_log.deleted=0 AND activity_type='targeted' AND archived=0 ";
@@ -311,7 +285,7 @@ class CampaignTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
 
     public function testget_queue_items()
     {
-        $campaign = new Campaign();
+        $campaign = BeanFactory::newBean('Campaigns');
 
         //without parameters
         $expected = " SELECT emailman.*,
@@ -461,7 +435,7 @@ WHERE  emailman.campaign_id = ''
 
     public function testbean_implements()
     {
-        $campaign = new Campaign();
+        $campaign = BeanFactory::newBean('Campaigns');
         $this->assertEquals(false, $campaign->bean_implements('')); //test with blank value
         $this->assertEquals(false, $campaign->bean_implements('test')); //test with invalid value
         $this->assertEquals(true, $campaign->bean_implements('ACL')); //test with valid value
@@ -469,7 +443,7 @@ WHERE  emailman.campaign_id = ''
 
     public function testcreate_list_count_query()
     {
-        $campaign = new Campaign();
+        $campaign = BeanFactory::newBean('Campaigns');
 
         //test without parameters
         $expected = '';
@@ -489,7 +463,7 @@ WHERE  emailman.campaign_id = ''
 
     public function testgetDeletedCampaignLogLeadsCount()
     {
-        $campaign = new Campaign();
+        $campaign = BeanFactory::newBean('Campaigns');
         $result = $campaign->getDeletedCampaignLogLeadsCount();
         $this->assertEquals(0, $result);
     }

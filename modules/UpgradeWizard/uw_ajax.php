@@ -41,12 +41,7 @@ if (!defined('sugarEntry') || !sugarEntry) {
  * display the words "Powered by SugarCRM" and "Supercharged by SuiteCRM".
  */
 
-/*********************************************************************************
 
- * Description:
- * Portions created by SugarCRM are Copyright (C) SugarCRM, Inc. All Rights
- * Reserved. Contributor(s): ______________________________________..
- * *******************************************************************************/
 
 
 ////	COMMON
@@ -129,7 +124,7 @@ function commitAjaxFinalTouches($persistence)
         if ($_REQUEST['addTaskReminder'] == 'remind') {
             logThis('Adding Task for admin for manual merge.');
 
-            $task = new Task();
+            $task = BeanFactory::newBean('Tasks');
             $task->name = $mod_strings['LBL_UW_COMMIT_ADD_TASK_NAME'];
             $task->description = $desc;
             $task->date_due = $nowDate;
@@ -146,7 +141,7 @@ function commitAjaxFinalTouches($persistence)
         if ($_REQUEST['addEmailReminder'] == 'remind') {
             logThis('Sending Reminder for admin for manual merge.');
 
-            $email = new Email();
+            $email = BeanFactory::newBean('Emails');
             $email->assigned_user_id = $current_user->id;
             $email->name = $mod_strings['LBL_UW_COMMIT_ADD_TASK_NAME'];
             $email->description = $desc;
@@ -866,42 +861,33 @@ function systemCheckJsonCheckFiles($persistence)
 
     $isWindows = is_windows();
     foreach ($persistence['files_to_check'] as $file) {
-        //	while($file = array_pop($persistence['files_to_check'])) {
 
         // admin deletes a bad file mid-check:
         if (!file_exists($file)) {
             continue;
         }
-
-        if ($isWindows) {
-            if (!is_writable_windows($file)) {
-                logThis('WINDOWS: File ['.$file.'] not readable - saving for display');
-                // don't warn yet - we're going to use this to check against replacement files
-                $filesNotWritable[$i] = $file;
-                $filesNWPerms[$i] = substr(sprintf('%o', fileperms($file)), -4);
-                $filesOut .= "<tr>".
-                                "<td valign='top'><span class='error'>{$file}</span></td>".
-                                "<td valign='top'>{$filesNWPerms[$i]}</td>".
-                                "<td valign='top'>".$mod_strings['ERR_UW_CANNOT_DETERMINE_USER']."</td>".
-                                "<td valign='top'>".$mod_strings['ERR_UW_CANNOT_DETERMINE_GROUP']."</td>".
-                              "</tr>";
+        if (!is_writable($file)) {
+            logThis('File ['.$file.'] not writable - saving for display');
+            $filesNotWritable[$i] = $file;
+            $perms = substr(sprintf('%o', fileperms($file)), -4);
+            $owner = fileowner($file);
+            $group = filegroup($file);
+            if (!$isWindows && function_exists('posix_getpwuid')) {
+                $ownerData = posix_getpwuid($owner);
+                $owner = !empty($ownerData) ? $ownerData['name'] : $owner;
             }
-        } else {
-            if (!is_writable($file)) {
-                logThis('File ['.$file.'] not writable - saving for display');
-                // don't warn yet - we're going to use this to check against replacement files
-                $filesNotWritable[$i] = $file;
-                $filesNWPerms[$i] = substr(sprintf('%o', fileperms($file)), -4);
-                $owner = posix_getpwuid(fileowner($file));
-                $group = posix_getgrgid(filegroup($file));
-                $filesOut .= "<tr>".
-                                "<td valign='top'><span class='error'>{$file}</span></td>".
-                                "<td valign='top'>{$filesNWPerms[$i]}</td>".
-                                "<td valign='top'>".$owner['name']."</td>".
-                                "<td valign='top'>".$group['name']."</td>".
-                              "</tr>";
+            if (!$isWindows && function_exists('posix_getgrgid')) {
+                $groupData = posix_getgrgid($group);
+                $group = !empty($groupData) ? $groupData['name'] : $group;
             }
+            $filesOut .= "<tr>" .
+                "<td><span class='error'>{$file}</span></td>" .
+                "<td>{$perms}</td>" .
+                "<td>{$owner}</td>" .
+                "<td>{$group}</td>" .
+                "</tr>";
         }
+
         $i++;
     }
 
@@ -910,7 +896,7 @@ function systemCheckJsonCheckFiles($persistence)
     $persistence['filesNotWritable'] = (count($filesNotWritable) > 0) ? true : false;
 
     if (count($filesNotWritable) < 1) {
-        $filesOut = "{$mod_strings['LBL_UW_FILE_NO_ERRORS']}";
+        $filesOut = (string)($mod_strings['LBL_UW_FILE_NO_ERRORS']);
         $persistence['step']['systemCheck'] = 'success';
     }
 

@@ -87,7 +87,7 @@ function getDisplayForField($modulePath, $field, $reportModule)
     $fieldDisplay = trim($fieldDisplay, ':');
     foreach ($modulePathDisplay as &$module) {
         $module = isset($app_list_strings['aor_moduleList'][$module]) ? $app_list_strings['aor_moduleList'][$module] : (
-        isset($app_list_strings['moduleList'][$module]) ? $app_list_strings['moduleList'][$module] : $module
+            isset($app_list_strings['moduleList'][$module]) ? $app_list_strings['moduleList'][$module] : $module
         );
     }
     return array('field' => $fieldDisplay, 'type'=>$fieldType, 'module' => str_replace(' ', '&nbsp;', implode(' : ', $modulePathDisplay)));
@@ -109,7 +109,7 @@ function requestToUserParameters($reportBean = null)
 
             $condition = BeanFactory::getBean('AOR_Conditions', $_REQUEST['parameter_id'][$key]);
             $value = $_REQUEST['parameter_value'][$key];
-            if ($reportBean && $condition && !array_key_exists($value,$app_list_strings['date_time_period_list'])){
+            if ($reportBean && $condition && !array_key_exists($value, $app_list_strings['date_time_period_list'])) {
                 $value = fixUpFormatting($reportBean->report_module, $condition->field, $value);
             }
 
@@ -123,10 +123,10 @@ function requestToUserParameters($reportBean = null)
             // Fix for issue #1272 - AOR_Report module cannot update Date type parameter.
             if ($_REQUEST['parameter_type'][$key] === 'Date') {
                 $values = array();
-                $values[] = $_REQUEST['parameter_date_value'][$dateCount];
-                $values[] = $_REQUEST['parameter_date_sign'][$dateCount];
-                $values[] = $_REQUEST['parameter_date_number'][$dateCount];
-                $values[] = $_REQUEST['parameter_date_time'][$dateCount];
+                $values[] = $_REQUEST['parameter_date_value'][$key];
+                $values[] = $_REQUEST['parameter_date_sign'][$key];
+                $values[] = $_REQUEST['parameter_date_number'][$key];
+                $values[] = $_REQUEST['parameter_date_time'][$key];
 
                 $params[$parameterId] = array(
                     'id' => $parameterId,
@@ -147,21 +147,21 @@ function requestToUserParameters($reportBean = null)
                             'id' => $parameterId,
                             'operator' => $_REQUEST['parameter_operator'][$key],
                             'type' => $_REQUEST['parameter_type'][$key],
-                            'value' => convertToDateTime($_REQUEST['parameter_value'][$key])->format('Y-m-d H:i:s'),
+                            'value' => $value,
                         );
                     } elseif (strpos($paramValue, '-') === 2 || strpos($paramValue, '-') === 4) {
                         $params[$parameterId] = array(
                             'id' => $parameterId,
                             'operator' => $_REQUEST['parameter_operator'][$key],
                             'type' => $_REQUEST['parameter_type'][$key],
-                            'value' => convertToDateTime($_REQUEST['parameter_value'][$key])->format('Y-m-d H:i:s'),
+                            'value' => $value,
                         );
                     } elseif (strpos($paramValue, '.') === 2 || strpos($paramValue, '.') === 4) {
                         $params[$parameterId] = array(
                             'id' => $parameterId,
                             'operator' => $_REQUEST['parameter_operator'][$key],
                             'type' => $_REQUEST['parameter_type'][$key],
-                            'value' => convertToDateTime($_REQUEST['parameter_value'][$key])->format('Y-m-d H:i:s'),
+                            'value' => $value,
                         );
                     }
                 }
@@ -336,8 +336,11 @@ function getPeriodEndDate($dateTimePeriodListSelected)
 {
     switch ($dateTimePeriodListSelected) {
         case 'today':
-        case 'yesterday':
             $datetimePeriod = new DateTime();
+            break;
+        case 'yesterday':
+            $datetimePeriod = new DateTime("yesterday");
+            $datetimePeriod->setTime(23, 59, 59);
             break;
         case 'this_week':
             $datetimePeriod = new DateTime("next week monday");

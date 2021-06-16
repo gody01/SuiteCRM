@@ -1,12 +1,13 @@
 <?php
 
-class AOP_Case_EventsTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
+use SuiteCRM\Test\SuitePHPUnitFrameworkTestCase;
+
+class AOP_Case_EventsTest extends SuitePHPUnitFrameworkTestCase
 {
     public function testAOP_Case_Events()
     {
-
-        //execute the contructor and check for the Object type and type attribute
-        $aopCaseEvents = new AOP_Case_Events();
+        // Execute the constructor and check for the Object type and type attribute
+        $aopCaseEvents = BeanFactory::newBean('AOP_Case_Events');
         $this->assertInstanceOf('AOP_Case_Events', $aopCaseEvents);
         $this->assertInstanceOf('Basic', $aopCaseEvents);
         $this->assertInstanceOf('SugarBean', $aopCaseEvents);

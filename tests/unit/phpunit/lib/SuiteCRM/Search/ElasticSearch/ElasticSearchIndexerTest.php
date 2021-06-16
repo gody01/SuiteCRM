@@ -170,8 +170,10 @@ class ElasticSearchIndexerTest extends SearchTestAbstract
      */
     private function getExpectedHeader()
     {
+        global $sugar_config;
+
         $expected = [
-            'index' => 'main',
+            'index' => $sugar_config['unique_key'],
             'type' => 'Contacts',
             'id' => '00000000-0000-0000-0000-000000000000',
         ];
@@ -270,6 +272,7 @@ class ElasticSearchIndexerTest extends SearchTestAbstract
                 [
                     'mobile' => '9788363300',
                     'work' => '7111123512',
+                    'home' => '4451633872',
                 ],
             'address' => [
                 'primary' => [
@@ -309,6 +312,8 @@ class ElasticSearchIndexerTest extends SearchTestAbstract
 
     public function testRemoveBeans()
     {
+        global $sugar_config;
+
         $mock = m::mock('Elasticsearch\Client');
         $beans = [$this->getTestBean(), $this->getTestBean()];
 
@@ -317,8 +322,20 @@ class ElasticSearchIndexerTest extends SearchTestAbstract
                 'ignore' => [404],
             ],
             'body' => [
-                ['delete' => ['index' => 'main', 'type' => 'Contacts', 'id' => '00000000-0000-0000-0000-000000000000',]],
-                ['delete' => ['index' => 'main', 'type' => 'Contacts', 'id' => '00000000-0000-0000-0000-000000000000',]],
+                [
+                    'delete' => [
+                        'index' => $sugar_config['unique_key'],
+                        'type' => 'Contacts',
+                        'id' => '00000000-0000-0000-0000-000000000000',
+                    ]
+                ],
+                [
+                    'delete' => [
+                        'index' => $sugar_config['unique_key'],
+                        'type' => 'Contacts',
+                        'id' => '00000000-0000-0000-0000-000000000000',
+                    ]
+                ],
             ]
         ];
 
@@ -334,11 +351,13 @@ class ElasticSearchIndexerTest extends SearchTestAbstract
 
     public function testRemoveBean()
     {
+        global $sugar_config;
+
         $mock = m::mock('Elasticsearch\Client');
         $bean = $this->getTestBean();
 
         $params = [
-            'index' => 'main',
+            'index' => $sugar_config['unique_key'],
             'type' => 'Contacts',
             'id' => '00000000-0000-0000-0000-000000000000',
         ];
@@ -368,12 +387,14 @@ class ElasticSearchIndexerTest extends SearchTestAbstract
 
     public function testRemoveIndex()
     {
+        global $sugar_config;
+
         list($mockClient, $mockIndices) = $this->getMockIndices();
 
         $mockIndices
             ->shouldReceive('delete')
             ->once()
-            ->with(['index' => 'main', 'client' => ['ignore' => [404]]]);
+            ->with(['index' => $sugar_config['unique_key'], 'client' => ['ignore' => [404]]]);
 
         $indexer = new ElasticSearchIndexer($mockClient);
 

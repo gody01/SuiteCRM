@@ -74,6 +74,8 @@ class Reminder extends Basic
 
     private static $remindersData = array();
 
+    private static $remindersInSaving = false;
+
     // ---- save and load remainders on EditViews
 
     /**
@@ -87,11 +89,15 @@ class Reminder extends Basic
      */
     public static function saveRemindersDataJson($eventModule, $eventModuleId, $remindersDataJson)
     {
-        $reminderData = json_decode($remindersDataJson);
-        if (!json_last_error()) {
-            Reminder::saveRemindersData($eventModule, $eventModuleId, $reminderData);
-        } else {
-            throw new Exception(json_last_error_msg());
+        if(!self::$remindersInSaving) {
+            self::$remindersInSaving = true;
+            $reminderData = json_decode($remindersDataJson);
+            if (!json_last_error()) {
+                Reminder::saveRemindersData($eventModule, $eventModuleId, $reminderData);
+            } else {
+                throw new Exception(json_last_error_msg());
+            }
+            self::$remindersInSaving = false;
         }
     }
 
@@ -302,9 +308,7 @@ class Reminder extends Basic
         $dateTimeMax = $timedate->getNow(true)->modify("+{$app_list_strings['reminder_max_time']} seconds")->asDb(false);
 
         $dateTimeNow = $timedate->getNow(true)->asDb(false);
-
-        $dateTimeNow = $db->convert($db->quoted($dateTimeNow), 'datetime');
-        $dateTimeMax = $db->convert($db->quoted($dateTimeMax), 'datetime');
+        
 
         // Original jsAlert used to a meeting integration.
 
@@ -607,7 +611,7 @@ class Reminder extends Basic
     {
         $users = User::getActiveUsers();
         foreach ($users as $user_id => $user_name) {
-            $user = new User();
+            $user = BeanFactory::newBean('Users');
             $user->retrieve($user_id);
 
             $preferencePopupReminderTime = $user->getPreference('reminder_time');

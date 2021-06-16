@@ -41,12 +41,7 @@ if (!defined('sugarEntry') || !sugarEntry) {
  * display the words "Powered by SugarCRM" and "Supercharged by SuiteCRM".
  */
 
-/*********************************************************************************
 
- * Description:
- * Portions created by SugarCRM are Copyright (C) SugarCRM, Inc. All Rights
- * Reserved. Contributor(s): ______________________________________..
- * *******************************************************************************/
 logThis('[At cancel.php]');
 logThis('cleaning up files and session.  goodbye.');
 
@@ -57,7 +52,6 @@ if (isset($_SESSION['install_file']) && file_exists(isset($_SESSION['install_fil
     @unlink(isset($_SESSION['install_file']));
 }
 unlinkUWTempFiles();
-unlinkUploadFiles();
 resetUwSession();
 
 $uwMain =<<<eoq

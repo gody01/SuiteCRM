@@ -41,13 +41,7 @@ if (!defined('sugarEntry') || !sugarEntry) {
  * display the words "Powered by SugarCRM" and "Supercharged by SuiteCRM".
  */
 
-/*********************************************************************************
 
- * Description:  TODO: To be written.
- * Portions created by SugarCRM are Copyright (C) SugarCRM, Inc.
- * All Rights Reserved.
- * Contributor(s): ______________________________________..
- ********************************************************************************/
 
 
 
@@ -62,7 +56,7 @@ global $app_strings;
 global $app_list_strings;
 global $sugar_version, $sugar_config;
 
-$focus = new Campaign();
+$focus = BeanFactory::newBean('Campaigns');
 
 $detailView = new DetailView();
 $offset = 0;
@@ -118,7 +112,7 @@ if (isset($focus->campaign_type) && $focus->campaign_type == "NewsLetter") {
     $smarty->assign("CREATED_BY", $focus->created_by_name);
     $smarty->assign("MODIFIED_BY", $focus->modified_by_name);
     $smarty->assign("TRACKER_URL", $sugar_config['site_url'] . '/campaign_tracker.php?track=' . $focus->tracker_key);
-    $smarty->assign("TRACKER_COUNT", intval($focus->tracker_count));
+    $smarty->assign("TRACKER_COUNT", (int)$focus->tracker_count);
     $smarty->assign("TRACKER_TEXT", $focus->tracker_text);
     $smarty->assign("REFER_URL", $focus->refer_url);
 
@@ -126,7 +120,7 @@ if (isset($focus->campaign_type) && $focus->campaign_type == "NewsLetter") {
         $smarty->assign("TRACK_DELETE_BUTTON", "<input title=\"{$mod_strings['LBL_TRACK_DELETE_BUTTON_TITLE']}\" class=\"button\" onclick=\"this.form.module.value='Campaigns'; this.form.action.value='Delete';this.form.return_module.value='Campaigns'; this.form.return_action.value='TrackDetailView';this.form.mode.value='Test';return confirm('{$mod_strings['LBL_TRACK_DELETE_CONFIRM']}');\" type=\"submit\" name=\"button\" value=\"  {$mod_strings['LBL_TRACK_DELETE_BUTTON_LABEL']}  \">");
     }
 
-        $currency  = new Currency();
+        $currency  = BeanFactory::newBean('Currencies');
     if (isset($focus->currency_id) && !empty($focus->currency_id)) {
         $currency->retrieve($focus->currency_id);
         if ($currency->deleted != 1) {
@@ -227,8 +221,10 @@ $chart= new campaign_charts();
 //custom chart code
     require_once('include/SugarCharts/SugarChartFactory.php');
     $sugarChart = SugarChartFactory::getInstance();
-    $resources = $sugarChart->getChartResources();
-    $smarty->assign('chartResources', $resources);
+    if ($sugarChart) {
+        $resources = $sugarChart->getChartResources();
+        $smarty->assign('chartResources', $resources);
+    }
 
 echo $smarty->fetch('modules/Campaigns/TrackDetailView.tpl');
 
@@ -268,7 +264,7 @@ $subpanel = new SubPanelTiles($focus, 'Campaigns');
                     }
                 }//end if (isset($subpane['function_parameters'])){
             }//end foreach($subpanels as $subpane_key => $subpane){
-        }//_pp($subpanel->subpanel_definitions->layout_defs);
+        }
     }//end else
 
 $deletedCampaignLogLeadsCount = $focus->getDeletedCampaignLogLeadsCount();

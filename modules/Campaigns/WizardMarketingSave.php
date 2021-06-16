@@ -41,13 +41,7 @@ if (!defined('sugarEntry') || !sugarEntry) {
  * display the words "Powered by SugarCRM" and "Supercharged by SuiteCRM".
  */
 
-/*********************************************************************************
 
- * Description:  TODO: To be written.
- * Portions created by SugarCRM are Copyright (C) SugarCRM, Inc.
- * All Rights Reserved.
- * Contributor(s): ______________________________________..
- ********************************************************************************/
 
 
 global $timedate;
@@ -74,7 +68,7 @@ if (isset($_REQUEST['wiz_home_next_step']) && !empty($_REQUEST['wiz_home_next_st
 
 
 $prefix = 'wiz_step3_';
-$marketing = new EmailMarketing();
+$marketing = BeanFactory::newBean('EmailMarketing');
 if (isset($_REQUEST['record']) && !empty($_REQUEST['record'])) {
     $marketing->retrieve($_REQUEST['record']);
 } else {

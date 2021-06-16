@@ -248,7 +248,7 @@ class User extends Person implements EmailInterface
      * @throws \RuntimeException
      */
     public function getSignatures(
-    $live = false,
+        $live = false,
         $defaultSig = '',
         $forSettings = false,
         $elementId = 'signature_id',
@@ -284,7 +284,7 @@ class User extends Person implements EmailInterface
      * @throws \RuntimeException
      */
     public function getEmailAccountSignatures(
-    $live = false,
+        $live = false,
         $defaultSig = '',
         $forSettings = false,
         $elementId = 'account_signature_id',
@@ -360,17 +360,15 @@ class User extends Person implements EmailInterface
         $userPrivGuid = $this->getPreference('userPrivGuid', 'global', $this);
         if ($userPrivGuid) {
             return $userPrivGuid;
-        } else {
-            $this->setUserPrivGuid();
-            if (!isset($_SESSION['setPrivGuid'])) {
-                $_SESSION['setPrivGuid'] = true;
-                $userPrivGuid = $this->getUserPrivGuid();
-
-                return $userPrivGuid;
-            } else {
-                sugar_die("Breaking Infinite Loop Condition: Could not setUserPrivGuid.");
-            }
         }
+        $this->setUserPrivGuid();
+        if (!isset($_SESSION['setPrivGuid'])) {
+            $_SESSION['setPrivGuid'] = true;
+            $userPrivGuid = $this->getUserPrivGuid();
+
+            return $userPrivGuid;
+        }
+        sugar_die("Breaking Infinite Loop Condition: Could not setUserPrivGuid.");
     }
 
     public function setUserPrivGuid()
@@ -391,7 +389,7 @@ class User extends Person implements EmailInterface
      * @param string $category Name of the category to retrieve
      */
     public function setPreference(
-    $name,
+        $name,
         $value,
         $nosession = 0,
         $category = 'global'
@@ -415,7 +413,7 @@ class User extends Person implements EmailInterface
      * @param string $category category to reset
      */
     public function resetPreferences(
-    $category = null
+        $category = null
     ) {
         // for BC
         if (func_num_args() > 1) {
@@ -485,7 +483,7 @@ class User extends Person implements EmailInterface
      * @return bool successful?
      */
     public function loadPreferences(
-    $category = 'global'
+        $category = 'global'
     ) {
         // for BC
         if (func_num_args() > 1) {
@@ -530,7 +528,7 @@ class User extends Person implements EmailInterface
      * @internal param bool $useRequestedRecord
      */
     public function getPreference(
-    $name,
+        $name,
         $category = 'global'
     ) {
         // for BC
@@ -625,7 +623,7 @@ class User extends Person implements EmailInterface
         $isUpdate = !empty($this->id) && !$this->new_with_id;
 
         //No SMTP server is set up Error.
-        $admin = new Administration();
+        $admin = BeanFactory::newBean('Administration');
         $smtp_error = $admin->checkSmtpError();
 
         // only admin user can change 2 factor authentication settings
@@ -739,7 +737,7 @@ class User extends Person implements EmailInterface
         if (!$this->is_group && !$this->portal_only) {
             require_once('modules/MySettings/TabController.php');
 
-            global $current_user;
+            global $current_user, $sugar_config;
 
             $display_tabs_def = isset($_REQUEST['display_tabs_def']) ? urldecode($_REQUEST['display_tabs_def']) : '';
             $hide_tabs_def = isset($_REQUEST['hide_tabs_def']) ? urldecode($_REQUEST['hide_tabs_def']) : '';
@@ -756,8 +754,7 @@ class User extends Person implements EmailInterface
             $this->is_group = 0;
             $this->portal_only = 0;
 
-            if ((isset($_POST['is_admin']) && ($_POST['is_admin'] == 'on' || $_POST['is_admin'] == '1')) ||
-              (isset($_POST['UserType']) && $_POST['UserType'] == "Administrator")) {
+            if (is_admin($current_user) && ((isset($_POST['is_admin']) && ($_POST['is_admin'] === 'on' || $_POST['is_admin'] === '1')) || (isset($_POST['UserType']) && $_POST['UserType'] === 'Administrator'))) {
                 $this->is_admin = 1;
             } elseif (isset($_POST['is_admin']) && empty($_POST['is_admin'])) {
                 $this->is_admin = 0;
@@ -984,6 +981,15 @@ class User extends Person implements EmailInterface
             } else {
                 $this->setPreference('syncGCal', 0, 0, 'GoogleSync');
             }
+            if ($this->user_hash === null) {
+                $newUser = true;
+                clear_register_value('user_array', $this->object_name);
+            } else {
+                $newUser = false;
+            }
+            if ($newUser && !$this->is_group && !$this->portal_only && isset($sugar_config['passwordsetting']['SystemGeneratedPasswordON'])) {
+                require_once 'modules/Users/GeneratePassword.php';
+            }
         }
     }
 
@@ -1035,9 +1041,8 @@ class User extends Person implements EmailInterface
         // If the role doesn't exist in the list of the user's roles
         if (!empty($role_array) && in_array($role_name, $role_array)) {
             return true;
-        } else {
-            return false;
         }
+        return false;
     }
 
     public function get_summary_text()
@@ -1073,11 +1078,10 @@ class User extends Person implements EmailInterface
         $row = self::findUserPassword($this->user_name, $password);
         if (empty($row)) {
             return false;
-        } else {
-            $this->id = $row['id'];
-
-            return true;
         }
+        $this->id = $row['id'];
+
+        return true;
     }
 
     /**
@@ -1188,49 +1192,54 @@ EOQ;
     /**
      * Generate a new hash from plaintext password
      * @param string $password
+     * @return bool|string
      */
     public static function getPasswordHash($password)
     {
-        if (!defined('CRYPT_MD5') || !constant('CRYPT_MD5')) {
-            // does not support MD5 crypt - leave as is
-            if (defined('CRYPT_EXT_DES') && constant('CRYPT_EXT_DES')) {
-                return crypt(strtolower(md5($password)), "_.012" . substr(str_shuffle('./ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'), -4));
-            }
-            // plain crypt cuts password to 8 chars, which is not enough
-            // fall back to old md5
-            return strtolower(md5($password));
-        }
+        return self::getPasswordHashMD5(md5($password));
+    }
 
-        return @crypt(strtolower(md5($password)));
+    /**
+     * Generate a new hash from MD5 password
+     * @param string $passwordMd5
+     * @return bool|string
+     */
+    public static function getPasswordHashMD5($passwordMd5)
+    {
+        return password_hash(strtolower($passwordMd5), PASSWORD_DEFAULT);
     }
 
     /**
      * Check that password matches existing hash
      * @param string $password Plaintext password
-     * @param string $user_hash DB hash
+     * @param string $userHash DB hash
+     * @return bool
      */
-    public static function checkPassword($password, $user_hash)
+    public static function checkPassword($password, $userHash)
     {
-        return self::checkPasswordMD5(md5($password), $user_hash);
+        return self::checkPasswordMD5(md5($password), $userHash);
     }
 
     /**
      * Check that md5-encoded password matches existing hash
-     * @param string $password MD5-encoded password
-     * @param string $user_hash DB hash
+     * @param string $passwordMd5 MD5-encoded password
+     * @param string $userHash DB hash
      * @return bool Match or not?
      */
-    public static function checkPasswordMD5($password_md5, $user_hash)
+    public static function checkPasswordMD5($passwordMd5, $userHash)
     {
-        if (empty($user_hash)) {
+        if (empty($userHash)) {
             return false;
         }
-        if ($user_hash[0] != '$' && strlen($user_hash) == 32) {
-            // Old way - just md5 password
-            return strtolower($password_md5) == $user_hash;
+
+        if ($userHash[0] !== '$' && strlen($userHash) === 32) {
+            // Legacy md5 password
+            $valid = strtolower($passwordMd5) === $userHash;
+        } else {
+            $valid = password_verify(strtolower($passwordMd5), $userHash);
         }
 
-        return crypt(strtolower($password_md5), $user_hash) == $user_hash;
+        return $valid;
     }
 
     /**
@@ -1239,7 +1248,7 @@ EOQ;
      * @param string $password MD5-encoded password
      * @param string $where Limiting query
      * @param bool $checkPasswordMD5 use md5 check for user_hash before return the user data (default is true)
-     * @return bool|arraythe matching User of false if not found
+     * @return bool|array the matching User of false if not found
      */
     public static function findUserPassword($name, $password, $where = '', $checkPasswordMD5 = true)
     {
@@ -1430,7 +1439,7 @@ EOQ;
     }
 
     public function retrieve_user_id(
-    $user_name
+        $user_name
     ) {
         $userFocus = new User;
         $userFocus->retrieve_by_string_fields(array('user_name' => $user_name));
@@ -1633,7 +1642,7 @@ EOQ;
         // First, get the list of IDs.
         $query = "SELECT meeting_id as id from meetings_users where user_id='$this->id' AND deleted=0";
 
-        $meeting = new Meeting();
+        $meeting = BeanFactory::newBean('Meetings');
         return $this->build_related_list($query, $meeting);
     }
 
@@ -1642,7 +1651,7 @@ EOQ;
         // First, get the list of IDs.
         $query = "SELECT call_id as id from calls_users where user_id='$this->id' AND deleted=0";
 
-        return $this->build_related_list($query, new Call());
+        return $this->build_related_list($query, BeanFactory::newBean('Calls'));
     }
 
     /**
@@ -1746,7 +1755,7 @@ EOQ;
 
     public function getSystemDefaultNameAndEmail()
     {
-        $email = new Email();
+        $email = BeanFactory::newBean('Emails');
         $return = $email->getSystemDefaultEmail();
         $prefAddr = $return['email'];
         $fullName = $return['name'];
@@ -1781,7 +1790,7 @@ EOQ;
     {
         $user = $this;
         if (!empty($id)) {
-            $user = new User();
+            $user = BeanFactory::newBean('Users');
             $user->retrieve($id);
         }
 
@@ -1825,7 +1834,7 @@ EOQ;
      * @param class
      */
     public function getEmailLink2(
-    $emailAddress,
+        $emailAddress,
         &$focus,
         $contact_id = '',
         $ret_module = '',
@@ -1888,7 +1897,7 @@ EOQ;
      * @param class
      */
     public function getEmailLink(
-    $attribute,
+        $attribute,
         &$focus,
         $contact_id = '',
         $ret_module = '',
@@ -1926,13 +1935,13 @@ EOQ;
 
         $ret1 = '';
         $ret2 = '';
-        for ($i = 0; $i < strlen($macro); $i++) {
-            if (array_key_exists($macro{$i}, $format)) {
-                $ret1 .= "<i>" . $format[$macro{$i}] . "</i>";
-                $ret2 .= "<i>" . $name[$macro{$i}] . "</i>";
+        for ($i = 0, $iMax = strlen($macro); $i < $iMax; $i++) {
+            if (array_key_exists($macro[$i], $format)) {
+                $ret1 .= "<i>" . $format[$macro[$i]] . "</i>";
+                $ret2 .= "<i>" . $name[$macro[$i]] . "</i>";
             } else {
-                $ret1 .= $macro{$i};
-                $ret2 .= $macro{$i};
+                $ret1 .= $macro[$i];
+                $ret2 .= $macro[$i];
             }
         }
 
@@ -2139,13 +2148,12 @@ EOQ;
         $localeFormat = $locale->getLocaleFormatMacro($this);
         if (strpos($localeFormat, 'l') > strpos($localeFormat, 'f')) {
             return false;
-        } else {
-            return true;
         }
+        return true;
     }
 
     public function create_new_list_query(
-    $order_by,
+        $order_by,
         $where,
         $filter = array(),
         $params = array(),
@@ -2242,7 +2250,7 @@ EOQ;
 
         // Create random characters for the ones that doesnt have requirements
         for ($i = 0; $i < $length - $condition; $i++) {  // loop and create password
-            $password = $password . substr($charBKT, rand() % strlen($charBKT), 1);
+            $password = $password . substr($charBKT, mt_rand() % strlen($charBKT), 1);
         }
 
         return $password;
@@ -2264,7 +2272,7 @@ EOQ;
             'message' => ''
         );
 
-        $emailTemp = new EmailTemplate();
+        $emailTemp = BeanFactory::newBean('EmailTemplates');
         $emailTemp->disable_row_level_security = true;
         if ($emailTemp->retrieve($templateId) == '') {
             $result['message'] = $mod_strings['LBL_EMAIL_TEMPLATE_MISSING'];
@@ -2295,9 +2303,8 @@ EOQ;
 
         $itemail = $this->emailAddress->getPrimaryAddress($this);
         //retrieve IT Admin Email
-        //_ppd( $emailTemp->body_html);
         //retrieve email defaults
-        $emailObj = new Email();
+        $emailObj = BeanFactory::newBean('Emails');
         $defaults = $emailObj->getSystemDefaultEmail();
         require_once('include/SugarPHPMailer.php');
         $mail = new SugarPHPMailer();
@@ -2397,9 +2404,8 @@ EOQ;
     {
         if (!empty($this->email1) && !empty($email) && strcasecmp($this->email1, $email) == 0) {
             return true;
-        } else {
-            return false;
         }
+        return false;
     }
 
     public function getEditorType()

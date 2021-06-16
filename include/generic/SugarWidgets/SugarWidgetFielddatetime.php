@@ -89,7 +89,7 @@ class SugarWidgetFieldDateTime extends SugarWidgetReportField
             return null;
         }
 
-        $this->assigned_user = new User();
+        $this->assigned_user = BeanFactory::newBean('Users');
         $this->assigned_user->retrieve($report_def_str['assigned_user_id']);
         return $this->assigned_user;
     }
@@ -726,8 +726,8 @@ class SugarWidgetFieldDateTime extends SugarWidgetReportField
         $column = $this->_get_column_select($layout_def);
         return $this->reporter->db->convert(
             $this->reporter->db->convert($column, "date_format", array('%Y')),
-                'CONCAT',
-                array("'-'", $this->reporter->db->convert($column, "quarter"))
+            'CONCAT',
+            array("'-'", $this->reporter->db->convert($column, "quarter"))
         )
             ." ".$this->_get_column_alias($layout_def)."\n";
     }
@@ -747,8 +747,8 @@ class SugarWidgetFieldDateTime extends SugarWidgetReportField
         $column = $this->_get_column_select($layout_def);
         return $this->reporter->db->convert(
             $this->reporter->db->convert($column, "date_format", array('%Y')),
-                'CONCAT',
-                array("'-'", $this->reporter->db->convert($column, "quarter"))
+            'CONCAT',
+            array("'-'", $this->reporter->db->convert($column, "quarter"))
         );
     }
 
