@@ -238,7 +238,9 @@ class ListViewDataEmails extends ListViewData
     {
         switch ($folder->getType()) {
             case "inbound":
-                $inboundEmail->mailbox = $inboundEmail->get_stored_options('mailbox');
+                // Use the mailbox associated with $folder rather than the option string
+                // Used in the IMAP connection string later
+                $inboundEmail->mailbox = $folder->getMailbox();
                 break;
 
             case "draft":
@@ -254,7 +256,7 @@ class ListViewDataEmails extends ListViewData
                 break;
 
             default:
-                $inboundEmail->mailbox = empty($folder->id) ? '' : $folder->mailbox;
+                $inboundEmail->mailbox = empty($folder->id) ? '' : $folder->getMailbox();
                 break;
         }
     }
@@ -294,7 +296,7 @@ class ListViewDataEmails extends ListViewData
                     continue;
                 }
 
-                // strip out the suffix to the the field names
+                // strip out the suffix to the field names
                 if ((stristr($filteredField, 'advanced') !== false) || (stristr($filteredField, 'basic') !== false)) {
                     $f = str_ireplace('_advanced', '', $filteredField);
                     $f = str_ireplace('_basic', '', $f);

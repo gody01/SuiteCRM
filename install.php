@@ -5,7 +5,7 @@
  * SugarCRM, Inc. Copyright (C) 2004-2013 SugarCRM Inc.
  *
  * SuiteCRM is an extension to SugarCRM Community Edition developed by SalesAgility Ltd.
- * Copyright (C) 2011 - 2018 SalesAgility Ltd.
+ * Copyright (C) 2011 - 2020 SalesAgility Ltd.
  *
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by the
@@ -37,9 +37,10 @@
  * reasonably feasible for technical reasons, the Appropriate Legal Notices must
  * display the words "Powered by SugarCRM" and "Supercharged by SuiteCRM".
  */
- if (!defined('sugarEntry')) {
-     define('sugarEntry', true);
- }
+
+if (!defined('sugarEntry')) {
+    define('sugarEntry', true);
+}
 
 require_once 'include/utils.php';
 @session_start();
@@ -109,13 +110,6 @@ $timedate = TimeDate::getInstance();
 setPhpIniSettings();
 $locale = new Localization();
 
-if (get_magic_quotes_gpc() == 1) {
-    $_REQUEST = array_map("stripslashes_checkstrings", $_REQUEST);
-    $_POST = array_map("stripslashes_checkstrings", $_POST);
-    $_GET = array_map("stripslashes_checkstrings", $_GET);
-}
-
-
 $GLOBALS['log'] = LoggerManager::getLogger();
 $setup_sugar_version = $suitecrm_version;
 $install_script = true;
@@ -125,7 +119,7 @@ $install_script = true;
 $css = 'install/install.css';
 $icon = 'include/images/sugar_icon.ico';
 $sugar_md = 'include/images/sugar_md_open.png';
-$loginImage = 'include/images/sugarcrm_login.png';
+$loginImage = 'include/images/suitecrm_login.png';
 $common = 'install/installCommon.js';
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -186,6 +180,39 @@ $app_list_strings = return_app_list_strings_language($current_language);
 
 //get the url for the helper link
 $help_url = get_help_button_url();
+
+if (isset($sugar_config['installer_locked']) && $sugar_config['installer_locked'] == true) {
+    if (!empty($_POST['current_step']) && $_POST['current_step'] === '3' && !empty($_POST['goto']) && $_POST['goto'] === $mod_strings['LBL_NEXT']) {
+        session_unset();
+        $the_file = 'complete_install.php';
+    } else {
+        $the_file = 'installDisabled.php';
+        $disabled_title = $mod_strings['LBL_DISABLED_DESCRIPTION'];
+        $disabled_title_2 = $mod_strings['LBL_DISABLED_TITLE_2'];
+        $disabled_text = <<<EOQ
+            <p>{$mod_strings['LBL_DISABLED_DESCRIPTION']}</p>
+            <pre>
+                'installer_locked' => false,
+            </pre>
+            <p>{$mod_strings['LBL_DISABLED_DESCRIPTION_2']}</p>
+        
+            <p>{$mod_strings['LBL_DISABLED_HELP_1']} <a href="{$mod_strings['LBL_DISABLED_HELP_LNK']}" target="_blank">{$mod_strings['LBL_DISABLED_HELP_2']}</a>.</p>
+EOQ;
+
+    }
+    $the_file = 'install/' . clean_string($the_file, 'FILE');
+
+    if (is_file($the_file)) {
+        installerHook('pre_installFileRequire', ['the_file' => $the_file]);
+        require($the_file);
+        die();
+    }
+    LoggerManager::getLogger()->fatal('Install file not found: ' . $the_file);
+    die('SuiteCRM Installation has been Disabled');
+}
+
+
+
 
 //if this license print, then redirect and exit,
 if (isset($_REQUEST['page']) && $_REQUEST['page'] == 'licensePrint') {
@@ -267,7 +294,7 @@ if (isset($_REQUEST['sugar_body_only']) && $_REQUEST['sugar_body_only'] == "1") 
         // TODO--low: validate file size & image width/height and save, show status result to client js
 
         if (isset($_REQUEST['callback']) && $_REQUEST['callback'] === 'uploadLogoCallback') {
-            echo "<script>window.top.window.uploadLogoCallback" . json_encode($result) . ");</script>";
+            echo "<script>window.top.window.uploadLogoCallback(" . json_encode($result) . ");</script>";
         }
 
         return;
@@ -590,6 +617,9 @@ EOQ;
                 }
                 if (isset($_REQUEST['setup_db_collation'])) {
                     $_SESSION['setup_db_options']['collation'] = $_REQUEST['setup_db_collation'];
+		}
+		if(isset($_REQUEST['setup_db_charset'])) {
+                    $_SESSION['setup_db_options']['charset'] = $_REQUEST['setup_db_charset'];
                 }
                 $_SESSION['setup_site_admin_user_name']             = $_REQUEST['setup_site_admin_user_name'];
                 $_SESSION['setup_site_admin_password']              = $_REQUEST['setup_site_admin_password'];
@@ -644,15 +674,15 @@ EOQ;
 
     if ($next_step == 9999) {
         $the_file = 'SilentInstall';
+    } elseif ($next_step == 9191) {
+        $_SESSION['oc_server_url']	= $_REQUEST['oc_server_url'];
+        $_SESSION['oc_username']    = $_REQUEST['oc_username'];
+        $_SESSION['oc_password']   	= $_REQUEST['oc_password'];
+        $the_file = 'oc_convert.php';
+    } elseif ($next_step === 9) {
+        $the_file = $workflow[4];
     } else {
-        if ($next_step == 9191) {
-            $_SESSION['oc_server_url']	= $_REQUEST['oc_server_url'];
-            $_SESSION['oc_username']    = $_REQUEST['oc_username'];
-            $_SESSION['oc_password']   	= $_REQUEST['oc_password'];
-            $the_file = 'oc_convert.php';
-        } else {
-            $the_file = $workflow[$next_step];
-        }
+        $the_file = $workflow[$next_step];
     }
 
     switch ($the_file) {
@@ -724,7 +754,7 @@ EOQ;
                 $sugar_config['unique_key'] = md5(create_guid());
             }
 
-            $validation_errors = validate_dbConfig('a');
+            $validation_errors = validate_dbConfig();
             if (count($validation_errors) > 0) {
                 $the_file = 'dbConfig_a.php';
                 $si_errors = true;
@@ -790,12 +820,12 @@ EOQ;
 }
 
 
-$the_file = clean_string($the_file, 'FILE');
+$the_file = 'install/' . clean_string($the_file, 'FILE');
 
-installerHook('pre_installFileRequire', array('the_file' => $the_file));
-
-// change to require to get a good file load error message if the file is not available.
-
-require('install/' . $the_file);
-
-installerHook('post_installFileRequire', array('the_file' => $the_file));
+if (is_file($the_file)) {
+    installerHook('pre_installFileRequire', ['the_file' => $the_file]);
+    require($the_file);
+    installerHook('post_installFileRequire', ['the_file' => $the_file]);
+} else {
+    LoggerManager::getLogger()->fatal('Install file not found: ' . $the_file);
+}

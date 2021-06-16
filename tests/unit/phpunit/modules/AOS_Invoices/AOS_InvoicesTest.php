@@ -1,6 +1,8 @@
 <?php
 
-class AOS_InvoicesTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
+use SuiteCRM\Test\SuitePHPUnitFrameworkTestCase;
+
+class AOS_InvoicesTest extends SuitePHPUnitFrameworkTestCase
 {
     protected function setUp()
     {
@@ -8,13 +10,13 @@ class AOS_InvoicesTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
 
         global $current_user;
         get_sugar_config_defaults();
-        $current_user = new User();
+        $current_user = BeanFactory::newBean('Users');
     }
 
     public function testAOS_Invoices()
     {
-        //execute the contructor and check for the Object type and  attributes
-        $aosInvoices = new AOS_Invoices();
+        // Execute the constructor and check for the Object type and  attributes
+        $aosInvoices = BeanFactory::newBean('AOS_Invoices');
         $this->assertInstanceOf('AOS_Invoices', $aosInvoices);
         $this->assertInstanceOf('Basic', $aosInvoices);
         $this->assertInstanceOf('SugarBean', $aosInvoices);
@@ -29,12 +31,7 @@ class AOS_InvoicesTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
 
     public function testSaveAndMark_deleted()
     {
-        $state = new SuiteCRM\StateSaver();
-        
-        $state->pushTable('aos_invoices');
-        $state->pushTable('tracker');
-        
-        $aosInvoices = new AOS_Invoices();
+        $aosInvoices = BeanFactory::newBean('AOS_Invoices');
         $aosInvoices->name = 'test';
 
         $aosInvoices->save();
@@ -48,9 +45,5 @@ class AOS_InvoicesTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
         $aosInvoices->mark_deleted($aosInvoices->id);
         $result = $aosInvoices->retrieve($aosInvoices->id);
         $this->assertEquals(null, $result);
-        
-        // clean up
-        $state->popTable('tracker');
-        $state->popTable('aos_invoices');
     }
 }

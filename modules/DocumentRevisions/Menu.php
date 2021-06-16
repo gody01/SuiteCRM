@@ -41,13 +41,7 @@ if (!defined('sugarEntry') || !sugarEntry) {
  * display the words "Powered by SugarCRM" and "Supercharged by SuiteCRM".
  */
 
-/*********************************************************************************
 
- * Description:  TODO To be written.
- * Portions created by SugarCRM are Copyright (C) SugarCRM, Inc.
- * All Rights Reserved.
- * Contributor(s): ______________________________________..
- ********************************************************************************/
 
 global $mod_strings;
 global $current_user;
@@ -60,7 +54,7 @@ if (ACLController::checkAccess('Documents', 'list', true)) {
     $module_menu[]=array("index.php?module=Documents&action=index", $mod_strings['LNK_DOCUMENT_LIST'],"List");
 }
 if (ACLController::checkAccess('Documents', 'detail', true)) {
-    $admin = new Administration();
+    $admin = BeanFactory::newBean('Administration');
     $admin->retrieveSettings();
     $user_merge = $current_user->getPreference('mailmerge_on');
     if ($user_merge == 'on' && isset($admin->settings['system_mailmerge_on']) && $admin->settings['system_mailmerge_on']) {

@@ -1,12 +1,13 @@
 <?php
 
-class EmailTextTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
+use SuiteCRM\Test\SuitePHPUnitFrameworkTestCase;
+
+class EmailTextTest extends SuitePHPUnitFrameworkTestCase
 {
     public function testEmailText()
     {
-
-        //execute the contructor and check for the Object type and  attributes
-        $emailText = new EmailText();
+        // Execute the constructor and check for the Object type and  attributes
+        $emailText = BeanFactory::newBean('EmailText');
 
         $this->assertInstanceOf('EmailText', $emailText);
         $this->assertInstanceOf('SugarBean', $emailText);

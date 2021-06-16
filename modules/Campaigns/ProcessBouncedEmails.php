@@ -59,14 +59,14 @@ function retrieveErrorReportAttachment(Email $email)
 
     $email->getNotes($email->id);
     foreach ($email->attachments as $note) {
-        if ($note->file_mime_type == 'message/rfc822') {
+        if (stripos($note->file_mime_type, 'rfc822') !== false) {
             $note_content = $note->getAttachmentContent();
             if ($note_content !== false) {
                 // XXX: we don't know the encoding of the attached email, but
                 // assume it's quoted-printable.
                 $contents .= quoted_printable_decode($note_content);
             }
-        } else if ($note->file_mime_type == 'message/delivery-status') {
+        } elseif (stripos($note->file_mime_type, 'delivery-status') !== false) {
             $note_content = $note->getAttachmentContent();
             if ($note_content !== false) {
                 $contents .= $note_content;
@@ -88,7 +88,7 @@ function retrieveErrorReportAttachment(Email $email)
 function createBouncedCampaignLogEntry($row, $email, $email_description)
 {
     $GLOBALS['log']->debug("Creating bounced email campaign log");
-    $bounce = new CampaignLog();
+    $bounce = BeanFactory::newBean('CampaignLog');
     $bounce->campaign_id=$row['campaign_id'];
     $bounce->target_tracker_key=$row['target_tracker_key'];
     $bounce->target_id= $row['target_id'];
@@ -192,7 +192,7 @@ function markEmailAddressInvalid($email_address)
 function getExistingCampaignLogEntry($identifier)
 {
     $row = false;
-    $targeted = new CampaignLog();
+    $targeted = BeanFactory::newBean('CampaignLog');
     $where="campaign_log.activity_type='targeted' and campaign_log.target_tracker_key='{$identifier}'";
     $query=$targeted->create_new_list_query('', $where);
     $result=$targeted->db->query($query);
@@ -213,8 +213,8 @@ function checkBouncedEmailForIdentifier($email_description)
     $identifiers = array();
     $found = false;
     //Check if the identifier is present in the header.
-    if (preg_match('/X-CampTrackID: [a-z0-9\-]*/', $email_description, $matches)) {
-        $identifiers = preg_split('/X-CampTrackID: /', $matches[0], -1, PREG_SPLIT_NO_EMPTY);
+    if (preg_match('/X-CampTrackID: [a-z0-9\-]*/i', $email_description, $matches)) {
+        $identifiers = preg_split('/X-CampTrackID: /i', $matches[0], -1, PREG_SPLIT_NO_EMPTY);
         $found = true;
         $GLOBALS['log']->debug("Found campaign identifier in header of email");
     } else {
@@ -257,7 +257,7 @@ function campaign_process_bounced_emails(&$email, &$email_header)
                     //invalid email or send error entry for this tracker key.
                     $query_log = "select * from campaign_log where target_tracker_key='{$row['target_tracker_key']}'";
                     $query_log .=" and (activity_type='invalid email' or activity_type='send error')";
-                    $targeted = new CampaignLog();
+                    $targeted = BeanFactory::newBean('CampaignLog');
                     $result_log=$targeted->db->query($query_log);
                     $row_log=$targeted->db->fetchByAssoc($result_log);
 

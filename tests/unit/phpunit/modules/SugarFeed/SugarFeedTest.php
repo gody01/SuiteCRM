@@ -1,6 +1,8 @@
 <?php
 
-class SugarFeedTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
+use SuiteCRM\Test\SuitePHPUnitFrameworkTestCase;
+
+class SugarFeedTest extends SuitePHPUnitFrameworkTestCase
 {
     protected function setUp()
     {
@@ -8,18 +10,13 @@ class SugarFeedTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
 
         global $current_user;
         get_sugar_config_defaults();
-        $current_user = new User();
+        $current_user = BeanFactory::newBean('Users');
     }
 
     public function testSugarFeed()
     {
-        $state = new SuiteCRM\StateSaver();
-        
-        
-        
-
-        //execute the contructor and check for the Object type and  attributes
-        $sugarFeed = new SugarFeed();
+        // Execute the constructor and check for the Object type and  attributes
+        $sugarFeed = BeanFactory::newBean('SugarFeed');
 
         $this->assertInstanceOf('SugarFeed', $sugarFeed);
         $this->assertInstanceOf('Basic', $sugarFeed);
@@ -31,22 +28,13 @@ class SugarFeedTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
 
         $this->assertAttributeEquals(true, 'new_schema', $sugarFeed);
         $this->assertAttributeEquals(false, 'importable', $sugarFeed);
-        
-        // clean up
     }
 
     public function testactivateAndDisableModuleFeed()
     {
         self::markTestIncomplete('environment dependency');
 
-        // save state
-
-        $state = new \SuiteCRM\StateSaver();
-        $state->pushTable('config');
-
-        // test
-        
-        $admin = new Administration();
+        $admin = BeanFactory::newBean('Administration');
 
         //test activateModuleFeed method
         SugarFeed::activateModuleFeed('Accounts');
@@ -57,34 +45,21 @@ class SugarFeedTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
         SugarFeed::disableModuleFeed('Accounts');
         $admin->retrieveSettings('sugarfeed');
         $this->assertEquals(0, $admin->settings['sugarfeed_module_Accounts']);
-        
-        // clean up
-        
-        $state->popTable('config');
     }
 
     public function testflushBackendCache()
     {
-        $state = new SuiteCRM\StateSaver();
-        
-        
-        
-        
-        
-        //execute the method and test if it works and does not throws an exception.
+        // Execute the method and test that it works and doesn't throw an exception.
         try {
             SugarFeed::flushBackendCache();
             $this->assertTrue(true);
         } catch (Exception $e) {
             $this->fail($e->getMessage() . "\nTrace:\n" . $e->getTraceAsString());
         }
-        
-        // clean up
     }
 
     public function testgetModuleFeedFiles()
     {
-
         //test with invalid module
         $expected = array();
         $result = SugarFeed::getModuleFeedFiles('Accounts');
@@ -127,23 +102,14 @@ class SugarFeedTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
 
     public function testpushFeed2()
     {
-
-    // save state
-
-        $state = new \SuiteCRM\StateSaver();
-        $state->pushTable('aod_index');
-        $state->pushTable('sugarfeed');
-
-        // test
-        
-        $lead = new Lead();
+        $lead = BeanFactory::newBean('Leads');
         $lead->id = 1;
         $lead->assigned_user_id = 1;
 
         SugarFeed::pushFeed2('some text 2', $lead, 'Link', 'some url');
 
         //retrieve newly created bean
-        $sugarFeed = new SugarFeed();
+        $sugarFeed = BeanFactory::newBean('SugarFeed');
         $result = $sugarFeed->retrieve_by_string_fields(array('related_id' => '1', 'related_module' => 'Leads'));
 
         //test for record ID to verify that record is saved
@@ -152,26 +118,14 @@ class SugarFeedTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
 
         //mark the record as deleted
         $sugarFeed->mark_deleted($sugarFeed->id);
-        
-        // clean up
-        
-        $state->popTable('sugarfeed');
-        $state->popTable('aod_index');
     }
 
     public function testpushFeed()
     {
-        // save state
-
-        $state = new \SuiteCRM\StateSaver();
-        $state->pushTable('sugarfeed');
-
-        // test
-        
         SugarFeed::pushFeed('some text', 'SugarFeed', 1, 1, 'Link', 'some url');
 
         //retrieve newly created bean
-        $sugarFeed = new SugarFeed();
+        $sugarFeed = BeanFactory::newBean('SugarFeed');
         $result = $sugarFeed->retrieve_by_string_fields(array('related_id' => '1', 'related_module' => 'SugarFeed'));
 
         //test for record ID to verify that record is saved
@@ -183,15 +137,11 @@ class SugarFeedTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
 
         //mark the record as deleted
         $sugarFeed->mark_deleted($sugarFeed->id);
-        
-        // clean up
-        
-        $state->popTable('sugarfeed');
     }
 
     public function fetchReplies()
     {
-        $sugarFeed = new SugarFeed();
+        $sugarFeed = BeanFactory::newBean('SugarFeed');
 
         $actual = $sugarFeed->fetchReplies(array('ID' => '1'));
         $this->assertGreaterThan(0, strlen($actual));
@@ -211,7 +161,6 @@ class SugarFeedTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
 
     public function testgetLinkClass()
     {
-
         //test with invalid LinkType
         $result = SugarFeed::getLinkClass('test');
         $this->assertEquals(false, $result);
@@ -231,7 +180,7 @@ class SugarFeedTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
 
     public function testget_list_view_data()
     {
-        $sugarFeed = new SugarFeed();
+        $sugarFeed = BeanFactory::newBean('SugarFeed');
 
         $result = $sugarFeed->get_list_view_data();
         $this->assertTrue(is_array($result));
@@ -246,13 +195,12 @@ class SugarFeedTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
 
     public function testparseMessage()
     {
-
-        //test with a string with no links
+        // test with a string with no links
         $html = 'some text with no urls';
         $result = SugarFeed::parseMessage($html);
         $this->assertEquals($html, $result);
 
-        //test with a string with links
+        // test with a string with links
         $html = 'some text http://www.url.com with no urls';
         $expected = "some text <a href='http://www.url.com' target='_blank'>http://www.url.com</a> with no urls";
         $result = SugarFeed::parseMessage($html);

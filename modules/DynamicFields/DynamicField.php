@@ -466,7 +466,7 @@ class DynamicField
                     if (in_array($field['type'], array('int', 'float', 'double', 'uint', 'ulong', 'long', 'short', 'tinyint', 'currency', 'decimal'))) {
                         $quote = '';
                         if (!isset($this->bean->$name) || !is_numeric($this->bean->$name)) {
-                            if ($field['required']) {
+                            if (!empty($field['required'])) {
                                 $this->bean->$name = 0;
                             } else {
                                 $this->bean->$name = 'NULL';
@@ -489,14 +489,14 @@ class DynamicField
                     }
                     if ($isUpdate) {
                         if ($first) {
-                            $query .= " $name=$quote" . $this->db->quote($val) . "$quote";
+                            $query .= " $name=$quote" . $this->db->quote($val) . (string)$quote;
                         } else {
-                            $query .= " ,$name=$quote" . $this->db->quote($val) . "$quote";
+                            $query .= " ,$name=$quote" . $this->db->quote($val) . (string)$quote;
                         }
                     }
                     $first = false;
                     $queryInsert .= " ,$name";
-                    $values .= " ,$quote" . $this->db->quote($val) . "$quote";
+                    $values .= " ,$quote" . $this->db->quote($val) . (string)$quote;
                 }
             }
             if ($isUpdate) {
@@ -603,7 +603,7 @@ class DynamicField
         $object_name = $this->module;
         $db_name = $field->name;
 
-        $fmd = new FieldsMetaData();
+        $fmd = BeanFactory::newBean('EditCustomFields');
         $id = $fmd->retrieve($object_name . $db_name, true, false);
         $is_update = false;
         $label = strtoupper($field->label);
@@ -764,7 +764,7 @@ class DynamicField
         }
 
         if ($fh = @sugar_fopen($file_loc, 'w')) {
-            fputs($fh, $out);
+            fwrite($fh, $out);
             fclose($fh);
 
             return true;

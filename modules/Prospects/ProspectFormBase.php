@@ -56,7 +56,7 @@ class ProspectFormBase
         global $local_log;
         require_once('include/formbase.php');
     
-        $focus = new Prospect();
+        $focus = BeanFactory::newBean('Prospects');
         if (!checkRequired($prefix, array_keys($focus->required_fields))) {
             return null;
         }
@@ -108,7 +108,7 @@ class ProspectFormBase
             global $mod_strings;
         }
         global $app_strings;
-        $cols = sizeof($rows[0]) * 2 + 1;
+        $cols = count($rows[0]) * 2 + 1;
         if ($action != 'ShowDuplicates') {
             $form = '<table width="100%"><tr><td>'.$mod_strings['MSG_DUPLICATE']. '</td></tr><tr><td height="20"></td></tr></table>';
             $form .= "<form action='index.php' method='post' name='dupProspects'><input type='hidden' name='selectedProspect' value=''>";
@@ -174,7 +174,7 @@ class ProspectFormBase
         }
     
         if (empty($prospect)) {
-            $prospect = new Prospect();
+            $prospect = BeanFactory::newBean('Prospects');
         }
         global $mod_strings;
         $temp_strings = $mod_strings;
@@ -290,7 +290,7 @@ EOQ;
 
         $javascript = new javascript();
         $javascript->setFormName($formname);
-        $javascript->setSugarBean(new Prospect());
+        $javascript->setSugarBean(BeanFactory::newBean('Prospects'));
         $javascript->addField('email1', 'false', $prefix);
         $javascript->addField('email2', 'false', $prefix);
         $javascript->addRequiredFields($prefix);
@@ -352,7 +352,7 @@ EOQ;
 
         $javascript = new javascript();
         $javascript->setFormName($formname);
-        $javascript->setSugarBean(new Prospect());
+        $javascript->setSugarBean(BeanFactory::newBean('Prospects'));
         $javascript->addField('email1', 'false', $prefix);
         $javascript->addRequiredFields($prefix);
 
@@ -410,7 +410,7 @@ EOQ;
         global $timedate;
     
     
-        $focus = new Prospect();
+        $focus = BeanFactory::newBean('Prospects');
         if ($useRequired &&  !checkRequired($prefix, array_keys($focus->required_fields))) {
             return null;
         }

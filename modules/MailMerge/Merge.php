@@ -107,7 +107,7 @@ if (empty($_SESSION['MAILMERGE_MODULE']) && !empty($_SESSION['mail_merge_file_lo
 
     $fields =  get_field_list($seed);
 
-    $document = new DocumentRevision();//new Document();
+    $document = BeanFactory::newBean('DocumentRevisions');//BeanFactory::newBean('Documents');
     $document->retrieve($document_id);
 
     if (!empty($relModule)) {
@@ -143,7 +143,7 @@ if (empty($_SESSION['MAILMERGE_MODULE']) && !empty($_SESSION['mail_merge_file_lo
     if (!file_exists($dataDir)) {
         sugar_mkdir($dataDir);
     }
-    srand((double)microtime()*1000000);
+    mt_srand((double)microtime()*1000000);
     $dataFileName = 'sugardata' . $mTime . '.php';
     write_array_to_file('merge_array', $merge_array, $dataDir . $dataFileName);
     //Save the temp file so we can remove when we are done

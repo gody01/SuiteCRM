@@ -114,7 +114,7 @@ class ViewConvertLead extends SugarView
         $qsd = QuickSearchDefaults::getQuickSearchDefaults();
         $qsd->setFormName("ConvertLead");
 
-        $this->contact = new Contact();
+        $this->contact = BeanFactory::newBean('Contacts');
         
         /*
          * Setup filter for Account/Contact popup picker
@@ -260,7 +260,7 @@ class ViewConvertLead extends SugarView
 
     protected function getRecord()
     {
-        $this->focus = new Lead();
+        $this->focus = BeanFactory::newBean('Leads');
         if (isset($_REQUEST['record'])) {
             $this->focus->retrieve($_REQUEST['record']);
         }
@@ -362,7 +362,7 @@ class ViewConvertLead extends SugarView
         require_once("include/formbase.php");
         $lead = false;
         if (!empty($_REQUEST['record'])) {
-            $lead = new Lead();
+            $lead = BeanFactory::newBean('Leads');
             $lead->retrieve($_REQUEST['record']);
         }
 
@@ -373,7 +373,7 @@ class ViewConvertLead extends SugarView
         $selects = array();
         
         // Make sure the contact object is availible for relationships.
-        $beans['Contacts'] = new Contact();
+        $beans['Contacts'] = BeanFactory::newBean('Contacts');
         
         // Contacts
         if (!empty($_REQUEST['selectedContact'])) {
@@ -500,6 +500,14 @@ class ViewConvertLead extends SugarView
                     } else {
                         $bean->$leadsRel->add($lead->id);
                     }
+
+                    /* BEGIN - SECURITY GROUPS */
+                    global $sugar_config;
+                    if(isset($sugar_config['securitysuite_inherit_parent']) && $sugar_config['securitysuite_inherit_parent'] == true)
+                    {
+                        SecurityGroup::inherit_parentQuery($bean, $lead->module_dir, $lead->id, $bean->id, $bean->module_dir);
+                    }
+                    /* END - SECURITY GROUPS */
                 }
             }
             //Special case code for opportunities->Accounts
@@ -538,8 +546,10 @@ class ViewConvertLead extends SugarView
                 !empty($beans['Contacts']->id) && !empty($beans['Contacts']->photo)) {
                 $bCopied = false;
                 if (($lead->photo === $beans['Contacts']->photo) && is_readable('upload/' . $lead->id . '_photo')) {
-                    $bCopied = copy('upload/' . $lead->id . '_photo',
-                                   'upload/' . $beans['Contacts']->id . '_photo');
+                    $bCopied = copy(
+                        'upload/' . $lead->id . '_photo',
+                        'upload/' . $beans['Contacts']->id . '_photo'
+                    );
                 }
                 if ($bCopied) {
                     $beans['Contacts']->photo = $lead->photo;
@@ -668,7 +678,7 @@ class ViewConvertLead extends SugarView
 
         $lead = null;
         if (!empty($_REQUEST['record'])) {
-            $lead = new Lead();
+            $lead = BeanFactory::newBean('Leads');
             $lead->retrieve($_REQUEST['record']);
         }
 
@@ -985,7 +995,7 @@ class ViewConvertLead extends SugarView
             $q = "SELECT id, first_name, last_name FROM contacts WHERE first_name LIKE '{$lead->first_name}' AND last_name LIKE '{$lead->last_name}' AND deleted = 0";
             $result = $lead->db->query($q);
             while ($row = $lead->db->fetchByAssoc($result)) {
-                $contact = new Contact();
+                $contact = BeanFactory::newBean('Contacts');
                 $contact->retrieve($row['id']);
                 $dupes[$row['id']] = $contact->name;
             }

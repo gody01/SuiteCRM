@@ -1,15 +1,22 @@
 <?php
 
+use SuiteCRM\Test\SuitePHPUnitFrameworkTestCase;
 
-class UserTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
+class UserTest extends SuitePHPUnitFrameworkTestCase
 {
+    public function setUp()
+    {
+        parent::setUp();
+        $GLOBALS['mod_strings'] = return_module_language($GLOBALS['current_language'], 'Users');
+    }
+
     public function testgetSignatureButtons()
     {
         self::markTestIncomplete('environment dependency');
         
         global $mod_strings;
 
-        $user = new User();
+        $user = BeanFactory::newBean('Users');
 
         //preset required values
         $user->retrieve(1);
@@ -33,9 +40,8 @@ class UserTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
 
     public function testUser()
     {
-
-        //execute the contructor and check for the Object type and  attributes
-        $user = new User();
+        // Execute the constructor and check for the Object type and  attributes
+        $user = BeanFactory::newBean('Users');
 
         $this->assertInstanceOf('User', $user);
         $this->assertInstanceOf('Person', $user);
@@ -51,12 +57,11 @@ class UserTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
         $this->assertAttributeEquals(false, 'team_exists', $user);
     }
 
-
     public function testgetSystemUser()
     {
         self::markTestIncomplete('environment dependency');
-        
-        $user = new User();
+
+        $user = BeanFactory::newBean('Users');
 
         $result = $user->getSystemUser();
 
@@ -64,41 +69,25 @@ class UserTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
         $this->assertEquals(1, $result->id);
     }
 
-
     public function testgetDefaultSignature()
     {
-        // store state
-        
-        $state = new SuiteCRM\StateSaver();
-        $state->pushGlobals();
-        $state->pushTable('email_addresses');
-        
         // test
-        
-
-//        self::markTestIncomplete('environment dependency');
         $db = DBManagerFactory::getInstance();
         $db->disconnect();
         unset($db->database);
         $db->checkConnection();
 
-        $user = new User();
+        $user = BeanFactory::newBean('Users');
 
         $user->retrieve(1);
 
         $result = $user->getDefaultSignature();
         $this->assertTrue(is_array($result));
-        
-        // clean up
-        
-        $state->popTable('email_addresses');
-        $state->popGlobals();
     }
-
 
     public function testgetSignature()
     {
-        $user = new User();
+        $user = BeanFactory::newBean('Users');
 
         $user->retrieve(1);
 
@@ -108,7 +97,7 @@ class UserTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
 
     public function testgetSignaturesArray()
     {
-        $user = new User();
+        $user = BeanFactory::newBean('Users');
 
         $user->retrieve(1);
 
@@ -116,10 +105,9 @@ class UserTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
         $this->assertTrue(is_array($result));
     }
 
-
     public function testgetSignatures()
     {
-        $user = new User();
+        $user = BeanFactory::newBean('Users');
 
         $user->retrieve(1);
 
@@ -131,14 +119,13 @@ class UserTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
 
     public function testhasPersonalEmail()
     {
-        $user = new User();
+        $user = BeanFactory::newBean('Users');
 
         $user->retrieve(2);
 
         $result = $user->hasPersonalEmail();
         $this->assertEquals(false, $result);
     }
-
 
     public function testgetUserPrivGuid()
     {
@@ -149,7 +136,7 @@ class UserTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
         unset($db->database);
         $db->checkConnection();
 
-        $user = new User();
+        $user = BeanFactory::newBean('Users');
 
         $user->retrieve(1);
 
@@ -172,7 +159,7 @@ class UserTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
         unset($db->database);
         $db->checkConnection();
 
-        $user = new User();
+        $user = BeanFactory::newBean('Users');
 
         $user->retrieve(1);
 
@@ -193,7 +180,7 @@ class UserTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
         unset($db->database);
         $db->checkConnection();
 
-        $user = new User();
+        $user = BeanFactory::newBean('Users');
 
         $user->retrieve(1);
 
@@ -217,28 +204,18 @@ class UserTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
 
     public function testsavePreferencesToDB()
     {
-        $state = new SuiteCRM\StateSaver();
-        
-        
-        
-        
-        
-        $user = new User();
+        $user = BeanFactory::newBean('Users');
 
         $user->retrieve(1);
 
-        //execute the method and test if it works and does not throws an exception.
+        // Execute the method and test that it works and doesn't throw an exception.
         try {
             $user->savePreferencesToDB();
             $this->assertTrue(true);
         } catch (Exception $e) {
             $this->fail($e->getMessage() . "\nTrace:\n" . $e->getTraceAsString());
         }
-        
-        // clean up
     }
-
-
 
     public function testgetUserDateTimePreferences()
     {
@@ -248,7 +225,7 @@ class UserTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
         unset($db->database);
         $db->checkConnection();
 
-        $user = new User();
+        $user = BeanFactory::newBean('Users');
 
         $user->retrieve(1);
 
@@ -261,8 +238,6 @@ class UserTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
         $this->assertTrue(isset($result['userGmtOffset']));
     }
 
-
-
     public function testGetETagSeedAndIncrementETag()
     {
         self::markTestIncomplete('environment dependency');
@@ -271,7 +246,7 @@ class UserTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
         unset($db->database);
         $db->checkConnection();
 
-        $user = new User();
+        $user = BeanFactory::newBean('Users');
 
         $user->retrieve(1);
 
@@ -289,7 +264,6 @@ class UserTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
         $this->assertGreaterThan($ETagInitial, $ETagFinal);
     }
 
-
     public function testgetLicensedUsersWhere()
     {
         $expected = "deleted=0 AND status='Active' AND user_name IS NOT NULL AND is_group=0 AND portal_only=0  AND LENGTH(user_name)>0";
@@ -299,7 +273,7 @@ class UserTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
 
     public function testget_summary_text()
     {
-        $user = new User();
+        $user = BeanFactory::newBean('Users');
 
         //test without setting name
         $this->assertEquals(null, $user->get_summary_text());
@@ -311,13 +285,12 @@ class UserTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
 
     public function testbean_implements()
     {
-        $user = new User();
+        $user = BeanFactory::newBean('Users');
 
         $this->assertEquals(false, $user->bean_implements('')); //test with blank value
         $this->assertEquals(false, $user->bean_implements('test')); //test with invalid value
         $this->assertEquals(true, $user->bean_implements('ACL')); //test with valid value
     }
-
 
     public function testcheck_role_membership()
     {
@@ -327,24 +300,18 @@ class UserTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
         unset($db->database);
         $db->checkConnection();
 
-        $user = new User();
+        $user = BeanFactory::newBean('Users');
 
         $result = $user->check_role_membership("test", '');
         $this->assertEquals(false, $result);
-
 
         $result = $user->check_role_membership("test", '1');
         $this->assertEquals(false, $result);
     }
 
-
     public function testsaveAndOthers()
     {
         self::markTestIncomplete('environment dependency');
-        $state = new SuiteCRM\StateSaver();
-        
-        
-        
 
         //unset and reconnect Db to resolve mysqli fetch exeception
         $db = DBManagerFactory::getInstance();
@@ -353,7 +320,7 @@ class UserTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
         $db->checkConnection();
 
 
-        $user = new User();
+        $user = BeanFactory::newBean('Users');
 
         $user->user_name = "test";
 
@@ -408,13 +375,11 @@ class UserTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
         $user->user_name = "test_deleted";
         $user->save();
         $user->mark_deleted($user->id);
-        
-        // clean up
     }
 
     public function retrieve($id)
     {
-        $user = new User();
+        $user = BeanFactory::newBean('Users');
 
         $user->retrieve($id);
 
@@ -429,7 +394,7 @@ class UserTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
 
     public function retrieve_by_email_address($id)
     {
-        $user = new User();
+        $user = BeanFactory::newBean('Users');
 
         //test with invalid email
         $user->retrieve_by_email_address("wrongone@email.com");
@@ -449,7 +414,7 @@ class UserTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
 
     public function NewPasswordAndFindUserPassword($id)
     {
-        $user = new User();
+        $user = BeanFactory::newBean('Users');
 
         $user->retrieve($id);
 
@@ -475,7 +440,7 @@ class UserTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
  
     public function authenticate_user($id)
     {
-        $user = new User();
+        $user = BeanFactory::newBean('Users');
 
         $user->retrieve($id);
 
@@ -489,10 +454,9 @@ class UserTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
         $this->assertEquals(true, $result);
     }
 
-
     public function load_user($id)
     {
-        $user = new User();
+        $user = BeanFactory::newBean('Users');
 
         $user->retrieve($id);
 
@@ -503,7 +467,7 @@ class UserTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
 
     public function change_password($id)
     {
-        $user = new User();
+        $user = BeanFactory::newBean('Users');
 
         $user->retrieve($id);
 
@@ -521,7 +485,7 @@ class UserTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
 
     public function getPreferredEmail($id)
     {
-        $user = new User();
+        $user = BeanFactory::newBean('Users');
 
         $user->retrieve($id);
 
@@ -534,7 +498,7 @@ class UserTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
 
     public function getUsersNameAndEmail($id)
     {
-        $user = new User();
+        $user = BeanFactory::newBean('Users');
 
         $user->retrieve($id);
 
@@ -544,10 +508,9 @@ class UserTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
         self::assertEquals(1, preg_match('/^one\d{0,}\@email\.com$/', $actual['email']));
     }
 
-
     public function getEmailInfo($id)
     {
-        $user = new User();
+        $user = BeanFactory::newBean('Users');
 
         $actual = $user->getEmailInfo($id);
 
@@ -555,10 +518,9 @@ class UserTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
         self::assertEquals(1, preg_match('/^one\d{0,}\@email\.com$/', $actual['email']));
     }
 
-
     public function testencrypt_password()
     {
-        $user = new User();
+        $user = BeanFactory::newBean('Users');
 
         $result = $user->encrypt_password("test");
         $this->assertTrue(isset($result));
@@ -573,10 +535,8 @@ class UserTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
         $this->assertGreaterThan(0, strlen($result));
     }
 
-
     public function testcheckPassword()
     {
-
         //test with empty password and empty hash
         $result = User::checkPassword("", '');
         $this->assertEquals(false, $result);
@@ -597,10 +557,8 @@ class UserTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
         $this->assertEquals(true, $result);
     }
 
-
     public function testcheckPasswordMD5()
     {
-
         //test with empty password and empty hash
         $result = User::checkPasswordMD5(md5(""), '');
         $this->assertEquals(false, $result);
@@ -621,10 +579,9 @@ class UserTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
         $this->assertEquals(true, $result);
     }
 
-
     public function testis_authenticated()
     {
-        $user = new User();
+        $user = BeanFactory::newBean('Users');
 
         //test without setting name
         $this->assertEquals(false, $user->is_authenticated());
@@ -638,7 +595,7 @@ class UserTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
     {
         self::markTestIncomplete('environment dependency');
         
-        $user = new User();
+        $user = BeanFactory::newBean('Users');
 
         $user->retrieve(1);
 
@@ -651,7 +608,7 @@ class UserTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
     {
         self::markTestIncomplete('environment dependency');
         
-        $user = new User();
+        $user = BeanFactory::newBean('Users');
 
         $user->retrieve(1);
 
@@ -664,14 +621,13 @@ class UserTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
     {
         self::markTestIncomplete('environment dependency');
         
-        $user = new User();
+        $user = BeanFactory::newBean('Users');
 
         $result1 = $user->retrieve_user_id('admin');
         $result2 = $user->retrieve_user_id('automated_tester');
         static::assertFalse($result1 == '1' && $result2 == '1');
         static::assertTrue($result1 == '1' || $result2 == '1');
     }
-
 
     public function testverify_data()
     {
@@ -696,34 +652,21 @@ class UserTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
 
     public function testget_list_view_data()
     {
-        // store state
-        
-        $state = new SuiteCRM\StateSaver();
-        $state->pushGlobals();
-        $state->pushTable('email_addresses');
-        
         // test
-        
-
         global $mod_strings;
         $mod_strings['LBL_CHECKMARK'] = "";
 
-        $user = new User();
+        $user = BeanFactory::newBean('Users');
 
         $user->retrieve(1);
 
         $result = $user->get_list_view_data();
         $this->assertTrue(is_array($result));
-        
-        // clean up
-        
-        $state->popTable('email_addresses');
-        $state->popGlobals();
     }
 
     public function testlist_view_parse_additional_sections()
     {
-        $user = new User();
+        $user = BeanFactory::newBean('Users');
 
         $list_form = array();
         $result = $user->list_view_parse_additional_sections($list_form);
@@ -744,7 +687,7 @@ class UserTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
 
     public function testcreate_export_query()
     {
-        $user = new User();
+        $user = BeanFactory::newBean('Users');
 
         //test with empty string params
         $expected = "SELECT id, user_name, first_name, last_name, description, date_entered, date_modified, modified_user_id, created_by, title, department, is_admin, phone_home, phone_mobile, phone_work, phone_other, phone_fax, address_street, address_city, address_state, address_postalcode, address_country, reports_to_id, portal_only, status, receive_notifications, employee_status, messenger_id, messenger_type, is_group FROM users  WHERE  users.deleted = 0 AND users.is_admin=0 ORDER BY users.user_name";
@@ -761,7 +704,7 @@ class UserTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
 
     public function testget_meetings()
     {
-        $user = new User();
+        $user = BeanFactory::newBean('Users');
 
         $result = $user->get_meetings();
         $this->assertTrue(is_array($result));
@@ -769,7 +712,7 @@ class UserTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
 
     public function testget_calls()
     {
-        $user = new User();
+        $user = BeanFactory::newBean('Users');
 
         //$result = $user->get_calls();
         //$this->assertTrue(is_array($result));
@@ -777,10 +720,9 @@ class UserTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
         $this->markTestIncomplete('Error:Only variables should be passed by reference');
     }
 
-
     public function testdisplayEmailCounts()
     {
-        $user = new User();
+        $user = BeanFactory::newBean('Users');
 
         $expected = '<script type="text/javascript" language="Javascript">var welcome = document.getElementById("welcome");var welcomeContent = welcome.innerHTML;welcome.innerHTML = welcomeContent + "&nbsp;&nbsp;&nbsp;&nbsp;<a href=index.php?module=Emails&action=ListViewGroup>Group Inbox: (0 New)</a>";</script>';
 
@@ -796,21 +738,19 @@ class UserTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
         $this->assertSame($expected, $renderedContent);
     }
 
-
     public function testgetSystemDefaultNameAndEmail()
     {
-        $user = new User();
+        $user = BeanFactory::newBean('Users');
 
         $expected = array('email', 'name');
         $actual = array_keys($user->getSystemDefaultNameAndEmail());
         $this->assertSame($expected, $actual);
     }
 
-
     public function testsetDefaultsInConfig()
     {
         self::markTestIncomplete('Incorrect state hash (in PHPUnitTest): Hash doesn\'t match at key "filesys::/var/www/html/SuiteCRM/config.php".');
-        $user = new User();
+        $user = BeanFactory::newBean('Users');
 
         $result = $user->setDefaultsInConfig();
 
@@ -822,22 +762,14 @@ class UserTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
 
     public function testgetEmailLink2()
     {
-        // store state
-        
-        $state = new SuiteCRM\StateSaver();
-        $state->pushGlobals();
-        $state->pushTable('email_addresses');
-        
         // test
-        
-
-        $user = new User();
+        $user = BeanFactory::newBean('Users');
 
         $user->retrieve(1);
 
 
         //test with accounts module
-        $account = new Account();
+        $account = BeanFactory::newBean('Accounts');
         $account->name = "test";
 
         /** @var SugarEmailAddress $emailAddress*/
@@ -855,7 +787,7 @@ class UserTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
 
 
         //test with contacts module
-        $contact = new Contact();
+        $contact = BeanFactory::newBean('Contacts');
         // Contact name auto populate from first name and last name, so we need set value for first name or last name to test insteard set value for name
         $contact->first_name = "test";
 
@@ -871,24 +803,18 @@ class UserTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
                 >abc@email.com</a>';
         $actual = $user->getEmailLink2("abc@email.com", $contact);
         $this->assertSame($expected, $actual);
-        
-        // clean up
-        
-        $state->popTable('email_addresses');
-        $state->popGlobals();
     }
 
 
     public function testgetEmailLink()
     {
         $this->markTestIncomplete('Need to mock up user');
-        $user = new User();
+        $user = BeanFactory::newBean('Users');
 
         $user->retrieve(1);
 
-
         //test with accounts module
-        $account = new Account();
+        $account = BeanFactory::newBean('Accounts');
         $account->name = "test";
 
         $expected =
@@ -900,7 +826,7 @@ class UserTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
 
 
         //test with contacts module
-        $contact = new Contact();
+        $contact = BeanFactory::newBean('Contacts');
         // Contact name auto populate from first name and last name, so we need set value for first name or last name to test insteard set value for name
         $contact->first_name = "test";
 
@@ -914,7 +840,7 @@ class UserTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
 
     public function testgetLocaleFormatDesc()
     {
-        $user = new User();
+        $user = BeanFactory::newBean('Users');
 
         $result = $user->getLocaleFormatDesc();
         $this->assertTrue(isset($result));
@@ -923,7 +849,7 @@ class UserTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
 
     public function testisAdmin()
     {
-        $user = new User();
+        $user = BeanFactory::newBean('Users');
 
         //test without setting attribute
         $this->assertEquals(false, $user->isAdmin());
@@ -935,7 +861,7 @@ class UserTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
 
     public function testisDeveloperForAnyModule()
     {
-        $user = new User();
+        $user = BeanFactory::newBean('Users');
 
         //test without setting is_admin
         $this->assertEquals(false, $user->isDeveloperForAnyModule());
@@ -953,124 +879,63 @@ class UserTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
 
     public function testgetDeveloperModules()
     {
-        // store state
-        
-        $state = new SuiteCRM\StateSaver();
-        $state->pushGlobals();
-        $state->pushTable('email_addresses');
-        
         // test
-        
-
-
-        $user = new User();
+        $user = BeanFactory::newBean('Users');
 
         $user->retrieve(1);
 
         $result = $user->getDeveloperModules();
         $this->assertTrue(is_array($result));
-        
-        // clean up
-        
-        $state->popTable('email_addresses');
-        $state->popGlobals();
     }
 
     public function testisDeveloperForModule()
     {
-        // store state
-        
-        $state = new SuiteCRM\StateSaver();
-        $state->pushGlobals();
-        $state->pushTable('email_addresses');
-        
         // test
-        
-
-
-        $user = new User();
-
+        $user = BeanFactory::newBean('Users');
 
         //test without setting is_admin
         $this->assertEquals(false, $user->isDeveloperForModule("Accounts"));
-
 
         //test with id set
         $user->id = 1;
         $this->assertEquals(false, $user->isDeveloperForModule("Accounts"));
 
-
         //test with id and is_admin set
         $user->is_admin = 1;
         $this->assertEquals(true, $user->isDeveloperForModule("Accounts"));
-        
-        // clean up
-        
-        $state->popTable('email_addresses');
-        $state->popGlobals();
     }
 
     public function testgetAdminModules()
     {
-        // store state
-        
-        $state = new SuiteCRM\StateSaver();
-        $state->pushGlobals();
-        $state->pushTable('email_addresses');
-        
         // test
-        
-
-        $user = new User();
+        $user = BeanFactory::newBean('Users');
 
         $user->retrieve(1);
 
         $result = $user->getAdminModules();
         $this->assertTrue(is_array($result));
-        
-        // clean up
-        
-        $state->popTable('email_addresses');
-        $state->popGlobals();
     }
 
     public function testisAdminForModule()
     {
-        // store state
-        
-        $state = new SuiteCRM\StateSaver();
-        $state->pushGlobals();
-        $state->pushTable('email_addresses');
-        
         // test
-        
-
-        $user = new User();
-
+        $user = BeanFactory::newBean('Users');
 
         //test without setting is_admin
         $this->assertEquals(false, $user->isAdminForModule("Accounts"));
-
 
         //test with id set
         $user->id = 1;
         $this->assertEquals(false, $user->isAdminForModule("Accounts"));
 
-
         //test with id and is_admin set
         $user->is_admin = 1;
         $this->assertEquals(true, $user->isAdminForModule("Accounts"));
-        
-        
-        // clean up
-        
-        $state->popTable('email_addresses');
-        $state->popGlobals();
     }
 
     public function testshowLastNameFirst()
     {
-        $user = new User();
+        $user = BeanFactory::newBean('Users');
 
         $result = $user->showLastNameFirst();
         $this->assertEquals(false, $result);
@@ -1082,14 +947,12 @@ class UserTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
     public function testcreate_new_list_query()
     {
         /*
-            $user = new User();
+            $user = BeanFactory::newBean('Users');
 
             //test with empty string params
             $expected = " SELECT  users.* , '                                                                                                                                                                                                                                                              ' c_accept_status_fields , '                                    '  call_id , '                                                                                                                                                                                                                                                              ' securitygroup_noninher_fields , '                                    '  securitygroup_id , LTRIM(RTRIM(CONCAT(IFNULL(users.first_name,''),' ',IFNULL(users.last_name,'')))) as full_name, LTRIM(RTRIM(CONCAT(IFNULL(users.first_name,''),' ',IFNULL(users.last_name,'')))) as name , jt2.last_name reports_to_name , jt2.created_by reports_to_name_owner  , 'Users' reports_to_name_mod, '                                                                                                                                                                                                                                                              ' m_accept_status_fields , '                                    '  meeting_id  FROM users   LEFT JOIN  users jt2 ON users.reports_to_id=jt2.id AND jt2.deleted=0\n\n AND jt2.deleted=0 where users.deleted=0";
             $actual = $user->create_new_list_query('','');
             $this->assertSame($expected,$actual);
-
-
 
             //test with valid string params
             $expected = " SELECT  users.* , '                                                                                                                                                                                                                                                              ' c_accept_status_fields , '                                    '  call_id , '                                                                                                                                                                                                                                                              ' securitygroup_noninher_fields , '                                    '  securitygroup_id , LTRIM(RTRIM(CONCAT(IFNULL(users.first_name,''),' ',IFNULL(users.last_name,'')))) as full_name, LTRIM(RTRIM(CONCAT(IFNULL(users.first_name,''),' ',IFNULL(users.last_name,'')))) as name , jt2.last_name reports_to_name , jt2.created_by reports_to_name_owner  , 'Users' reports_to_name_mod, '                                                                                                                                                                                                                                                              ' m_accept_status_fields , '                                    '  meeting_id  FROM users   LEFT JOIN  users jt2 ON users.reports_to_id=jt2.id AND jt2.deleted=0\n\n AND jt2.deleted=0 where (user_name=\"\") AND users.deleted=0 ORDER BY users.id";
@@ -1102,12 +965,11 @@ class UserTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
 
     public function testget_first_day_of_week()
     {
-        $user = new User();
+        $user = BeanFactory::newBean('Users');
 
         $result = $user->get_first_day_of_week();
         $this->assertTrue(is_numeric($result));
     }
-
 
     public function testgeneratePassword()
     {
@@ -1125,7 +987,7 @@ class UserTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
 
     public function testsendEmailForPassword()
     {
-        $user = new User();
+        $user = BeanFactory::newBean('Users');
 
         $result = $user->sendEmailForPassword("1");
 
@@ -1133,31 +995,22 @@ class UserTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
         $this->assertTrue(is_array($result));
     }
 
-
     public function testafterImportSave()
     {
-        $state = new SuiteCRM\StateSaver();
-        
-        
-        //error_reporting(E_ALL);
+        $user = BeanFactory::newBean('Users');
 
-        $user = new User();
-
-        //execute the method and test if it works and does not throws an exception.
+        // Execute the method and test that it works and doesn't throw an exception.
         try {
             $result = $user->afterImportSave();
             $this->assertTrue(true);
         } catch (Exception $e) {
             $this->assertStringStartsWith('Cannot modify header information', $e->getMessage());
         }
-        
-        // clean up
     }
-
 
     public function testisPrimaryEmail()
     {
-        $user = new User();
+        $user = BeanFactory::newBean('Users');
 
         //test without user email
         $this->assertEquals(false, $user->isPrimaryEmail("abc@abc.com"));
@@ -1176,9 +1029,6 @@ class UserTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
     public function testError()
     {
         global $app_strings;
-        
-        $state = new SuiteCRM\StateSaver();
-        $state->pushTable('email_addresses_audit');
 
         // setup
         $this->assertTrue(!isset($app_strings['TEST_ERROR_MESSAGE']));
@@ -1204,9 +1054,7 @@ class UserTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
         $expected = '<span class=\'error\'>Hello error<br><br>' . "\n"  . $app_strings['NTC_CLICK_BACK'] . '</span>';
         $this->assertContains($expected, $contents);
         
-        // clean up
-        unset($app_strings['TEST_ERROR_MESSAGE']);
 
-        $state->popTable('email_addresses_audit');
+        unset($app_strings['TEST_ERROR_MESSAGE']);
     }
 }

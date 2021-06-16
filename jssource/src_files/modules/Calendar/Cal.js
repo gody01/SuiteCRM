@@ -618,6 +618,9 @@ CAL.dialog_create = function (date, end_date, user_id) {
 }
 
 CAL.dialog_save = function () {
+  if (!check_form('CalendarEditView')) {
+    return;
+  }
   CAL.disable_buttons();
   ajaxStatus.showStatus(SUGAR.language.get('app_strings', 'LBL_SAVING'));
   if (CAL.get("send_invites").value == "1") {
@@ -1070,7 +1073,6 @@ $($.fullCalendar).ready(function () {
                 text: title,
                 button: true,
               },
-
               text: body,
             },
             events: {
@@ -1098,7 +1100,11 @@ $($.fullCalendar).ready(function () {
               at: 'top left'
             },
             show: {solo: true},
-            hide: {event: false},
+            hide: {
+              event: 'mouseleave',
+              fixed: true,
+              delay: 500
+            },
             style: {
               width: 224,
               padding: 5,

@@ -373,6 +373,8 @@ class SugarFolder
             }
         }
 
+        $this->clearSubscriptions($user);
+
         foreach ($cleanSubscriptions as $id) {
             $this->insertFolderSubscription($id, $user->id);
         }
@@ -546,7 +548,7 @@ class SugarFolder
 
         $return = array();
 
-        $email = new Email(); //Needed for email specific functions.
+        $email = BeanFactory::newBean('Emails'); //Needed for email specific functions.
 
         while ($a = $this->db->fetchByAssoc($r)) {
             $temp = array();
@@ -729,8 +731,6 @@ class SugarFolder
             }
         }
 
-
-
         if (empty($found)) {
             LoggerManager::getLogger()->error(
                 ' SugarFolder::retrieveFoldersForProcessing() Cannot Retrieve Folders - '.
@@ -738,7 +738,15 @@ class SugarFolder
             );
         }
 
-        return $return;
+        $secureReturn = [];
+
+        foreach ($return as $item) {
+            if ($item->isgroup === 1 || $item['created_by'] === $user->id || is_admin($user)) {
+                $secureReturn[] = $item;
+            }
+        }
+
+        return $secureReturn;
     }
 
     /**
@@ -1244,7 +1252,6 @@ class SugarFolder
             $query3 = "UPDATE folders SET has_child = 1 WHERE id = " . $this->db->quoted($this->parent_folder);
             $r3 = $this->db->query($query3);
         } else {
-
             $query = "UPDATE folders SET " .
                 "name = " . $this->db->quoted($this->name) . ", " .
                 "parent_folder = " . $this->db->quoted($this->parent_folder) . ", " .

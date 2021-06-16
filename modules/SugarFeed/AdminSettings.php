@@ -46,7 +46,7 @@ if (!defined('sugarEntry') || !sugarEntry) {
 require_once('modules/Configurator/Configurator.php');
 
 
-$admin = new Administration();
+$admin = BeanFactory::newBean('Administration');
 $admin->retrieveSettings();
 
 // Handle posts
@@ -152,11 +152,11 @@ $sugar_smarty->assign('module_list', $module_list);
 $sugar_smarty->assign('user_feed_enabled', $userFeedEnabled);
 
 echo getClassicModuleTitle(
-        "Administration",
-        array(
+    "Administration",
+    array(
             "<a href='index.php?module=Administration&action=index'>".translate('LBL_MODULE_NAME', 'Administration')."</a>",
            $mod_strings['LBL_MODULE_NAME'],
            ),
-        false
+    false
         );
 $sugar_smarty->display('modules/SugarFeed/AdminSettings.tpl');

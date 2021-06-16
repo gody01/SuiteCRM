@@ -1,12 +1,13 @@
 <?php
 
-class AOD_IndexTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
+use SuiteCRM\Test\SuitePHPUnitFrameworkTestCase;
+
+class AOD_IndexTest extends SuitePHPUnitFrameworkTestCase
 {
     public function testAOD_Index()
     {
-
-        //execute the contructor and check for the Object type and type attribute
-        $aod_index = new AOD_Index();
+        // Execute the constructor and check for the Object type and type attribute
+        $aod_index = BeanFactory::newBean('AOD_Index');
         $this->assertInstanceOf('AOD_Index', $aod_index);
         $this->assertInstanceOf('Basic', $aod_index);
         $this->assertInstanceOf('SugarBean', $aod_index);
@@ -22,24 +23,17 @@ class AOD_IndexTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
 
     public function testisEnabled()
     {
-        $state = new SuiteCRM\StateSaver();
-        
-        
-        
+        $aod_index = BeanFactory::newBean('AOD_Index');
 
-        $aod_index = new AOD_Index();
-
-        //execute the method and verify that it returns true
+        // execute the method and verify that it returns true
         $result = $aod_index->isEnabled();
         $this->assertTrue($result);
-        
-        // clean up
     }
 
     public function testfind()
     {
         self::markTestIncomplete('[Zend_Search_Lucene_Exception] File \'modules/AOD_Index/Index/Index/segments_31\' is not readable.');
-        $aod_index = new AOD_Index();
+        $aod_index = BeanFactory::newBean('AOD_Index');
 
         $aod_index->id = 1;
         $aod_index->location = 'modules/AOD_Index/Index/Index';
@@ -52,14 +46,9 @@ class AOD_IndexTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
     public function testoptimise()
     {
         self::markTestIncomplete('[Zend_Search_Lucene_Exception] File \'modules/AOD_Index/Index/Index/segments_31\' is not readable.');
-        // save state
-
-        $state = new \SuiteCRM\StateSaver();
-        $state->pushTable('tracker');
 
         // test
-        
-        $aod_index = new AOD_Index();
+        $aod_index = BeanFactory::newBean('AOD_Index');
         $aod_index->id = 1;
         $aod_index->location = 'modules/AOD_Index/Index/Index';
         $last_optimized = $aod_index->last_optimised;
@@ -67,15 +56,11 @@ class AOD_IndexTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
         //execute the method and test if the last optimized date is changed to a later date/time.
         $aod_index->optimise();
         $this->assertGreaterThan($last_optimized, $aod_index->last_optimised);
-        
-        // clean up
-        
-        $state->popTable('tracker');
     }
 
     public function testgetIndex()
     {
-        $aod_index = new AOD_Index();
+        $aod_index = BeanFactory::newBean('AOD_Index');
         $result = $aod_index->getIndex();
 
         //execute the method and verify it returns a different instance of samme type
@@ -87,7 +72,7 @@ class AOD_IndexTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
     {
         $user = new User(1);
 
-        $aod_index = new AOD_Index();
+        $aod_index = BeanFactory::newBean('AOD_Index');
         $result = $aod_index->getDocumentForBean($user);
 
         //execute the method and verify that it returns an array
@@ -101,11 +86,11 @@ class AOD_IndexTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
     {
         self::markTestIncomplete('File \'modules/AOD_Index/Index/Index/segments_31\' is not readable.');
         
-        $aod_index = new AOD_Index();
+        $aod_index = BeanFactory::newBean('AOD_Index');
         $aod_index->id = 1;
         $aod_index->location = 'modules/AOD_Index/Index/Index';
 
-        //execute the method and test if it works and does not throws an exception.
+        // Execute the method and test that it works and doesn't throw an exception.
         try {
             $aod_index->commit();
             $this->assertTrue(true);
@@ -116,7 +101,6 @@ class AOD_IndexTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
 
     public function testisModuleSearchable()
     {
-
         //test with an invalid module
         $this->assertFalse(AOD_Index::isModuleSearchable('', ''));
 
@@ -137,7 +121,7 @@ class AOD_IndexTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
 
     public function testindex()
     {
-        $aod_index = new AOD_Index();
+        $aod_index = BeanFactory::newBean('AOD_Index');
         $aod_index->id = 1;
         $aod_index->location = 'modules/AOD_Index/Index/Index';
 
@@ -154,11 +138,11 @@ class AOD_IndexTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
     {
         self::markTestIncomplete('File \'modules/AOD_Index/Index/Index/segments_31\' is not readable.');
         
-        $aod_index = new AOD_Index();
+        $aod_index = BeanFactory::newBean('AOD_Index');
         $aod_index->id = 1;
         $aod_index->location = 'modules/AOD_Index/Index/Index';
 
-        //execute the method and test if it works and does not throws an exception.
+        // Execute the method and test that it works and doesn't throw an exception.
         try {
             $aod_index->remove('Accounts', 1);
             $this->assertTrue(true);
@@ -210,7 +194,7 @@ class AOD_IndexTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
             'Tasks' => 'Task'
         );
 
-        $aod_index = new AOD_Index();
+        $aod_index = BeanFactory::newBean('AOD_Index');
 
         //execute the method and verify that it retunrs expected results
         $actual = $aod_index->getIndexableModules();

@@ -1,6 +1,8 @@
 <?php
 
-class ACLRoleTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
+use SuiteCRM\Test\SuitePHPUnitFrameworkTestCase;
+
+class ACLRoleTest extends SuitePHPUnitFrameworkTestCase
 {
     protected function setUp()
     {
@@ -8,14 +10,13 @@ class ACLRoleTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
 
         global $current_user;
         get_sugar_config_defaults();
-        $current_user = new User();
+        $current_user = BeanFactory::newBean('Users');
     }
 
     public function testACLRole()
     {
-
-        //execute the contructor and check for the Object type and type attribute
-        $aclRole = new ACLRole();
+        // Execute the constructor and check for the Object type and type attribute
+        $aclRole = BeanFactory::newBean('ACLRoles');
         $this->assertInstanceOf('ACLRole', $aclRole);
         $this->assertInstanceOf('SugarBean', $aclRole);
 
@@ -30,7 +31,7 @@ class ACLRoleTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
 
     public function testget_summary_text()
     {
-        $aclRole = new ACLRole();
+        $aclRole = BeanFactory::newBean('ACLRoles');
 
         //test with name attribute set and verify it returns expected value.
         //it works only if name attribute is preset, throws exception otherwise
@@ -41,10 +42,7 @@ class ACLRoleTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
 
     public function testsetAction()
     {
-        $state = new SuiteCRM\StateSaver();
-        $state->pushTable('acl_roles_actions');
-        
-        $aclRole = new ACLRole();
+        $aclRole = BeanFactory::newBean('ACLRoles');
 
         //take count of relationship initially and then after method execution and test if relationship count increases
         $initial_count = count($aclRole->retrieve_relationships('acl_roles_actions', array('role_id' => '1', 'action_id' => '1', 'access_override' => '90'), 'role_id'));
@@ -52,14 +50,11 @@ class ACLRoleTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
         $final_count = count($aclRole->retrieve_relationships('acl_roles_actions', array('role_id' => '1', 'action_id' => '1', 'access_override' => '90'), 'role_id'));
 
         $this->assertGreaterThanOrEqual($initial_count, $final_count, "values were: [$initial_count], [$final_count]");
-        
-        // clean up
-        $state->popTable('acl_roles_actions');
     }
 
     public function testmark_relationships_deleted()
     {
-        $aclRole = new ACLRole();
+        $aclRole = BeanFactory::newBean('ACLRoles');
 
         //take count of relationship initially and then after method execution and test if relationship count decreases
         $initial_count = count($aclRole->retrieve_relationships('acl_roles_actions', array('role_id' => '1', 'action_id' => '1', 'access_override' => '90'), 'role_id'));
@@ -71,9 +66,7 @@ class ACLRoleTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
 
     public function testgetUserRoles()
     {
-        $state = new SuiteCRM\StateSaver();
-
-        $aclRole = new ACLRole();
+        $aclRole = BeanFactory::newBean('ACLRoles');
 
         //test with default/true getAsNameArray param value
         $result = $aclRole->getUserRoles('1');
@@ -86,7 +79,7 @@ class ACLRoleTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
 
     public function testgetUserRoleNames()
     {
-        $aclRole = new ACLRole();
+        $aclRole = BeanFactory::newBean('ACLRoles');
 
         //test with empty value
         $result = $aclRole->getUserRoleNames('');
@@ -99,7 +92,7 @@ class ACLRoleTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
 
     public function testgetAllRoles()
     {
-        $aclRole = new ACLRole();
+        $aclRole = BeanFactory::newBean('ACLRoles');
 
         //test with returnAsArray default/flase
         $result = $aclRole->getAllRoles();
@@ -112,11 +105,11 @@ class ACLRoleTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
 
     public function testgetRoleActions()
     {
-        $aclRole = new ACLRole();
+        $aclRole = BeanFactory::newBean('ACLRoles');
 
         //test with empty value
         $result = $aclRole->getRoleActions('');
-        $this->assertTrue(is_array($result));
+        $this->assertInternalType('array', $result);
         $exp = [
           'Accounts',
           'Alerts',
@@ -134,6 +127,7 @@ class ACLRoleTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
           'EmailTemplates',
           'EmailMarketing',
           'Emails',
+            'Employees',
           'FP_events',
           'AOD_Index',
           'AOD_IndexEvent',
@@ -179,13 +173,13 @@ class ACLRoleTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
 
         //test with non empty but non existing role id value, initially no roles exist.
         $result = $aclRole->getRoleActions('1');
-        $this->assertTrue(is_array($result));
+        $this->assertInternalType('array', $result);
         $this->assertEquals($exp, array_keys($result));
     }
 
     public function testtoArray()
     {
-        $aclRole = new ACLRole();
+        $aclRole = BeanFactory::newBean('ACLRoles');
 
         //wihout any fields set
         $expected = array('id' => '', 'name' => '',  'description' => '');
@@ -204,7 +198,7 @@ class ACLRoleTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
 
     public function testfromArray()
     {
-        $aclRole = new ACLRole();
+        $aclRole = BeanFactory::newBean('ACLRoles');
 
         $arr = array('id' => '1', 'name' => 'test',  'description' => 'some description text');
         $aclRole->fromArray($arr);

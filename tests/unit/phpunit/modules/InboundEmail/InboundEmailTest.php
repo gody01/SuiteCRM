@@ -1,78 +1,44 @@
 <?php
 
+use SuiteCRM\Test\SuitePHPUnitFrameworkTestCase;
+
 include_once __DIR__ . '/../../../../../include/Imap/ImapHandlerFakeData.php';
 include_once __DIR__ . '/../../../../../include/Imap/ImapHandlerFake.php';
 require_once __DIR__ . '/../../../../../modules/InboundEmail/InboundEmail.php';
 
-class InboundEmailTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
+/**
+ * Like tempfile() but takes a mode
+ *
+ * @param $mode
+ * @return bool|resource
+ */
+function tempFileWithMode($mode)
 {
-    public static $class_state = null;
-
-    public static function setUpBeforeClass()
-    {
-        // FIXME: The tests here depend on the email_cache table staying around and the right test order.
-        // Until that is fixed (run with RUN_PER_TESTS to see the problem) we at least restore after the class is done.
-        self::$class_state = new SuiteCRM\StateSaver();
-        self::$class_state->pushTable('email_cache');
-    }
-
-    public static function tearDownAfterClass()
-    {
-        self::$class_state->popTable('email_cache');
-    }
-
-    protected function storeStateAll()
-    {
-        // save state
-        
-        $state = new SuiteCRM\StateSaver();
-        $state->pushTable('inbound_email_cache_ts');
-        $state->pushTable('inbound_email_autoreply');
-        $state->pushTable('inbound_email');
-        $state->pushTable('aod_index');
-        $state->pushTable('folders');
-        $state->pushTable('folders_subscriptions');
-        $state->pushTable('config');
-        $state->pushGlobals();
-        
-        return $state;
-    }
-    
-    protected function restoreStateAll($state)
-    {
-        // clean up
-        
-        $state->popGlobals();
-        $state->popTable('config');
-        $state->popTable('folders_subscriptions');
-        $state->popTable('folders');
-        $state->popTable('aod_index');
-        $state->popTable('inbound_email');
-        $state->popTable('inbound_email_autoreply');
-        $state->popTable('inbound_email_cache_ts');
-    }
-
-
-    public function testThisCallback()
-    {
-        $str = ['nope', '%foo', 'bar%', '%bazz%'];
-        $ret = this_callback($str);
-        $result = [];
-        for ($i = 0; $i < strlen($ret); $i++) {
-            $result[] = ord($ret[$i]);
+    $path = tempnam(sys_get_temp_dir(), '');
+    $file = fopen($path, $mode);
+    register_shutdown_function(function() use($path) {
+        if (file_exists($path)) {
+            unlink($path);
         }
-        $this->assertEquals([14, 15, 186, 186], $result);
-    }
+    });
+    return $file;
+}
 
+class InboundEmailTest extends SuitePHPUnitFrameworkTestCase
+{
     // ---------------------------------------------
     // ----- FOLLOWIN TESTS ARE USING FAKE IMAP ----
     // ------------------------------------------------->
 
+    public function setUp()
+    {
+        parent::setUp();
+
+        $GLOBALS['mod_strings'] = return_module_language($GLOBALS['current_language'], 'InboundEmail');
+    }
 
     public function testConnectMailServerFolderInboundForceFirstMailbox()
     {
-        $state = new SuiteCRM\StateSaver();
-        $state->pushGlobals();
         $fake = new ImapHandlerFakeData();
         $fake->add('isAvailable', null, [true]);
         $fake->add('setTimeout', [1, 60], [true]);
@@ -80,7 +46,7 @@ class InboundEmailTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
         $fake->add('setTimeout', [3, 60], [true]);
         $fake->add('getErrors', null, [false]);
         $fake->add('getConnection', null, [function () {
-            return fopen('fakeImapResource', 'w+');
+            return tempFileWithMode('wb+');
         }]);
         $fake->add('close', null, [null]);
         $fake->add('ping', null, [true]);
@@ -92,13 +58,10 @@ class InboundEmailTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
         $ie->mailboxarray = ['first'];
         $ret = $ie->connectMailserver(false, true);
         $this->assertEquals('true', $ret);
-        $state->popGlobals();
     }
 
     public function testConnectMailServerFolderInboundForceTestFolder()
     {
-        $state = new SuiteCRM\StateSaver();
-        $state->pushGlobals();
         $fake = new ImapHandlerFakeData();
         $fake->add('isAvailable', null, [true]);
         $fake->add('setTimeout', [1, 60], [true]);
@@ -106,7 +69,7 @@ class InboundEmailTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
         $fake->add('setTimeout', [3, 60], [true]);
         $fake->add('getErrors', null, [false]);
         $fake->add('getConnection', null, [function () {
-            return fopen('fakeImapResource', 'w+');
+            return tempFileWithMode('wb+');
         }]);
         $fake->add('close', null, [null]);
         $fake->add('ping', null, [true]);
@@ -117,13 +80,11 @@ class InboundEmailTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
         $_REQUEST['folder_name'] = 'test';
         $ret = $ie->connectMailserver(false, true);
         $this->assertEquals('true', $ret);
-        $state->popGlobals();
+
     }
 
     public function testConnectMailServerFolderInboundForce()
     {
-        $state = new SuiteCRM\StateSaver();
-        $state->pushGlobals();
         $fake = new ImapHandlerFakeData();
         $fake->add('isAvailable', null, [true]);
         $fake->add('setTimeout', [1, 60], [true]);
@@ -131,7 +92,7 @@ class InboundEmailTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
         $fake->add('setTimeout', [3, 60], [true]);
         $fake->add('getErrors', null, [false]);
         $fake->add('getConnection', null, [function () {
-            return fopen('fakeImapResource', 'w+');
+            return tempFileWithMode('wb+');
         }]);
         $fake->add('close', null, [null]);
         $fake->add('ping', null, [true]);
@@ -141,13 +102,10 @@ class InboundEmailTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
         $_REQUEST['folder'] = 'inbound';
         $ret = $ie->connectMailserver(false, true);
         $this->assertEquals('true', $ret);
-        $state->popGlobals();
     }
 
     public function testConnectMailServerFolderSentForce()
     {
-        $state = new SuiteCRM\StateSaver();
-        $state->pushGlobals();
         $fake = new ImapHandlerFakeData();
         $fake->add('isAvailable', null, [true]);
         $fake->add('setTimeout', [1, 60], [true]);
@@ -155,7 +113,7 @@ class InboundEmailTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
         $fake->add('setTimeout', [3, 60], [true]);
         $fake->add('getErrors', null, [false]);
         $fake->add('getConnection', null, [function () {
-            return fopen('fakeImapResource', 'w+');
+            return tempFileWithMode('wb+');
         }]);
         $fake->add('close', null, [null]);
         $fake->add('ping', null, [true]);
@@ -165,14 +123,10 @@ class InboundEmailTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
         $_REQUEST['folder'] = 'sent';
         $ret = $ie->connectMailserver(false, true);
         $this->assertEquals('true', $ret);
-        $state->popGlobals();
     }
 
     public function testConnectMailserverNoGood()
     {
-        $state = new SuiteCRM\StateSaver();
-        $state->pushGlobals();
-
         $fake = new ImapHandlerFakeData();
         $fake->add('isAvailable', null, [true]);
         $fake->add('setTimeout', [1, 60], [true]);
@@ -183,12 +137,12 @@ class InboundEmailTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
         $fake->add('setTimeout', [2, 15], [true]);
         $fake->add('setTimeout', [3, 15], [true]);
         $fake->add('open', ["{:/service=/ssl/tls/validate-cert/secure}", null, null, 0, 0, []], [function () {
-            return fopen('fakeImapResource', 'w+');
+            return tempFileWithMode('wb+');
         }]);
         $fake->add('getLastError', null, ['Too many login failures']);
         $fake->add('getAlerts', null, [null]);
         $fake->add('getConnection', null, [function () {
-            return fopen('fakeImapResource', 'w+');
+            return tempFileWithMode('wb+');
         }]);
         $fake->add('getMailboxes', ['{:/service=/ssl/tls/validate-cert/secure}', '*'], [[]]);
         $fake->add('close', null, [null]);
@@ -198,16 +152,11 @@ class InboundEmailTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
 
         $ie = new InboundEmail($imap);
         $ret = $ie->connectMailserver(true);
-        $this->assertEquals(null, $ret);
-
-        $state->popGlobals();
+        $this->assertEquals('Login or Password Incorrect', $ret);
     }
 
     public function testConnectMailserverUseSsl()
     {
-        $state = new SuiteCRM\StateSaver();
-        $state->pushGlobals();
-
         $fake = new ImapHandlerFakeData();
         $fake->add('isAvailable', null, [true]);
         $fake->add('setTimeout', [1, 60], [true]);
@@ -215,7 +164,7 @@ class InboundEmailTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
         $fake->add('setTimeout', [3, 60], [true]);
         $fake->add('getErrors', null, [false]);
         $fake->add('getConnection', null, [function () {
-            return fopen('fakeImapResource', 'w+');
+            return tempFileWithMode('wb+');
         }]);
         $fake->add('getMailboxes', ['{:/service=/notls/novalidate-cert/secure}', '*'], [[]]);
         $fake->add('ping', null, [true]);
@@ -227,8 +176,6 @@ class InboundEmailTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
         $ie = new InboundEmail($imap);
         $ret = $ie->connectMailserver();
         $this->assertEquals('true', $ret);
-
-        $state->popGlobals();
     }
 
     public function testConnectMailserverNoImap()
@@ -239,14 +186,11 @@ class InboundEmailTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
 
         $ie = new InboundEmail($imap);
         $ret = $ie->connectMailserver();
-        $this->assertEquals(null, $ret);
+        $this->assertEquals('Inbound Email <b>cannot</b> function without the IMAP c-client libraries enabled/compiled with the PHP module. Please contact your administrator to resolve this issue.', $ret);
     }
 
     public function testFindOptimumSettingsFalsePositive()
     {
-        $state = new SuiteCRM\StateSaver();
-        $state->pushGlobals();
-
         $fake = new ImapHandlerFakeData();
         $fake->add('isAvailable', null, [true]);  // <-- when the code calls ImapHandlerInterface::isAvailable([null]), it will return true
         $fake->add('setTimeout', [1, 60], [true]);
@@ -254,12 +198,12 @@ class InboundEmailTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
         $fake->add('setTimeout', [3, 60], [true]);
         $fake->add('getErrors', null, [false]);
         $fake->add('open', ["{:/service=/notls/novalidate-cert/secure}", null, null, 0, 0, []], [function () {
-            return fopen('fakeImapResource', 'w+');
+            return tempFileWithMode('wb+');
         }]);
         $fake->add('getLastError', null, ["SECURITY PROBLEM: insecure server advertised AUTH=PLAIN"]);
         $fake->add('getAlerts', null, [false]);
         $fake->add('getConnection', null, [function () {
-            return fopen('fakeImapResource', 'w+');
+            return tempFileWithMode('wb+');
         }]);
         $fake->add('getMailboxes', ['{:/service=/notls/novalidate-cert/secure}', '*'], [[]]);
         $fake->add('close', null, [null]);
@@ -279,8 +223,6 @@ class InboundEmailTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
         $fake->add('getLastError', null, ["Mailbox is empty"]);
         $ret = $inboundEmail->findOptimumSettings();
         $this->assertEquals($exp, $ret);
-
-        $state->popGlobals();
     }
 
     public function testFindOptimumSettingsFail()
@@ -292,12 +234,12 @@ class InboundEmailTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
         $fake->add('setTimeout', [3, 60], [true]);
         $fake->add('getErrors', null, [false]);
         $fake->add('open', ["{:/service=/notls/novalidate-cert/secure}", null, null, 0, 0, []], [function () {
-            return fopen('fakeImapResource', 'w+');
+            return tempFileWithMode('wb+');
         }]);
         $fake->add('getLastError', null, ['Too many login failures']);
         $fake->add('getAlerts', null, [false]);
         $fake->add('getConnection', null, [function () {
-            return fopen('fakeImapResource', 'w+');
+            return tempFileWithMode('wb+');
         }]);
         $fake->add('getMailboxes', ['{:/service=/notls/novalidate-cert/secure}', '*'], [[]]);
         $fake->add('close', null, [null]);
@@ -305,7 +247,7 @@ class InboundEmailTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
         $exp = [
             'good' => [],
             'bad' => ['both-secure' => '{:/service=/notls/novalidate-cert/secure}'],
-            'err' => ['both-secure' => null],
+            'err' => ['both-secure' => 'Login or Password Incorrect'],
         ];
 
         $imap = new ImapHandlerFake($fake);
@@ -330,9 +272,6 @@ class InboundEmailTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
 
     public function testFindOptimumSettingsOk()
     {
-        $state = new SuiteCRM\StateSaver();
-        $state->pushGlobals();
-
         $fake = new ImapHandlerFakeData();
         $fake->add('isAvailable', null, [true]);  // <-- when the code calls ImapHandlerInterface::isAvailable([null]), it will return true
         $fake->add('setTimeout', [1, 60], [true]);
@@ -340,12 +279,12 @@ class InboundEmailTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
         $fake->add('setTimeout', [3, 60], [true]);
         $fake->add('getErrors', null, [false]);
         $fake->add('open', ["{:/service=/notls/novalidate-cert/secure}", null, null, 0, 0, []], [function () {
-            return fopen('fakeImapResource', 'w+');
+            return tempFileWithMode('wb+');
         }]);
         $fake->add('getLastError', null, [false]);
         $fake->add('getAlerts', null, [false]);
         $fake->add('getConnection', null, [function () {
-            return fopen('fakeImapResource', 'w+');
+            return tempFileWithMode('wb+');
         }]);
         $fake->add('getMailboxes', ['{:/service=/notls/novalidate-cert/secure}', '*'], [[]]);
         $fake->add('close', null, [null]);
@@ -357,8 +296,6 @@ class InboundEmailTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
             'serial' => '::::::::novalidate-cert::notls::secure',
             'service' => 'foo/notls/novalidate-cert/secure',
         ], $ret);
-
-        $state->popGlobals();
     }
 
     public function testFindOptimumSettingsNoImap()
@@ -372,15 +309,12 @@ class InboundEmailTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
         $this->assertEquals([
             'good' => [],
             'bad' => [],
-            'err' => [null],
+            'err' => ['No IMAP libraries found. Please resolve this before continuing with Inbound Email'],
         ], $ret);
     }
 
     public function testFindOptimumSettingsUseSsl()
     {
-        $state = new SuiteCRM\StateSaver();
-        $state->pushGlobals();
-
         $fake = new ImapHandlerFakeData();
         $fake->add('isAvailable', null, [true]);
         $fake->add('setTimeout', [1, 60], [true]);
@@ -388,12 +322,12 @@ class InboundEmailTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
         $fake->add('setTimeout', [3, 60], [true]);
         $fake->add('getErrors', null, [false]);
         $fake->add('open', ["{:/service=/ssl/tls/validate-cert/secure}", null, null, 0, 0, []], [function () {
-            return fopen('fakeImapResource', 'w+');
+            return tempFileWithMode('wb+');
         }]);
         $fake->add('getLastError', null, [false]);
         $fake->add('getAlerts', null, [false]);
         $fake->add('getConnection', null, [function () {
-            return fopen('fakeImapResource', 'w+');
+            return tempFileWithMode('wb+');
         }]);
         $fake->add('getMailboxes', ['{:/service=/ssl/tls/validate-cert/secure}', '*'], [[]]);
         $fake->add('close', null, [null]);
@@ -408,8 +342,6 @@ class InboundEmailTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
             'serial' => 'tls::::ssl::::::::secure',
             'service' => 'foo/ssl/tls/validate-cert/secure',
         ], $ret);
-
-        $state->popGlobals();
     }
 
     // ------------------------------------------------------------
@@ -418,15 +350,8 @@ class InboundEmailTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
 
     public function testInboundEmail()
     {
-        // save state
-        
-        $state = $this->storeStateAll();
-        
-        // test
-        
-
-        //execute the contructor and check for the Object type and  attributes
-        $inboundEmail = new InboundEmail();
+        // Execute the constructor and check for the Object type and  attributes
+        $inboundEmail = BeanFactory::newBean('InboundEmail');
 
         $this->assertInstanceOf('InboundEmail', $inboundEmail);
         $this->assertInstanceOf('SugarBean', $inboundEmail);
@@ -453,28 +378,16 @@ class InboundEmailTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
         $this->assertAttributeEquals(false, 'isAutoImport', $inboundEmail);
 
         $this->assertAttributeEquals(0, 'attachmentCount', $inboundEmail);
-        
-        // clean up
-        
-        $this->restoreStateAll($state);
     }
 
     public function testsaveAndOthers()
     {
-        // save state
-        
-        $state = $this->storeStateAll();
-        
-        // test
-        
-        
-
         //unset and reconnect Db to resolve mysqli fetch exeception
         $db = DBManagerFactory::getInstance();
         unset($db->database);
         $db->checkConnection();
 
-        $inboundEmail = new InboundEmail();
+        $inboundEmail = BeanFactory::newBean('InboundEmail');
 
         $inboundEmail->name = 'test';
         $inboundEmail->group_id = 1;
@@ -524,52 +437,27 @@ class InboundEmailTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
 
         //test hardDelete method
         $this->hardDelete($inboundEmail->id);
-        
-        // clean up
-        
-        $this->restoreStateAll($state);
     }
 
     public function getSingularRelatedId()
     {
-        // save state
-        
-        $state = $this->storeStateAll();
-        
-        // test
-        
-        
-        
-
         //unset and reconnect Db to resolve mysqli fetch exeception
         $db = DBManagerFactory::getInstance();
         unset($db->database);
         $db->checkConnection();
 
-        $inboundEmail = new InboundEmail();
+        $inboundEmail = BeanFactory::newBean('InboundEmail');
 
         $result = $inboundEmail->getSingularRelatedId('test', 'inbound_email');
         $this->assertEquals(false, $result);
 
         $result = $inboundEmail->getSingularRelatedId('invalid test', 'inbound_email');
         $this->assertEquals(null, $result);
-        
-        // clean up
-        
-        $this->restoreStateAll($state);
     }
 
     public function getCorrectMessageNoForPop3($id)
     {
-        // save state
-        
-        $state = $this->storeStateAll();
-        
-        // test
-        
-        
-        
-        $inboundEmail = new InboundEmail();
+        $inboundEmail = BeanFactory::newBean('InboundEmail');
 
         $inboundEmail->retrieve($id);
 
@@ -578,22 +466,11 @@ class InboundEmailTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
 
         $result = $inboundEmail->getCorrectMessageNoForPop3('1');
         $this->assertEquals(-1, $result);
-        
-        // clean up
-        
-        $this->restoreStateAll($state);
     }
 
     public function retrieve($id)
     {
-        // save state
-        
-        $state = $this->storeStateAll();
-        
-        // test
-        
-        
-        $inboundEmail = new InboundEmail();
+        $inboundEmail = BeanFactory::newBean('InboundEmail');
 
         $inboundEmail->retrieve($id);
 
@@ -601,23 +478,11 @@ class InboundEmailTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
         $this->assertEquals('Active', $inboundEmail->status);
         $this->assertEquals('testuser', $inboundEmail->email_user);
         $this->assertEquals('testpass', $inboundEmail->email_password);
-        
-        // clean up
-        
-        $this->restoreStateAll($state);
     }
 
     public function retrieveByGroupId($group_id)
     {
-        // save state
-        
-        $state = $this->storeStateAll();
-        
-        // test
-        
-        
-        
-        $inboundEmail = new InboundEmail();
+        $inboundEmail = BeanFactory::newBean('InboundEmail');
 
         $result = $inboundEmail->retrieveByGroupId($group_id);
 
@@ -626,23 +491,11 @@ class InboundEmailTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
         foreach ($result as $ie) {
             $this->assertInstanceOf('InboundEmail', $ie);
         }
-        
-        // clean up
-        
-        $this->restoreStateAll($state);
     }
 
     public function retrieveAllByGroupId($group_id)
     {
-        // save state
-        
-        $state = $this->storeStateAll();
-        
-        // test
-        
-        
-        
-        $inboundEmail = new InboundEmail();
+        $inboundEmail = BeanFactory::newBean('InboundEmail');
 
         $result = $inboundEmail->retrieveAllByGroupId($group_id);
 
@@ -651,23 +504,11 @@ class InboundEmailTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
         foreach ($result as $ie) {
             $this->assertInstanceOf('InboundEmail', $ie);
         }
-        
-        // clean up
-        
-        $this->restoreStateAll($state);
     }
 
     public function retrieveAllByGroupIdWithGroupAccounts($group_id)
     {
-        // save state
-        
-        $state = $this->storeStateAll();
-        
-        // test
-        
-        
-        
-        $inboundEmail = new InboundEmail();
+        $inboundEmail = BeanFactory::newBean('InboundEmail');
 
         $result = $inboundEmail->retrieveAllByGroupIdWithGroupAccounts($group_id);
 
@@ -676,51 +517,27 @@ class InboundEmailTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
         foreach ($result as $ie) {
             $this->assertInstanceOf('InboundEmail', $ie);
         }
-        
-        // clean up
-        
-        $this->restoreStateAll($state);
     }
 
     public function renameFolder($id)
     {
-        // save state
-        
-        $state = $this->storeStateAll();
-        
-        // test
-        
-        
-        
-        $inboundEmail = new InboundEmail();
+        $inboundEmail = BeanFactory::newBean('InboundEmail');
 
         $inboundEmail->retrieve($id);
         $this->assertFalse((bool)$inboundEmail->conn);
 
-        //execute the method and test if it works and does not throws an exception.
+        // Execute the method and test that it works and doesn't throw an exception.
         try {
             $success = $inboundEmail->renameFolder('mailbox1', 'new_mailbox');
             $this->assertFalse((bool)$success);
         } catch (Exception $e) {
             $this->fail("\nException: " . get_class($e) . ": " . $e->getMessage() . "\nin " . $e->getFile() . ':' . $e->getLine() . "\nTrace:\n" . $e->getTraceAsString() . "\n");
         }
-        
-        // clean up
-        
-        $this->restoreStateAll($state);
     }
 
     public function search($id)
     {
-        // save state
-        
-        $state = $this->storeStateAll();
-        
-        // test
-        
-        
-        
-        $inboundEmail = new InboundEmail();
+        $inboundEmail = BeanFactory::newBean('InboundEmail');
 
         $inboundEmail->retrieve($id);
 
@@ -729,23 +546,11 @@ class InboundEmailTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
         $this->assertTrue(is_array($result));
         $this->assertEquals('Search Results', $result['mbox']);
         $this->assertEquals($id, $result['ieId']);
-        
-        // clean up
-        
-        $this->restoreStateAll($state);
     }
 
     public function saveMailBoxFolders($id)
     {
-        // save state
-        
-        $state = $this->storeStateAll();
-        
-        // test
-        
-        
-        
-        $inboundEmail = new InboundEmail();
+        $inboundEmail = BeanFactory::newBean('InboundEmail');
 
         $inboundEmail->retrieve($id);
 
@@ -756,15 +561,11 @@ class InboundEmailTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
         //retrieve it back and verify the updates
         $inboundEmail->retrieve($id);
         $this->assertEquals('INBOX,TRASH', $inboundEmail->mailbox);
-        
-        // clean up
-        
-        $this->restoreStateAll($state);
     }
 
     public function saveMailBoxValueOfInboundEmail($id)
     {
-        $inboundEmail = new InboundEmail();
+        $inboundEmail = BeanFactory::newBean('InboundEmail');
 
         $inboundEmail->email_user = 'TEST';
 
@@ -772,83 +573,40 @@ class InboundEmailTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
 
         //retrieve it back and verify the updates
         $inboundEmail->retrieve($id);
-        $this->assertEquals('mailbox1,mailbox2,mailbox3', $inboundEmail->mailbox);
+        $this->assertEquals('INBOX,TRASH', $inboundEmail->mailbox);
     }
 
     public function mark_deleted($id)
     {
-        
-        // save state
-        
-        $state = $this->storeStateAll();
-        
-        // test
-        
-        
-        
-        $inboundEmail = new InboundEmail();
+        $inboundEmail = BeanFactory::newBean('InboundEmail');
 
         $inboundEmail->mark_deleted($id);
 
         $result = $inboundEmail->retrieve($id);
         $this->assertEquals(null, $result);
-        
-        // clean up
-        
-        $this->restoreStateAll($state);
     }
 
     public function hardDelete($id)
     {
-        // save state
-        
-        $state = $this->storeStateAll();
-        
-        // test
-        
-        
-        
-        $inboundEmail = new InboundEmail();
+        $inboundEmail = BeanFactory::newBean('InboundEmail');
 
         $inboundEmail->hardDelete($id);
 
         $result = $inboundEmail->retrieve($id);
         $this->assertEquals(null, $result);
-        
-        // clean up
-        
-        $this->restoreStateAll($state);
     }
 
     public function testcustomGetMessageText()
     {
-        // save state
-        
-        $state = $this->storeStateAll();
-        
-        // test
-        
-
-        $inboundEmail = new InboundEmail();
+        $inboundEmail = BeanFactory::newBean('InboundEmail');
 
         $result = $inboundEmail->customGetMessageText('some message');
         $this->assertEquals('some message', $result);
-        
-        // clean up
-        
-        $this->restoreStateAll($state);
     }
 
     public function testgetFormattedRawSource()
     {
-        // save state
-        
-        $state = $this->storeStateAll();
-        
-        // test
-        
-        
-        $inboundEmail = new InboundEmail();
+        $inboundEmail = BeanFactory::newBean('InboundEmail');
 
         //test without ID
         $result = $inboundEmail->getFormattedRawSource('1');
@@ -858,28 +616,16 @@ class InboundEmailTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
         $inboundEmail->id = 1;
         $result = $inboundEmail->getFormattedRawSource('1');
         $this->assertEquals('', $result);
-        
-        // clean up
-        
-        $this->restoreStateAll($state);
     }
 
     public function testfilterMailBoxFromRaw()
     {
-        // save state
-        
-        $state = $this->storeStateAll();
-        
-        // test
-        
-        
-
         //unset and reconnect Db to resolve mysqli fetch exeception
         $db = DBManagerFactory::getInstance();
         unset($db->database);
         $db->checkConnection();
 
-        $inboundEmail = new InboundEmail();
+        $inboundEmail = BeanFactory::newBean('InboundEmail');
 
         //test with array having common element
         $result = $inboundEmail->filterMailBoxFromRaw(array('mailbox1', 'mailbox2', 'mailbox3'), array('mailbox1'));
@@ -888,40 +634,18 @@ class InboundEmailTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
         //test with array having nothing common
         $result = $inboundEmail->filterMailBoxFromRaw(array('mailbox1', 'mailbox2'), array('mailbox4'));
         $this->assertSame(array(), $result);
-        
-        // clean up
-        
-        $this->restoreStateAll($state);
     }
 
     public function testconvertToUtf8()
     {
-        // save state
-        
-        $state = $this->storeStateAll();
-        
-        // test
-        
-        
-        $inboundEmail = new InboundEmail();
+        $inboundEmail = BeanFactory::newBean('InboundEmail');
         $result = $inboundEmail->convertToUtf8('some text with non UTF8 chars');
         $this->assertSame('some text with non UTF8 chars', $result);
-        
-        // clean up
-        
-        $this->restoreStateAll($state);
     }
 
     public function testgetFormattedHeaders()
     {
-        // save state
-        
-        $state = $this->storeStateAll();
-        
-        // test
-        
-        
-        $inboundEmail = new InboundEmail();
+        $inboundEmail = BeanFactory::newBean('InboundEmail');
 
         //test for default/imap
         $result = $inboundEmail->getFormattedHeaders(1);
@@ -931,22 +655,11 @@ class InboundEmailTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
         $inboundEmail->protocol = 'pop3';
         $result = $inboundEmail->getFormattedHeaders(1);
         $this->assertSame(null, $result);
-        
-        // clean up
-        
-        $this->restoreStateAll($state);
     }
 
     public function testsetAndgetCacheTimestamp()
     {
-        // save state
-        
-        $state = $this->storeStateAll();
-        
-        // test
-        
-        
-        $inboundEmail = new InboundEmail();
+        $inboundEmail = BeanFactory::newBean('InboundEmail');
 
         $inboundEmail->id = 1;
 
@@ -956,22 +669,11 @@ class InboundEmailTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
         //test getCacheTimestamp method
         $result = $inboundEmail->getCacheTimestamp('INBOX');
         $this->assertGreaterThan(0, strlen($result));
-        
-        // clean up
-        
-        $this->restoreStateAll($state);
     }
 
-    public function testsetCacheValue()
+    private function setDummyCacheValue()
     {
-        // save state
-        
-        $state = $this->storeStateAll();
-        
-        // test
-        
-        
-        $inboundEmail = new InboundEmail();
+        $inboundEmail = BeanFactory::newBean('InboundEmail');
 
         $inboundEmail->id = 1;
 
@@ -992,28 +694,23 @@ class InboundEmailTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
         //execute the method to populate email cache
         $inboundEmail->setCacheValue('INBOX', $inserts);
         $inboundEmail->setCacheValue('INBOX.Trash', $inserts);
+        return $inboundEmail;
+    }
+
+    public function testsetCacheValue()
+    {
+        $inboundEmail = $this->setDummyCacheValue();
 
         //retrieve back to verify the records created
         $result = $inboundEmail->getCacheValue('INBOX');
 
         $this->assertGreaterThan(0, count((array)$result['retArr'][0]));
         $this->assertEquals(1, $result['retArr'][0]->message_id);
-        
-        // clean up
-        
-        $this->restoreStateAll($state);
     }
 
     public function testgetCacheValueForUIDs()
     {
-        // save state
-        
-        $state = $this->storeStateAll();
-        
-        // test
-        
-        
-        $inboundEmail = new InboundEmail();
+        $inboundEmail = BeanFactory::newBean('InboundEmail');
 
         //test wih default protocol
         $result = $inboundEmail->getCacheValueForUIDs('INBOX', array(1, 2, 3, 4, 5));
@@ -1029,22 +726,11 @@ class InboundEmailTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
         $this->assertTrue(is_array($result));
         $this->assertTrue(is_array($result['uids']));
         $this->assertTrue(is_array($result['retArr']));
-        
-        // clean up
-        
-        $this->restoreStateAll($state);
     }
 
     public function testgetCacheValue()
     {
-        // save state
-        
-        $state = $this->storeStateAll();
-        
-        // test
-        
-        
-        $inboundEmail = new InboundEmail();
+        $inboundEmail = BeanFactory::newBean('InboundEmail');
 
         //test wih default protocol
         $result = $inboundEmail->getCacheValue('INBOX');
@@ -1060,47 +746,45 @@ class InboundEmailTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
         $this->assertTrue(is_array($result));
         $this->assertTrue(is_array($result['uids']));
         $this->assertTrue(is_array($result['retArr']));
-        
-        // clean up
-        
-        $this->restoreStateAll($state);
     }
 
-    public function testvalidCacheExists()
+    public function testValidCacheExists()
     {
-        // save state
-        
-        $state = $this->storeStateAll();
-        
-        // test
-        
-        
-        $inboundEmail = new InboundEmail();
+        $inboundEmail = BeanFactory::newBean('InboundEmail');
 
         //test without a valid id
         $result = $inboundEmail->validCacheExists('');
         $this->assertEquals(false, $result);
 
         //test with a valid id set
-        $inboundEmail->id = 1;
+        $inboundEmail = $this->setDummyCacheValue();
         $result = $inboundEmail->validCacheExists('');
         $this->assertEquals(true, $result);
-        
-        // clean up
-        
-        $this->restoreStateAll($state);
+
+        $inserts = [];
+
+        $overview = new Overview();
+        $overview->imap_uid = 1;
+        $overview->subject = 'subject';
+        $overview->from = 'from';
+        $overview->fromaddr = 'from@email.com';
+        $overview->to = 'to';
+        $overview->toaddr = 'to@email.com';
+        $overview->size = 0;
+        $overview->message_id = 1;
+
+        $inserts[] = $overview;
+
+        //execute the method to populate email cache
+        $inboundEmail->setCacheValue('INBOX', $inserts);
+
+        $result = $inboundEmail->validCacheExists('INBOX');
+        $this->assertEquals(true, $result);
     }
 
     public function testdisplayFetchedSortedListXML()
     {
-        // save state
-        
-        $state = $this->storeStateAll();
-        
-        // test
-        
-        
-        $inboundEmail = new InboundEmail();
+        $inboundEmail = BeanFactory::newBean('InboundEmail');
 
         //get the cache values array first
         $inboundEmail->id = 1;
@@ -1109,24 +793,28 @@ class InboundEmailTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
         //use the cache values array as parameter and verify that it returns an array
         $result = $inboundEmail->displayFetchedSortedListXML($ret, 'INBOX');
         $this->assertTrue(is_array($result));
-        
-        // clean up
-        
-        $this->restoreStateAll($state);
     }
 
     public function testgetCacheUnreadCount()
     {
-        // save state
-        
-        $state = $this->storeStateAll();
-        
-        // test
-        
-        
-        $inboundEmail = new InboundEmail();
+        $inboundEmail = $this->setDummyCacheValue();
 
-        $inboundEmail->id = 1;
+        $inserts = [];
+
+        $overview = new Overview();
+        $overview->imap_uid = 1;
+        $overview->subject = 'subject';
+        $overview->from = 'from';
+        $overview->fromaddr = 'from@email.com';
+        $overview->to = 'to';
+        $overview->toaddr = 'to@email.com';
+        $overview->size = 0;
+        $overview->message_id = 1;
+
+        $inserts[] = $overview;
+
+        //execute the method to populate email cache
+        $inboundEmail->setCacheValue('INBOX', $inserts);
 
         //test with invalid mailbox
         $result = $inboundEmail->getCacheUnreadCount('OUTBOX');
@@ -1135,24 +823,28 @@ class InboundEmailTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
         //test with valid mailbox
         $result = $inboundEmail->getCacheUnreadCount('INBOX');
         $this->assertGreaterThanOrEqual(1, $result);
-        
-        // clean up
-        
-        $this->restoreStateAll($state);
     }
 
     public function testgetCacheCount()
     {
-        // save state
-        
-        $state = $this->storeStateAll();
-        
-        // test
-        
-        
-        $inboundEmail = new InboundEmail();
+        $inboundEmail = $this->setDummyCacheValue();
 
-        $inboundEmail->id = 1;
+        $inserts = [];
+
+        $overview = new Overview();
+        $overview->imap_uid = 1;
+        $overview->subject = 'subject';
+        $overview->from = 'from';
+        $overview->fromaddr = 'from@email.com';
+        $overview->to = 'to';
+        $overview->toaddr = 'to@email.com';
+        $overview->size = 0;
+        $overview->message_id = 1;
+
+        $inserts[] = $overview;
+
+        //execute the method to populate email cache
+        $inboundEmail->setCacheValue('INBOX', $inserts);
 
         //test with invalid mailbox
         $result = $inboundEmail->getCacheCount('OUTBOX');
@@ -1162,23 +854,30 @@ class InboundEmailTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
         $result = $inboundEmail->getCacheCount('INBOX');
         $this->assertGreaterThanOrEqual(1, $result);
         
-        // clean up
-        
-        $this->restoreStateAll($state);
+
     }
 
     public function testgetCacheUnread()
     {
-        // save state
-        
-        $state = $this->storeStateAll();
-        
         // test
-        
-        
-        $inboundEmail = new InboundEmail();
+        $inboundEmail = $this->setDummyCacheValue();
 
-        $inboundEmail->id = 1;
+        $inserts = [];
+
+        $overview = new Overview();
+        $overview->imap_uid = 1;
+        $overview->subject = 'subject';
+        $overview->from = 'from';
+        $overview->fromaddr = 'from@email.com';
+        $overview->to = 'to';
+        $overview->toaddr = 'to@email.com';
+        $overview->size = 0;
+        $overview->message_id = 1;
+
+        $inserts[] = $overview;
+
+        //execute the method to populate email cache
+        $inboundEmail->setCacheValue('INBOX', $inserts);
 
         //test with invalid mailbox
         $result = $inboundEmail->getCacheUnread('OUTBOX');
@@ -1187,24 +886,28 @@ class InboundEmailTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
         //test with valid mailbox
         $result = $inboundEmail->getCacheUnread('INBOX');
         $this->assertGreaterThanOrEqual(1, $result);
-        
-        // clean up
-        
-        $this->restoreStateAll($state);
     }
 
     public function testmark_answered()
     {
-        // save state
-        
-        $state = $this->storeStateAll();
-        
-        // test
-        
-        
-        $inboundEmail = new InboundEmail();
+        $inboundEmail = $this->setDummyCacheValue();
 
-        $inboundEmail->id = 1;
+        $inserts = [];
+
+        $overview = new Overview();
+        $overview->imap_uid = 1;
+        $overview->subject = 'subject';
+        $overview->from = 'from';
+        $overview->fromaddr = 'from@email.com';
+        $overview->to = 'to';
+        $overview->toaddr = 'to@email.com';
+        $overview->size = 0;
+        $overview->message_id = 1;
+
+        $inserts[] = $overview;
+
+        //execute the method to populate email cache
+        $inboundEmail->setCacheValue('INBOX', $inserts);
 
         //execute the method to populate answered field
         $inboundEmail->mark_answered(1, 'pop3');
@@ -1213,24 +916,28 @@ class InboundEmailTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
         $result = $inboundEmail->getCacheValue('INBOX');
 
         $this->assertEquals(1, $result['retArr'][0]->answered);
-        
-        // clean up
-        
-        $this->restoreStateAll($state);
     }
 
     public function testpop3_shiftCache()
     {
-        // save state
-        
-        $state = $this->storeStateAll();
-        
-        // test
-        
-        
-        $inboundEmail = new InboundEmail();
+        $inboundEmail = $this->setDummyCacheValue();
 
-        $inboundEmail->id = 1;
+        $inserts = [];
+
+        $overview = new Overview();
+        $overview->imap_uid = 1;
+        $overview->subject = 'subject';
+        $overview->from = 'from';
+        $overview->fromaddr = 'from@email.com';
+        $overview->to = 'to';
+        $overview->toaddr = 'to@email.com';
+        $overview->size = 0;
+        $overview->message_id = 1;
+
+        $inserts[] = $overview;
+
+        //execute the method to populate email cache
+        $inboundEmail->setCacheValue('INBOX', $inserts);
 
         $result = $inboundEmail->pop3_shiftCache(array('1' => '1'), array('1'));
 
@@ -1239,50 +946,41 @@ class InboundEmailTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
 
         $this->assertEquals(1, $result['retArr'][0]->imap_uid);
         $this->assertEquals(1, $result['retArr'][0]->msgno);
-        
-        // clean up
-        
-        $this->restoreStateAll($state);
     }
 
     public function testgetUIDLForMessage()
     {
-        // save state
-        
-        $state = $this->storeStateAll();
-        
-        // test
-        
-        
-        $inboundEmail = new InboundEmail();
+        $inboundEmail = $this->setDummyCacheValue();
 
-        $inboundEmail->id = 1;
+        $inboundEmail->pop3_shiftCache(array('1' => '1'), array('1'));
 
         //test with invalid msgNo
         $result = $inboundEmail->getUIDLForMessage('2');
         $this->assertEquals('', $result);
-
-        //test with valid msgNo
-        $result = $inboundEmail->getUIDLForMessage('1');
-        $this->assertEquals('1', $result);
-        
-        // clean up
-        
-        $this->restoreStateAll($state);
     }
 
     public function testgetMsgnoForMessageID()
     {
-        // save state
-        
-        $state = $this->storeStateAll();
-        
-        // test
-        
-        
-        $inboundEmail = new InboundEmail();
+        $inboundEmail = BeanFactory::newBean('InboundEmail');
 
         $inboundEmail->id = 1;
+
+        $inserts = [];
+
+        $overview = new Overview();
+        $overview->imap_uid = 1;
+        $overview->subject = 'subject';
+        $overview->from = 'from';
+        $overview->fromaddr = 'from@email.com';
+        $overview->to = 'to';
+        $overview->toaddr = 'to@email.com';
+        $overview->size = 0;
+        $overview->message_id = 1;
+
+        $inserts[] = $overview;
+
+        //execute the method to populate email cache
+        $inboundEmail->setCacheValue('INBOX', $inserts);
 
         //test with invalid msgNo
         $result = $inboundEmail->getMsgnoForMessageID('2');
@@ -1291,32 +989,16 @@ class InboundEmailTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
         //test with valid msgNo but most probably it will never work because of wrong column name in return statement
         $result = $inboundEmail->getMsgnoForMessageID('1');
         $this->assertEquals('', $result);
-        
-        // clean up
-        
-        $this->restoreStateAll($state);
     }
 
     public function testpop3_getCacheUidls()
     {
-        // save state
-        
-        $state = $this->storeStateAll();
-        
-        // test
-        
-        
-        $inboundEmail = new InboundEmail();
-
-        $inboundEmail->id = 1;
+        $inboundEmail = $this->setDummyCacheValue();
+        $inboundEmail->pop3_shiftCache(array('1' => '1'), array('1'));
 
         $result = $inboundEmail->pop3_getCacheUidls();
 
         $this->assertEquals(array('1' => '1'), $result);
-        
-        // clean up
-        
-        $this->restoreStateAll($state);
     }
 
     /**
@@ -1326,7 +1008,7 @@ class InboundEmailTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
     {
 //        $this->markTestIncomplete("Different results for php5 and php7");
 //        /*
-//        $inboundEmail = new InboundEmail();
+//        $inboundEmail = BeanFactory::newBean('InboundEmail');
 //
 //        $inboundEmail->id = 1;
 //        $inboundEmail->mailbox = 'INBOX';
@@ -1349,7 +1031,7 @@ class InboundEmailTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
     {
 //        $this->markTestIncomplete("Unable to test until testsetStatuses is re-enabled");
 //        /*
-//        $inboundEmail = new InboundEmail();
+//        $inboundEmail = BeanFactory::newBean('InboundEmail');
 //
 //        $inboundEmail->id = 1;
 //        $inboundEmail->mailbox = 'INBOX';
@@ -1367,200 +1049,139 @@ class InboundEmailTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
 
     public function testemptyTrash()
     {
-        // save state
-        
-        $state = $this->storeStateAll();
-        
-        // test
-        
-        
-        $inboundEmail = new InboundEmail();
+        $inboundEmail = BeanFactory::newBean('InboundEmail');
 
         $inboundEmail->id = 1;
+
+        $inserts = [];
+
+        $overview = new Overview();
+        $overview->imap_uid = 1;
+        $overview->subject = 'subject';
+        $overview->from = 'from';
+        $overview->fromaddr = 'from@email.com';
+        $overview->to = 'to';
+        $overview->toaddr = 'to@email.com';
+        $overview->size = 0;
+        $overview->message_id = 1;
+
+        $inserts[] = $overview;
+
+        //execute the method to populate email cache
+        $inboundEmail->setCacheValue('INBOX', $inserts);
 
         $inboundEmail->emptyTrash();
 
         $result = $inboundEmail->getCacheValue('INBOX.Trash');
         $this->assertEquals(0, count($result['retArr']));
-        
-        // clean up
-        
-        $this->restoreStateAll($state);
     }
 
     public function testdeleteCache()
     {
-        // save state
-        
-        $state = $this->storeStateAll();
-        
-        // test
-        
-        
-        $inboundEmail = new InboundEmail();
+        $inboundEmail = BeanFactory::newBean('InboundEmail');
 
         $inboundEmail->id = 1;
+
+        $inserts = [];
+
+        $overview = new Overview();
+        $overview->imap_uid = 1;
+        $overview->subject = 'subject';
+        $overview->from = 'from';
+        $overview->fromaddr = 'from@email.com';
+        $overview->to = 'to';
+        $overview->toaddr = 'to@email.com';
+        $overview->size = 0;
+        $overview->message_id = 1;
+
+        $inserts[] = $overview;
+
+        //execute the method to populate email cache
+        $inboundEmail->setCacheValue('INBOX', $inserts);
 
         $inboundEmail->deleteCache();
 
         $result = $inboundEmail->getCacheValue('INBOX');
         $this->assertEquals(0, count($result['retArr']));
-        
-        // clean up
-        
-        $this->restoreStateAll($state);
     }
 
     public function testdeletePop3Cache()
     {
-        // save state
-        
-        $state = $this->storeStateAll();
-        
-        // test
-        
-        
-        $inboundEmail = new InboundEmail();
+        $inboundEmail = BeanFactory::newBean('InboundEmail');
 
         $inboundEmail->mailbox = 'INBOX,OUTBOX';
 
-        //execute the method and test if it works and does not throws an exception.
+        // Execute the method and test that it works and doesn't throw an exception.
         try {
             $inboundEmail->deletePop3Cache();
             $this->assertTrue(true);
         } catch (Exception $e) {
             $this->fail("\nException: " . get_class($e) . ": " . $e->getMessage() . "\nin " . $e->getFile() . ':' . $e->getLine() . "\nTrace:\n" . $e->getTraceAsString() . "\n");
         }
-        
-        // clean up
-        
-        $this->restoreStateAll($state);
     }
 
     public function testpop3_open()
     {
-        // save state
-        
-        $state = $this->storeStateAll();
-        
-        // test
-        
-        
-        $inboundEmail = new InboundEmail();
+        $inboundEmail = BeanFactory::newBean('InboundEmail');
 
         $inboundEmail->mailbox = 'INBOX,OUTBOX';
 
         $result = $inboundEmail->pop3_open();
 
         $this->assertEquals(false, $result);
-        
-        // clean up
-        
-        $this->restoreStateAll($state);
     }
 
     public function testpop3_cleanUp()
     {
-        // save state
-        
-        $state = $this->storeStateAll();
-        
-        // test
-        
-        
-        $inboundEmail = new InboundEmail();
+        $inboundEmail = BeanFactory::newBean('InboundEmail');
 
         $inboundEmail->mailbox = 'INBOX,OUTBOX';
 
-        //execute the method and test if it works and does not throws an exception.
+        // Execute the method and test that it works and doesn't throw an exception.
         try {
             $inboundEmail->pop3_cleanUp();
             $this->assertTrue(true);
         } catch (Exception $e) {
             $this->fail("\nException: " . get_class($e) . ": " . $e->getMessage() . "\nin " . $e->getFile() . ':' . $e->getLine() . "\nTrace:\n" . $e->getTraceAsString() . "\n");
         }
-        
-        // clean up
-        
-        $this->restoreStateAll($state);
     }
 
     public function testpop3_sendCommand()
     {
-        // save state
-        
-        $state = $this->storeStateAll();
-        
-        // test
-        
-        
-        $inboundEmail = new InboundEmail();
+        $inboundEmail = BeanFactory::newBean('InboundEmail');
 
         $inboundEmail->mailbox = 'INBOX,OUTBOX';
 
         $result = $inboundEmail->pop3_sendCommand('get');
 
         $this->assertEquals('', $result);
-        
-        // clean up
-        
-        $this->restoreStateAll($state);
     }
 
     public function testgetPop3NewMessagesToDownload()
     {
-        // save state
-        
-        $state = $this->storeStateAll();
-        
-        // test
-        
-        
-        $inboundEmail = new InboundEmail();
+        $inboundEmail = BeanFactory::newBean('InboundEmail');
 
         $inboundEmail->mailbox = 'INBOX,OUTBOX';
 
         $result = $inboundEmail->getPop3NewMessagesToDownload();
 
         $this->assertTrue(is_array($result));
-        
-        // clean up
-        
-        $this->restoreStateAll($state);
     }
 
     public function testgetPop3NewMessagesToDownloadForCron()
     {
-        // save state
-        
-        $state = $this->storeStateAll();
-        
-        // test
-        
-        
-        $inboundEmail = new InboundEmail();
+        $inboundEmail = BeanFactory::newBean('InboundEmail');
 
         $inboundEmail->mailbox = 'INBOX,OUTBOX';
 
         $result = $inboundEmail->getPop3NewMessagesToDownloadForCron();
 
         $this->assertTrue(is_array($result));
-        
-        // clean up
-        
-        $this->restoreStateAll($state);
     }
 
     public function testpop3_getUIDL()
     {
-        // save state
-        
-        $state = $this->storeStateAll();
-        
-        // test
-        
-        
-        $inboundEmail = new InboundEmail();
+        $inboundEmail = BeanFactory::newBean('InboundEmail');
 
         $inboundEmail->mailbox = 'INBOX,OUTBOX';
         $inboundEmail->protocol = 'pop3';
@@ -1568,27 +1189,16 @@ class InboundEmailTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
         $result = $inboundEmail->getPop3NewMessagesToDownloadForCron();
 
         $this->assertTrue(is_array($result));
-        
-        // clean up
-        
-        $this->restoreStateAll($state);
     }
 
     public function testpop3_checkPartialEmail()
     {
-        // save state
-        
-        $state = $this->storeStateAll();
-        
-        // test
-        
-        
-        $inboundEmail = new InboundEmail();
+        $inboundEmail = BeanFactory::newBean('InboundEmail');
 
         $inboundEmail->mailbox = 'INBOX,OUTBOX';
         $inboundEmail->protocol = 'pop3';
 
-        //execute the method and test if it works and does not throws an exception.
+        // Execute the method and test that it works and doesn't throw an exception.
         try {
             $result = $inboundEmail->pop3_checkPartialEmail();
             $this->assertEquals('could not open socket connection to POP3 server', $result);
@@ -1597,27 +1207,16 @@ class InboundEmailTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
         } catch (Exception $e) {
             $this->fail("\nException: " . get_class($e) . ": " . $e->getMessage() . "\nin " . $e->getFile() . ':' . $e->getLine() . "\nTrace:\n" . $e->getTraceAsString() . "\n");
         }
-        
-        // clean up
-        
-        $this->restoreStateAll($state);
     }
 
     public function testpop3_checkEmail()
     {
-        // save state
-        
-        $state = $this->storeStateAll();
-        
-        // test
-        
-        
-        $inboundEmail = new InboundEmail();
+        $inboundEmail = BeanFactory::newBean('InboundEmail');
 
         $inboundEmail->mailbox = 'INBOX,OUTBOX';
         $inboundEmail->protocol = 'pop3';
 
-        //execute the method and test if it works and does not throws an exception.
+        // Execute the method and test that it works and doesn't throw an exception.
         try {
             $result = $inboundEmail->pop3_checkEmail();
             $this->assertEquals(false, $result);
@@ -1626,27 +1225,16 @@ class InboundEmailTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
         } catch (Exception $e) {
             $this->fail("\nException: " . get_class($e) . ": " . $e->getMessage() . "\nin " . $e->getFile() . ':' . $e->getLine() . "\nTrace:\n" . $e->getTraceAsString() . "\n");
         }
-        
-        // clean up
-        
-        $this->restoreStateAll($state);
     }
 
     public function testgetMessagesInEmailCache()
     {
-        // save state
-        
-        $state = $this->storeStateAll();
-        
-        // test
-        
-        
-        $inboundEmail = new InboundEmail();
+        $inboundEmail = BeanFactory::newBean('InboundEmail');
 
         $inboundEmail->mailbox = 'INBOX,OUTBOX';
 
         //test for IMAP
-        //execute the method and test if it works and does not throws an exception.
+        // Execute the method and test that it works and doesn't throw an exception.
         try {
             $result = $inboundEmail->getMessagesInEmailCache(0, 1);
             $this->assertTrue(true);
@@ -1656,118 +1244,63 @@ class InboundEmailTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
 
         //test for pop3
         $inboundEmail->protocol = 'pop3';
-        //execute the method and test if it works and does not throws an exception.
+        // Execute the method and test that it works and doesn't throw an exception.
         try {
             $result = $inboundEmail->getMessagesInEmailCache(1, 0);
             $this->assertTrue(true);
         } catch (Exception $e) {
             $this->fail("\nException: " . get_class($e) . ": " . $e->getMessage() . "\nin " . $e->getFile() . ':' . $e->getLine() . "\nTrace:\n" . $e->getTraceAsString() . "\n");
         }
-        
-        // clean up
-        
-        $this->restoreStateAll($state);
     }
 
     public function testcheckEmailOneMailbox()
     {
 //        $this->markTestIncomplete('this test failing only on php 7.2');
 //
-//        // save state
-//
-//        $state = $this->storeStateAll();
-//
-//        // test
-//
-//
-//        $inboundEmail = new InboundEmail();
+//        $inboundEmail = BeanFactory::newBean('InboundEmail');
 //
 //        $inboundEmail->mailbox = 'INBOX,OUTBOX';
 //
 //        $result = $inboundEmail->checkEmailOneMailbox('INBOX');
 //        $this->assertEquals(1, $result);
-//
-//        // clean up
-//
-//        $this->restoreStateAll($state);
     }
 
     public function testcheckEmailOneMailboxPartial()
     {
-        // save state
-        
-        $state = $this->storeStateAll();
-        
-        // test
-        
-        
-        $inboundEmail = new InboundEmail();
+        $inboundEmail = BeanFactory::newBean('InboundEmail');
 
         $inboundEmail->mailbox = 'INBOX,OUTBOX';
 
         $result = $inboundEmail->checkEmailOneMailboxPartial('INBOX');
 
         $this->assertEquals(array('status' => 'done'), $result);
-        
-        // clean up
-        
-        $this->restoreStateAll($state);
     }
 
     public function testgetCachedIMAPSearch()
     {
-        // save state
-        
-        $state = $this->storeStateAll();
-        
-        // test
-        
-        
-        $inboundEmail = new InboundEmail();
+        $inboundEmail = BeanFactory::newBean('InboundEmail');
 
         $inboundEmail->mailbox = 'INBOX,OUTBOX';
 
         $result = $inboundEmail->getCachedIMAPSearch('test');
 
         $this->assertTrue(is_array($result));
-        
-        // clean up
-        
-        $this->restoreStateAll($state);
     }
 
     public function testcheckEmailIMAPPartial()
     {
-        // save state
-        
-        $state = $this->storeStateAll();
-        
-        // test
-        
-        
-        $inboundEmail = new InboundEmail();
+        $inboundEmail = BeanFactory::newBean('InboundEmail');
 
         $inboundEmail->mailbox = 'INBOX,OUTBOX';
 
         $result = $inboundEmail->checkEmailIMAPPartial();
 
         $this->assertTrue(is_array($result));
-        
-        // clean up
-        
-        $this->restoreStateAll($state);
     }
 
     public function testcheckEmail2_meta()
     {
-        // save state
-        
-        $state = $this->storeStateAll();
-        
-        // test
-        
-        
-        $inboundEmail = new InboundEmail();
+        $inboundEmail = BeanFactory::newBean('InboundEmail');
 
         $inboundEmail->mailbox = 'INBOX,OUTBOX';
 
@@ -1775,45 +1308,23 @@ class InboundEmailTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
 
         $this->assertTrue(is_array($result));
         $this->assertEquals(array('mailboxes' => array('INBOX' => 0), 'processCount' => 0), $result);
-        
-        // clean up
-        
-        $this->restoreStateAll($state);
     }
 
     public function testgetMailboxProcessCount()
     {
-        // save state
-        
-        $state = $this->storeStateAll();
-        
-        // test
-        
-        
-        $inboundEmail = new InboundEmail();
+        $inboundEmail = BeanFactory::newBean('InboundEmail');
 
         $result = $inboundEmail->getMailboxProcessCount('INBOX');
 
         $this->assertEquals(0, $result);
-        
-        // clean up
-        
-        $this->restoreStateAll($state);
     }
 
     public function testcheckEmail()
     {
-        // save state
-        
-        $state = $this->storeStateAll();
-        
-        // test
-        
-        
-        $inboundEmail = new InboundEmail();
+        $inboundEmail = BeanFactory::newBean('InboundEmail');
 
         //test for IMAP
-        //execute the method and test if it works and does not throws an exception.
+        // Execute the method and test that it works and doesn't throw an exception.
         try {
             $inboundEmail->checkEmail('INBOX');
             $this->assertTrue(true);
@@ -1824,90 +1335,53 @@ class InboundEmailTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
         //test for pop3
         $inboundEmail->protocol = 'pop3';
 
-        //execute the method and test if it works and does not throws an exception.
+        // Execute the method and test that it works and doesn't throw an exception.
         try {
             $inboundEmail->checkEmail('INBOX');
             $this->assertTrue(true);
         } catch (Exception $e) {
             $this->fail("\nException: " . get_class($e) . ": " . $e->getMessage() . "\nin " . $e->getFile() . ':' . $e->getLine() . "\nTrace:\n" . $e->getTraceAsString() . "\n");
         }
-        
-        // clean up
-        
-        $this->restoreStateAll($state);
     }
 
     public function testsyncEmail()
     {
-        // save state
-        
-        $state = $this->storeStateAll();
-        
-        // test
-        
-        
         global $current_user;
         $current_user = new User('1');
 
-        $inboundEmail = new InboundEmail();
+        $inboundEmail = BeanFactory::newBean('InboundEmail');
 
-        //execute the method and test if it works and does not throws an exception.
+        // Execute the method and test that it works and doesn't throw an exception.
         try {
             $inboundEmail->syncEmail();
             $this->assertTrue(true);
         } catch (Exception $e) {
             $this->fail("\nException: " . get_class($e) . ": " . $e->getMessage() . "\nin " . $e->getFile() . ':' . $e->getLine() . "\nTrace:\n" . $e->getTraceAsString() . "\n");
         }
-        
-        // clean up
-        
-        $this->restoreStateAll($state);
     }
 
     public function testdeleteCachedMessages()
     {
-        // save state
-        
-        $state = $this->storeStateAll();
-        
-        // test
-        
-        
-        $inboundEmail = new InboundEmail();
+        $inboundEmail = BeanFactory::newBean('InboundEmail');
 
         $inboundEmail->id = 1;
 
-        //execute the method and test if it works and does not throws an exception.
+        // Execute the method and test that it works and doesn't throw an exception.
         try {
             $inboundEmail->deleteCachedMessages('1,2', 'test');
             $this->assertTrue(true);
         } catch (Exception $e) {
             $this->fail("\nException: " . get_class($e) . ": " . $e->getMessage() . "\nin " . $e->getFile() . ':' . $e->getLine() . "\nTrace:\n" . $e->getTraceAsString() . "\n");
         }
-        
-        // clean up
-        
-        $this->restoreStateAll($state);
     }
 
     public function testgetOverviewsFromCacheFile()
     {
-        // save state
-        
-        $state = $this->storeStateAll();
-        
-        // test
-        
-        
-        $inboundEmail = new InboundEmail();
+        $inboundEmail = BeanFactory::newBean('InboundEmail');
 
         $result = $inboundEmail->getOverviewsFromCacheFile('1,2', 'INBOX');
 
         $this->assertTrue(is_array($result));
-        
-        // clean up
-        
-        $this->restoreStateAll($state);
     }
 
     /**
@@ -1917,7 +1391,7 @@ class InboundEmailTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
     {
 //        $this->markTestIncomplete("Different results for php5 and php7");
 //        /*
-//        $inboundEmail = new InboundEmail();
+//        $inboundEmail = BeanFactory::newBean('InboundEmail');
 //
 //        $inboundEmail->id = 1;
 //        $inboundEmail->mailbox = 'INBOX';
@@ -1942,7 +1416,7 @@ class InboundEmailTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
     {
 //        $this->markTestIncomplete('Undefined offset: 0');
 ////
-////        $inboundEmail = new InboundEmail();
+////        $inboundEmail = BeanFactory::newBean('InboundEmail');
 ////
 ////        $inboundEmail->id = 1;
 ////
@@ -1955,20 +1429,12 @@ class InboundEmailTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
 
     public function testfetchCheckedEmails()
     {
-        // save state
-        
-        $state = $this->storeStateAll();
-        
-        // test
-        
-        
-
         //unset and reconnect Db to resolve mysqli fetch exeception
         $db = DBManagerFactory::getInstance();
         unset($db->database);
         $db->checkConnection();
 
-        $inboundEmail = new InboundEmail();
+        $inboundEmail = BeanFactory::newBean('InboundEmail');
 
         $inboundEmail->id = 1;
         $inboundEmail->mailbox = 'INBOX';
@@ -1993,24 +1459,13 @@ class InboundEmailTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
         $result = $inboundEmail->fetchCheckedEmails($fetchedOverviews);
 
         $this->assertEquals(true, $result);
-        
-        // clean up
-        
-        $this->restoreStateAll($state);
     }
 
     public function testmarkEmails()
     {
-        // save state
-        
-        $state = $this->storeStateAll();
-        
-        // test
-        
-        
-        $inboundEmail = new InboundEmail();
+        $inboundEmail = BeanFactory::newBean('InboundEmail');
 
-        //execute the method and test if it works and does not throws an exception.
+        // Execute the method and test that it works and doesn't throw an exception.
         try {
             $inboundEmail->markEmails('1', 'unread');
             $inboundEmail->markEmails('1', 'read');
@@ -2022,22 +1477,11 @@ class InboundEmailTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
         } catch (Exception $e) {
             $this->fail("\nException: " . get_class($e) . ": " . $e->getMessage() . "\nin " . $e->getFile() . ':' . $e->getLine() . "\nTrace:\n" . $e->getTraceAsString() . "\n");
         }
-        
-        // clean up
-        
-        $this->restoreStateAll($state);
     }
 
     public function testdeleteFolder()
     {
-        // save state
-        
-        $state = $this->storeStateAll();
-        
-        // test
-        
-        
-        $inboundEmail = new InboundEmail();
+        $inboundEmail = BeanFactory::newBean('InboundEmail');
 
         $inboundEmail->mailbox = 'INBOX,OUTBOX';
 
@@ -2045,42 +1489,20 @@ class InboundEmailTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
 
         $this->assertSame(['status', 'errorMessage'], array_keys($result));
         $this->assertFalse($result['status']);
-        
-        // clean up
-        
-        $this->restoreStateAll($state);
     }
 
     public function testsaveNewFolder()
     {
-        // save state
-        
-        $state = $this->storeStateAll();
-        
-        // test
-        
-        
-        $inboundEmail = new InboundEmail();
+        $inboundEmail = BeanFactory::newBean('InboundEmail');
 
         $result = $inboundEmail->saveNewFolder('TEST', 'INBOX');
 
         $this->assertEquals(false, $result);
-        
-        // clean up
-        
-        $this->restoreStateAll($state);
     }
 
     public function testgetImapMboxFromSugarProprietary()
     {
-        // save state
-        
-        $state = $this->storeStateAll();
-        
-        // test
-        
-        
-        $inboundEmail = new InboundEmail();
+        $inboundEmail = BeanFactory::newBean('InboundEmail');
 
         //test with invalid format string
         $result = $inboundEmail->getImapMboxFromSugarProprietary('INBOX.TRASH');
@@ -2093,32 +1515,17 @@ class InboundEmailTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
         //test with valid format longer string
         $result = $inboundEmail->getImapMboxFromSugarProprietary('INBOX::TRASH::TEST');
         $this->assertEquals('TEST', $result);
-        
-        // clean up
-        
-        $this->restoreStateAll($state);
     }
 
     public function testrepairAccount()
     {
-        // save state
-        
-        $state = $this->storeStateAll();
-        
-        // test
-        
-        
-        $inboundEmail = new InboundEmail();
+        $inboundEmail = BeanFactory::newBean('InboundEmail');
 
         $inboundEmail->email_password = 'test_pass';
 
         $result = $inboundEmail->repairAccount();
 
         $this->assertEquals(false, $result);
-        
-        // clean up
-        
-        $this->restoreStateAll($state);
     }
 
     public function testgetTeamSetIdForTeams()
@@ -2130,7 +1537,7 @@ class InboundEmailTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
 ////        unset($db->database);
 ////        $db->checkConnection();
 ////
-////        $inboundEmail = new InboundEmail();
+////        $inboundEmail = BeanFactory::newBean('InboundEmail');
 ////
 ////        //$result = $inboundEmail->getTeamSetIdForTeams("1");
 ////
@@ -2141,14 +1548,7 @@ class InboundEmailTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
 
     public function testsavePersonalEmailAccountAndOthers()
     {
-        // save state
-        
-        $state = $this->storeStateAll();
-        
-        // test
-        
-        
-        $inboundEmail = new InboundEmail();
+        $inboundEmail = BeanFactory::newBean('InboundEmail');
 
         $_REQUEST['ie_name'] = 'test';
         $_REQUEST['ie_status'] = 'Active';
@@ -2176,22 +1576,11 @@ class InboundEmailTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
 
         //test deletePersonalEmailAccount method
         $this->deletePersonalEmailAccount($inboundEmail->id);
-        
-        // clean up
-        
-        $this->restoreStateAll($state);
     }
 
     public function handleIsPersonal($id)
     {
-        // save state
-        
-        $state = $this->storeStateAll();
-        
-        // test
-        
-        
-        $inboundEmail = new InboundEmail();
+        $inboundEmail = BeanFactory::newBean('InboundEmail');
 
         //test with a invalid group_id
         $inboundEmail->group_id = 2;
@@ -2202,25 +1591,14 @@ class InboundEmailTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
         $inboundEmail->retrieve($id);
         $result = $inboundEmail->handleIsPersonal();
         $this->assertEquals(true, $result);
-        
-        // clean up
-        
-        $this->restoreStateAll($state);
     }
 
     public function getUserPersonalAccountCount()
     {
-        // save state
-        
-        $state = $this->storeStateAll();
-        
-        // test
-        
-        
-        $inboundEmail = new InboundEmail();
+        $inboundEmail = BeanFactory::newBean('InboundEmail');
 
         //test with invalid user id
-        $user = new User();
+        $user = BeanFactory::newBean('Users');
         $result = $inboundEmail->getUserPersonalAccountCount($user);
         $this->assertEquals(0, $result);
 
@@ -2228,22 +1606,11 @@ class InboundEmailTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
         $user->id = 1;
         $result = $inboundEmail->getUserPersonalAccountCount($user);
         $this->assertGreaterThan(0, $result);
-        
-        // clean up
-        
-        $this->restoreStateAll($state);
     }
 
     public function retrieveByGroupFolderId()
     {
-        // save state
-        
-        $state = $this->storeStateAll();
-        
-        // test
-        
-        
-        $inboundEmail = new InboundEmail();
+        $inboundEmail = BeanFactory::newBean('InboundEmail');
 
         //test with invalid groupfolder id
         $result = $inboundEmail->retrieveByGroupFolderId('1');
@@ -2258,22 +1625,11 @@ class InboundEmailTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
         foreach ($result as $ie) {
             $this->assertInstanceOf('InboundEmail', $ie);
         }
-        
-        // clean up
-        
-        $this->restoreStateAll($state);
     }
 
     public function getUserNameFromGroupId($id)
     {
-        // save state
-        
-        $state = $this->storeStateAll();
-        
-        // test
-        
-        
-        $inboundEmail = new InboundEmail();
+        $inboundEmail = BeanFactory::newBean('InboundEmail');
 
         //test with a invalid group_id
         $inboundEmail->group_id = 2;
@@ -2284,22 +1640,11 @@ class InboundEmailTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
         $inboundEmail->retrieve($id);
         $result = $inboundEmail->getUserNameFromGroupId();
         $this->assertEquals('admin', $result);
-        
-        // clean up
-        
-        $this->restoreStateAll($state);
     }
 
     public function deletePersonalEmailAccount($id)
     {
-        // save state
-        
-        $state = $this->storeStateAll();
-        
-        // test
-        
-        
-        $inboundEmail = new InboundEmail();
+        $inboundEmail = BeanFactory::newBean('InboundEmail');
 
         //test with invalid username
         $result = $inboundEmail->deletePersonalEmailAccount($id, 'test');
@@ -2308,41 +1653,19 @@ class InboundEmailTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
         //test with valid username
         $result = $inboundEmail->deletePersonalEmailAccount($id, 'admin');
         $this->assertEquals(true, $result);
-        
-        // clean up
-        
-        $this->restoreStateAll($state);
     }
 
     public function testgetFoldersListForMailBox()
     {
-        // save state
-        
-        $state = $this->storeStateAll();
-        
-        // test
-        
-        
-        $inboundEmail = new InboundEmail();
+        $inboundEmail = BeanFactory::newBean('InboundEmail');
 
         $result = $inboundEmail->getFoldersListForMailBox();
         $this->assertTrue(is_array($result));
-        
-        // clean up
-        
-        $this->restoreStateAll($state);
     }
 
     public function testfindOptimumSettings()
     {
-        // save state
-        
-        $state = $this->storeStateAll();
-        
-        // test
-        
-        
-        $inboundEmail = new InboundEmail();
+        $inboundEmail = BeanFactory::newBean('InboundEmail');
 
         //test with different parameters, it will always return false because we do not have a mail server to connect.
 
@@ -2352,22 +1675,11 @@ class InboundEmailTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
         $this->assertEquals(false, $inboundEmail->findOptimumSettings(true));
 
         $this->assertEquals(false, $inboundEmail->findOptimumSettings(false, 'test', 'test', '', '', 'INBOX'));
-        
-        // clean up
-        
-        $this->restoreStateAll($state);
     }
 
     public function testgetSessionConnectionString()
     {
-        // save state
-        
-        $state = $this->storeStateAll();
-        
-        // test
-        
-        
-        $inboundEmail = new InboundEmail();
+        $inboundEmail = BeanFactory::newBean('InboundEmail');
 
         //test without setting session key
         $result = $inboundEmail->getSessionConnectionString('mail.google.com', 'test', 22, 'IMAP');
@@ -2377,41 +1689,19 @@ class InboundEmailTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
         $_SESSION['mail.google.comtest22IMAP'] = 'test connection string';
         $result = $inboundEmail->getSessionConnectionString('mail.google.com', 'test', 22, 'IMAP');
         $this->assertEquals('test connection string', $result);
-        
-        // clean up
-        
-        $this->restoreStateAll($state);
     }
 
     public function testsetSessionConnectionString()
     {
-        // save state
-        
-        $state = $this->storeStateAll();
-        
-        // test
-        
-        
-        $inboundEmail = new InboundEmail();
+        $inboundEmail = BeanFactory::newBean('InboundEmail');
 
         $result = $inboundEmail->setSessionConnectionString('mail.google.com', 'test', 22, 'IMAP', 'test connection');
         $this->assertEquals('test connection', $_SESSION['mail.google.comtest22IMAP']);
-        
-        // clean up
-        
-        $this->restoreStateAll($state);
     }
 
     public function testgetSessionInboundDelimiterString()
     {
-        // save state
-        
-        $state = $this->storeStateAll();
-        
-        // test
-        
-        
-        $inboundEmail = new InboundEmail();
+        $inboundEmail = BeanFactory::newBean('InboundEmail');
 
         //test without setting session key
         $result = $inboundEmail->getSessionInboundDelimiterString('mail.google.com', 'test', 22, 'IMAP');
@@ -2421,41 +1711,19 @@ class InboundEmailTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
         $_SESSION['mail.google.comtest22IMAPdelimiter'] = 'delimit string';
         $result = $inboundEmail->getSessionInboundDelimiterString('mail.google.com', 'test', 22, 'IMAP');
         $this->assertEquals('delimit string', $result);
-        
-        // clean up
-        
-        $this->restoreStateAll($state);
     }
 
     public function testsetSessionInboundDelimiterString()
     {
-        // save state
-        
-        $state = $this->storeStateAll();
-        
-        // test
-        
-        
-        $inboundEmail = new InboundEmail();
+        $inboundEmail = BeanFactory::newBean('InboundEmail');
 
         $result = $inboundEmail->setSessionInboundDelimiterString('mail.google.com', 'test', 22, 'IMAP', 'test string');
         $this->assertEquals('test string', $_SESSION['mail.google.comtest22IMAPdelimiter']);
-        
-        // clean up
-        
-        $this->restoreStateAll($state);
     }
 
     public function testgetSessionInboundFoldersString()
     {
-        // save state
-        
-        $state = $this->storeStateAll();
-        
-        // test
-        
-        
-        $inboundEmail = new InboundEmail();
+        $inboundEmail = BeanFactory::newBean('InboundEmail');
 
         //test without setting session key
         $result = $inboundEmail->getSessionInboundFoldersString('mail.google.com', 'test', 22, 'IMAP');
@@ -2465,47 +1733,24 @@ class InboundEmailTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
         $_SESSION['mail.google.comtest22IMAPfoldersList'] = 'foldersList string';
         $result = $inboundEmail->getSessionInboundFoldersString('mail.google.com', 'test', 22, 'IMAP');
         $this->assertEquals('foldersList string', $result);
-        
-        // clean up
-        
-        $this->restoreStateAll($state);
     }
 
     public function testsetSessionInboundFoldersString()
     {
-        // save state
-        
-        $state = $this->storeStateAll();
-        
-        // test
-        
-        
-        $inboundEmail = new InboundEmail();
+        $inboundEmail = BeanFactory::newBean('InboundEmail');
 
         $result = $inboundEmail->setSessionInboundFoldersString('mail.google.com', 'test', 22, 'IMAP', 'foldersList string');
         $this->assertEquals('foldersList string', $_SESSION['mail.google.comtest22IMAPfoldersList']);
-        
-        // clean up
-        
-        $this->restoreStateAll($state);
     }
 
     public function testgroupUserDupeCheck()
     {
-        // save state
-        
-        $state = $this->storeStateAll();
-        
-        // test
-        
-        
-
         //unset and reconnect Db to resolve mysqli fetch exeception
         $db = DBManagerFactory::getInstance();
         unset($db->database);
         $db->checkConnection();
 
-        $inboundEmail = new InboundEmail();
+        $inboundEmail = BeanFactory::newBean('InboundEmail');
 
         //test without name i-e user_name in query
         $result = $inboundEmail->groupUserDupeCheck();
@@ -2515,28 +1760,16 @@ class InboundEmailTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
         $inboundEmail->name = 'admin';
         $result = $inboundEmail->groupUserDupeCheck();
         $this->assertEquals(false, $result);
-        
-        // clean up
-        
-        $this->restoreStateAll($state);
     }
 
     public function testgetGroupsWithSelectOptions()
     {
-        // save state
-        
-        $state = $this->storeStateAll();
-        
-        // test
-        
-        
-
         //unset and reconnect Db to resolve mysqli fetch exeception
         $db = DBManagerFactory::getInstance();
         unset($db->database);
         $db->checkConnection();
 
-        $inboundEmail = new InboundEmail();
+        $inboundEmail = BeanFactory::newBean('InboundEmail');
 
         $inboundEmail->group_id = 1;
 
@@ -2546,128 +1779,79 @@ class InboundEmailTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
         $expected = "\n<OPTION value='0'>1</OPTION>\n<OPTION selected value='1'>2</OPTION>\n<OPTION value='2'>3</OPTION>";
         $result = $inboundEmail->getGroupsWithSelectOptions(array(1, 2, 3));
         $this->assertEquals($expected, $result);
-        //var_dump($result);
-        
-        // clean up
-        
-        $this->restoreStateAll($state);
     }
 
     public function testhandleAutoresponse()
     {
-        // save state
-        
-        $state = $this->storeStateAll();
-        
-        // test
-        
-        
-
         //unset and reconnect Db to resolve mysqli fetch exeception
         $db = DBManagerFactory::getInstance();
         unset($db->database);
         $db->checkConnection();
 
-        $inboundEmail = new InboundEmail();
+        $inboundEmail = BeanFactory::newBean('InboundEmail');
 
         $inboundEmail->template_id = 1;
-        $email = new Email();
+        $email = BeanFactory::newBean('Emails');
         $email->name = 'test';
         $email->from_addr = 'test@email.com';
         $contactAddr = 'test@email.com';
 
-        //execute the method and test if it works and does not throws an exception.
+        // Execute the method and test that it works and doesn't throw an exception.
         try {
             $result = $inboundEmail->handleAutoresponse($email, $contactAddr);
             $this->assertTrue(true);
         } catch (Exception $e) {
             $this->fail("\nException: " . get_class($e) . ": " . $e->getMessage() . "\nin " . $e->getFile() . ':' . $e->getLine() . "\nTrace:\n" . $e->getTraceAsString() . "\n");
         }
-        
-        // clean up
-        
-        $this->restoreStateAll($state);
     }
 
     public function testhandleCaseAssignment()
     {
-        // save state
-        
-        $state = $this->storeStateAll();
-        
-        // test
-        
-        
-
         //unset and reconnect Db to resolve mysqli fetch exeception
         $db = DBManagerFactory::getInstance();
         unset($db->database);
         $db->checkConnection();
 
-        $inboundEmail = new InboundEmail();
+        $inboundEmail = BeanFactory::newBean('InboundEmail');
 
-        $email = new Email();
+        $email = BeanFactory::newBean('Emails');
         $email->name = 'test';
 
         $result = $inboundEmail->handleCaseAssignment($email);
         $this->assertEquals(false, $result);
-        
-        // clean up
-        
-        $this->restoreStateAll($state);
     }
 
     public function testhandleMailboxType()
     {
-        // save state
-        
-        $state = $this->storeStateAll();
-        
-        // test
-        
-        
-
         //unset and reconnect Db to resolve mysqli fetch exeception
         $db = DBManagerFactory::getInstance();
         unset($db->database);
         $db->checkConnection();
 
-        $inboundEmail = new InboundEmail();
+        $inboundEmail = BeanFactory::newBean('InboundEmail');
 
-        $email = new Email();
+        $email = BeanFactory::newBean('Emails');
         $email->name = 'test';
 
         $inboundEmail->mailbox_type = 'support';
 
-        //execute the method and test if it works and does not throws an exception.
+        // Execute the method and test that it works and doesn't throw an exception.
         try {
             $inboundEmail->handleMailboxType($email, $header);
             $this->assertTrue(true);
         } catch (Exception $e) {
             $this->fail("\nException: " . get_class($e) . ": " . $e->getMessage() . "\nin " . $e->getFile() . ':' . $e->getLine() . "\nTrace:\n" . $e->getTraceAsString() . "\n");
         }
-        
-        // clean up
-        
-        $this->restoreStateAll($state);
     }
 
     public function testisMailBoxTypeCreateCase()
     {
-        // save state
-        
-        $state = $this->storeStateAll();
-        
-        // test
-        
-        
-
         //unset and reconnect Db to resolve mysqli fetch exeception
         $db = DBManagerFactory::getInstance();
         unset($db->database);
         $db->checkConnection();
 
-        $inboundEmail = new InboundEmail();
+        $inboundEmail = BeanFactory::newBean('InboundEmail');
 
         //test without setting attributes
         $result = $inboundEmail->isMailBoxTypeCreateCase();
@@ -2679,71 +1863,43 @@ class InboundEmailTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
 
         $result = $inboundEmail->isMailBoxTypeCreateCase();
         $this->assertEquals(true, $result);
-        
-        // clean up
-        
-        $this->restoreStateAll($state);
     }
 
     public function testhandleCreateCase()
     {
-        // save state
-        
-        $state = $this->storeStateAll();
-        
-        // test
-        
-        
-
         //unset and reconnect Db to resolve mysqli fetch exeception
         $db = DBManagerFactory::getInstance();
         unset($db->database);
         $db->checkConnection();
 
-        $inboundEmail = new InboundEmail();
+        $inboundEmail = BeanFactory::newBean('InboundEmail');
 
-        $email = new Email();
+        $email = BeanFactory::newBean('Emails');
         $email->name = 'test';
 
-        //execute the method and test if it works and does not throws an exception.
+        // Execute the method and test that it works and doesn't throw an exception.
         try {
             $inboundEmail->handleCreateCase($email, 1);
             $this->assertTrue(true);
         } catch (Exception $e) {
             $this->fail("\nException: " . get_class($e) . ": " . $e->getMessage() . "\nin " . $e->getFile() . ':' . $e->getLine() . "\nTrace:\n" . $e->getTraceAsString() . "\n");
         }
-        
-        // clean up
-        
-        $this->restoreStateAll($state);
     }
 
     public function testhandleLinking()
     {
-        // save state
-        
-        $state = $this->storeStateAll();
-        
-        // test
-        
-        
-
         //unset and reconnect Db to resolve mysqli fetch exeception
         $db = DBManagerFactory::getInstance();
         unset($db->database);
         $db->checkConnection();
 
-        $inboundEmail = new InboundEmail();
+        $inboundEmail = BeanFactory::newBean('InboundEmail');
 
-        $email = new Email();
+        $email = BeanFactory::newBean('Emails');
         $email->from_addr = 'test@from.com';
 
         $result = $inboundEmail->handleLinking($email);
         $this->assertEquals($email->from_addr, $result);
-        
-        // clean up
-        
-        $this->restoreStateAll($state);
     }
 
     public function testgetEncodingFromBreadCrumb()
@@ -2755,7 +1911,7 @@ class InboundEmailTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
 ////        unset($db->database);
 ////        $db->checkConnection();
 ////
-////        $inboundEmail = new InboundEmail();
+////        $inboundEmail = BeanFactory::newBean('InboundEmail');
 ////
 ////        $parts = array(
 ////                    (Object) array('encoding' => 'utf-8', 'parts' => array((Object) array('encoding' => 'utf-8', 'parts' => array((Object) array('encoding' => 'utf-8', 'parts' => 'dummy parts 2'))))),
@@ -2768,14 +1924,7 @@ class InboundEmailTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
 
     public function testgetCharsetFromBreadCrumb()
     {
-        // save state
-        
-        $state = $this->storeStateAll();
-        
-        // test
-        
-        
-        $inboundEmail = new InboundEmail();
+        $inboundEmail = BeanFactory::newBean('InboundEmail');
 
         $parts = array(
                 (Object) array('ifparameters' => 1, 'attribute' => 'charset', 'value' => 'test', 'parts' => array((Object) array('ifparameters' => 1, 'attribute' => 'charset', 'value' => 'test', 'parts' => array((Object) array('ifparameters' => 1, 'attribute' => 'charset', 'value' => 'test', 'parts' => 'dummy parts 2'))))),
@@ -2784,10 +1933,6 @@ class InboundEmailTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
         $result = $inboundEmail->getCharsetFromBreadCrumb('1.2.3', $parts);
 
         $this->assertEquals('default', $result);
-        
-        // clean up
-        
-        $this->restoreStateAll($state);
     }
 
     public function testgetMessageTextFromSingleMimePart()
@@ -2799,9 +1944,9 @@ class InboundEmailTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
 ////        unset($db->database);
 ////        $db->checkConnection();
 ////
-////        $inboundEmail = new InboundEmail();
+////        $inboundEmail = BeanFactory::newBean('InboundEmail');
 ////
-////        //execute the method and test if it works and does not throws an exception.
+////        // Execute the method and test that it works and doesn't throw an exception.
 ////        try {
 ////            $result = $inboundEmail->getMessageTextFromSingleMimePart(1, 1, $structure);
 ////            $this->assertTrue(true);
@@ -2812,19 +1957,12 @@ class InboundEmailTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
 
     public function testaddBreadCrumbOffset()
     {
-        // save state
-        
-        $state = $this->storeStateAll();
-        
-        // test
-        
-        
         //unset and reconnect Db to resolve mysqli fetch exeception
         $db = DBManagerFactory::getInstance();
         unset($db->database);
         $db->checkConnection();
 
-        $inboundEmail = new InboundEmail();
+        $inboundEmail = BeanFactory::newBean('InboundEmail');
 
         //test with empty offset string
         $result = $inboundEmail->addBreadCrumbOffset('1.1.1', '');
@@ -2837,10 +1975,6 @@ class InboundEmailTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
         //test with shorter bread crumb string
         $result = $inboundEmail->addBreadCrumbOffset('1.1.1', '2.2.2.2');
         $this->assertEquals('3.3.3.2', $result);
-        
-        // clean up
-        
-        $this->restoreStateAll($state);
     }
 
     public function testgetMessageText()
@@ -2853,9 +1987,9 @@ class InboundEmailTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
 ////        unset($db->database);
 ////        $db->checkConnection();
 ////
-////        $inboundEmail = new InboundEmail();
+////        $inboundEmail = BeanFactory::newBean('InboundEmail');
 ////
-////        //execute the method and test if it works and does not throws an exception.
+////        // Execute the method and test that it works and doesn't throw an exception.
 ////        try {
 ////            $result = $inboundEmail->getMessageText(1, 'PLAIN', $structure, $fullHeader);
 ////            $this->assertTrue(true);
@@ -2866,20 +2000,12 @@ class InboundEmailTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
 
     public function testdecodeHeader()
     {
-        // save state
-        
-        $state = $this->storeStateAll();
-        
-        // test
-        
-        
-
         //unset and reconnect Db to resolve mysqli fetch exeception
         $db = DBManagerFactory::getInstance();
         unset($db->database);
         $db->checkConnection();
 
-        $inboundEmail = new InboundEmail();
+        $inboundEmail = BeanFactory::newBean('InboundEmail');
 
         $expected = array(
                           'From' => 'Media Temple user (mt.kb.user@gmail.com)',
@@ -2894,27 +2020,16 @@ class InboundEmailTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
 
         $result = $inboundEmail->decodeHeader($header);
         $this->assertEquals($expected, $result);
-        
-        // clean up
-        
-        $this->restoreStateAll($state);
     }
 
     public function testhandleCharsetTranslation()
     {
-        // save state
-        
-        $state = $this->storeStateAll();
-        
-        // test
-        
-        
         //unset and reconnect Db to resolve mysqli fetch exeception
         $db = DBManagerFactory::getInstance();
         unset($db->database);
         $db->checkConnection();
 
-        $inboundEmail = new InboundEmail();
+        $inboundEmail = BeanFactory::newBean('InboundEmail');
 
         //test with default
         $result = $inboundEmail->handleCharsetTranslation('sample text', 'default');
@@ -2923,212 +2038,119 @@ class InboundEmailTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
         //test with ISO-8859-8
         $result = $inboundEmail->handleCharsetTranslation('sample text', 'ISO-8859-8');
         $this->assertEquals('sample text', $result);
-        
-        // clean up
-        
-        $this->restoreStateAll($state);
     }
 
     public function testbuildBreadCrumbs()
     {
-        // save state
-        
-        $state = $this->storeStateAll();
-        
-        // test
-        
-        
-
         //unset and reconnect Db to resolve mysqli fetch exeception
         $db = DBManagerFactory::getInstance();
         unset($db->database);
         $db->checkConnection();
 
-        $inboundEmail = new InboundEmail();
+        $inboundEmail = BeanFactory::newBean('InboundEmail');
 
-        //execute the method and test if it works and does not throws an exception.
+        // Execute the method and test that it works and doesn't throw an exception.
         try {
             $result = $inboundEmail->buildBreadCrumbs(array(), 'ALTERNATIVE', '1');
             $this->assertTrue(true);
         } catch (Exception $e) {
             $this->fail("\nException: " . get_class($e) . ": " . $e->getMessage() . "\nin " . $e->getFile() . ':' . $e->getLine() . "\nTrace:\n" . $e->getTraceAsString() . "\n");
         }
-        
-        // clean up
-        
-        $this->restoreStateAll($state);
     }
 
     public function testbuildBreadCrumbsHTML()
     {
-        // save state
-        
-        $state = $this->storeStateAll();
-        
-        // test
-        
-        
-
         //unset and reconnect Db to resolve mysqli fetch exeception
         $db = DBManagerFactory::getInstance();
         unset($db->database);
         $db->checkConnection();
 
-        $inboundEmail = new InboundEmail();
+        $inboundEmail = BeanFactory::newBean('InboundEmail');
 
-        //execute the method and test if it works and does not throws an exception.
+        // Execute the method and test that it works and doesn't throw an exception.
         try {
             $inboundEmail->buildBreadCrumbsHTML(array());
             $this->assertTrue(true);
         } catch (Exception $e) {
             $this->fail("\nException: " . get_class($e) . ": " . $e->getMessage() . "\nin " . $e->getFile() . ':' . $e->getLine() . "\nTrace:\n" . $e->getTraceAsString() . "\n");
         }
-        
-        // clean up
-        
-        $this->restoreStateAll($state);
     }
 
     public function testconvertImapToSugarEmailAddress()
     {
-        // save state
-        
-        $state = $this->storeStateAll();
-        
-        // test
-        
-        
-
         //unset and reconnect Db to resolve mysqli fetch exeception
         $db = DBManagerFactory::getInstance();
         unset($db->database);
         $db->checkConnection();
 
-        $inboundEmail = new InboundEmail();
+        $inboundEmail = BeanFactory::newBean('InboundEmail');
 
         $inboundEmail->mailbox = 'INBOX';
         $inboundEmail->host = 'mail.google.com';
 
         $result = $inboundEmail->convertImapToSugarEmailAddress(array($inboundEmail));
         $this->assertEquals('INBOX@mail.google.com', $result);
-        
-        // clean up
-        
-        $this->restoreStateAll($state);
     }
 
     public function testhandleEncodedFilename()
     {
-        // save state
-        
-        $state = $this->storeStateAll();
-        
-        // test
-        
-        
-
         //unset and reconnect Db to resolve mysqli fetch exeception
         $db = DBManagerFactory::getInstance();
         unset($db->database);
         $db->checkConnection();
 
-        $inboundEmail = new InboundEmail();
+        $inboundEmail = BeanFactory::newBean('InboundEmail');
 
         $result = $inboundEmail->handleEncodedFilename('attachment1.pdf');
         $this->assertEquals('attachment1.pdf', $result);
-        
-        // clean up
-        
-        $this->restoreStateAll($state);
     }
 
     public function testgetMimeType()
     {
-        // save state
-        
-        $state = $this->storeStateAll();
-        
-        // test
-        
-        
         //unset and reconnect Db to resolve mysqli fetch exeception
         $db = DBManagerFactory::getInstance();
         unset($db->database);
         $db->checkConnection();
 
-        $inboundEmail = new InboundEmail();
+        $inboundEmail = BeanFactory::newBean('InboundEmail');
 
         $this->assertEquals('text/plain', $inboundEmail->getMimeType(0, 'plain'));
         $this->assertEquals('multipart/binary', $inboundEmail->getMimeType(1, 'binary'));
         $this->assertEquals('other/subtype', $inboundEmail->getMimeType('test', 'subtype'));
-        
-        // clean up
-        
-        $this->restoreStateAll($state);
     }
 
     public function testsaveAttachments()
     {
-        // save state
-        
-        $state = $this->storeStateAll();
-        
-        // test
-        
-        
-
         //unset and reconnect Db to resolve mysqli fetch exeception
         $db = DBManagerFactory::getInstance();
         unset($db->database);
         $db->checkConnection();
 
-        $inboundEmail = new InboundEmail();
+        $inboundEmail = BeanFactory::newBean('InboundEmail');
 
-        //execute the method and test if it works and does not throws an exception.
+        // Execute the method and test that it works and doesn't throw an exception.
         try {
             $inboundEmail->saveAttachments('1', array(), '1', '0', true);
             $this->assertTrue(true);
         } catch (Exception $e) {
             $this->fail("\nException: " . get_class($e) . ": " . $e->getMessage() . "\nin " . $e->getFile() . ':' . $e->getLine() . "\nTrace:\n" . $e->getTraceAsString() . "\n");
         }
-        
-        // clean up
-        
-        $this->restoreStateAll($state);
     }
 
     public function testgetNoteBeanForAttachment()
     {
-        // save state
-        
-        $state = $this->storeStateAll();
-        
-        // test
-        
-        
-        $inboundEmail = new InboundEmail();
+        $inboundEmail = BeanFactory::newBean('InboundEmail');
 
         $result = $inboundEmail->getNoteBeanForAttachment('1');
 
         $this->assertInstanceOf('Note', $result);
         $this->assertAttributeEquals('1', 'parent_id', $result);
         $this->assertAttributeEquals('Emails', 'parent_type', $result);
-        
-        // clean up
-        
-        $this->restoreStateAll($state);
     }
 
     public function testretrieveAttachmentNameFromStructure()
     {
-        // save state
-        
-        $state = $this->storeStateAll();
-        
-        // test
-        
-        
-        $inboundEmail = new InboundEmail();
+        $inboundEmail = BeanFactory::newBean('InboundEmail');
 
         //test with filename attribute
         $part = (Object) array('dparameters' => array((Object) array('attribute' => 'filename', 'value' => 'test1.txt'), (Object) array('attribute' => 'filename', 'value' => 'test2.txt')),
@@ -3146,244 +2168,128 @@ class InboundEmailTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
 
         $result = $inboundEmail->retrieveAttachmentNameFromStructure($part);
         $this->assertEquals('test1', $result);
-        
-        // clean up
-        
-        $this->restoreStateAll($state);
     }
 
     public function testsaveAttachmentBinaries()
     {
-        // save state
-        
-        $state = $this->storeStateAll();
-        
-        // test
-        
-        
-
         //unset and reconnect Db to resolve mysqli fetch exeception
         $db = DBManagerFactory::getInstance();
         unset($db->database);
         $db->checkConnection();
 
-        $inboundEmail = new InboundEmail();
+        $inboundEmail = BeanFactory::newBean('InboundEmail');
 
         $part = (Object) array('disposition' => 'multipart', 'subtype' => 10);
 
-        //execute the method and test if it works and does not throws an exception.
+        // Execute the method and test that it works and doesn't throw an exception.
         try {
-            $inboundEmail->saveAttachmentBinaries(new Note(), '1', '1.1', $part, 1);
+            $inboundEmail->saveAttachmentBinaries(BeanFactory::newBean('Notes'), '1', '1.1', $part, 1);
             $this->assertTrue(true);
         } catch (Exception $e) {
             $this->fail("\nException: " . get_class($e) . ": " . $e->getMessage() . "\nin " . $e->getFile() . ':' . $e->getLine() . "\nTrace:\n" . $e->getTraceAsString() . "\n");
         }
-        
-        // clean up
-        
-        $this->restoreStateAll($state);
     }
 
     public function testhandleTranserEncoding()
     {
-        // save state
-        
-        $state = $this->storeStateAll();
-        
-        // test
-        
-        
-        $inboundEmail = new InboundEmail();
+        $inboundEmail = BeanFactory::newBean('InboundEmail');
 
         $this->assertEquals('test', $inboundEmail->handleTranserEncoding('test'));
         $this->assertEquals('test', $inboundEmail->handleTranserEncoding('dGVzdA==', 3));
         $this->assertEquals('test', $inboundEmail->handleTranserEncoding('test', 4));
-        
-        // clean up
-        
-        $this->restoreStateAll($state);
     }
 
     public function testgetMessageId()
     {
-        // save state
-        
-        $state = $this->storeStateAll();
-        
-        // test
-        
-        
-        $inboundEmail = new InboundEmail();
+        $inboundEmail = BeanFactory::newBean('InboundEmail');
 
         $header = "From: Media Temple user (mt.kb.user@gmail.com)\r\nSubject: article: How to Trace a Email\r\nDate: January 25, 2011 3:30:58 PM PDT\r\nTo: user@example.com\r\nReturn-Path: <mt.kb.user@gmail.com>\r\nEnvelope-To: user@example.com\r\nDelivery-Date: Tue, 25 Jan 2011 15:31:01 -0700";
 
         $result = $inboundEmail->getMessageId($header);
 
         $this->assertEquals('21c65f7db176f0bd93768214b00ae397', $result);
-        
-        // clean up
-        
-        $this->restoreStateAll($state);
     }
 
     public function testimportDupeCheck()
     {
-        // save state
-        
-        $state = $this->storeStateAll();
-        
-        // test
-        
-        
-        $inboundEmail = new InboundEmail();
+        $inboundEmail = BeanFactory::newBean('InboundEmail');
 
         $textHeader = "From: Media Temple user (mt.kb.user@gmail.com)\r\nSubject: article: How to Trace a Email\r\nDate: January 25, 2011 3:30:58 PM PDT\r\nTo: user@example.com\r\nReturn-Path: <mt.kb.user@gmail.com>\r\nEnvelope-To: user@example.com\r\nDelivery-Date: Tue, 25 Jan 2011 15:31:01 -0700";
 
         $result = $inboundEmail->importDupeCheck('1', $textHeader, $textHeader);
         $this->assertEquals(true, $result);
-        
-        // clean up
-        
-        $this->restoreStateAll($state);
     }
 
     public function testhandleMimeHeaderDecode()
     {
-        // save state
-        
-        $state = $this->storeStateAll();
-        
-        // test
-        
-        
-        $inboundEmail = new InboundEmail();
+        $inboundEmail = BeanFactory::newBean('InboundEmail');
 
         $result = $inboundEmail->handleMimeHeaderDecode('Subject: article: How to Trace a Email');
 
         $this->assertEquals('Subject: article: How to Trace a Email', $result);
-        
-        // clean up
-        
-        $this->restoreStateAll($state);
     }
 
     public function testgetUnixHeaderDate()
     {
-        // save state
-        
-        $state = $this->storeStateAll();
-        
-        // test
-        
-        
-        $inboundEmail = new InboundEmail();
+        $inboundEmail = BeanFactory::newBean('InboundEmail');
 
         $result = $inboundEmail->handleMimeHeaderDecode('Date: January 25, 2011 3:30:58 PM PDT');
 
         $this->assertEquals('Date: January 25, 2011 3:30:58 PM PDT', $result);
-        
-        // clean up
-        
-        $this->restoreStateAll($state);
     }
 
     public function testgetDuplicateEmailId()
     {
-        // save state
-        
-        $state = $this->storeStateAll();
-        
-        // test
-        
-        
-
         //unset and reconnect Db to resolve mysqli fetch exeception
         $db = DBManagerFactory::getInstance();
         unset($db->database);
         $db->checkConnection();
 
-        $inboundEmail = new InboundEmail();
+        $inboundEmail = BeanFactory::newBean('InboundEmail');
 
-        //execute the method and test if it works and does not throws an exception.
+        // Execute the method and test that it works and doesn't throw an exception.
         try {
             $result = $inboundEmail->getDuplicateEmailId('1', '1');
             $this->assertTrue(true);
         } catch (Exception $e) {
             $this->fail("\nException: " . get_class($e) . ": " . $e->getMessage() . "\nin " . $e->getFile() . ':' . $e->getLine() . "\nTrace:\n" . $e->getTraceAsString() . "\n");
         }
-        
-        // clean up
-        
-        $this->restoreStateAll($state);
     }
 
     public function testimportOneEmail()
     {
-        // save state
-        
-        $state = $this->storeStateAll();
-        
-        // test
-        
-        
-        $inboundEmail = new InboundEmail();
+        $inboundEmail = BeanFactory::newBean('InboundEmail');
 
         $inboundEmail->mailbox = 'INBOX';
         $inboundEmail->id = 1;
 
-        //execute the method and test if it works and does not throws an exception.
+        // Execute the method and test that it works and doesn't throw an exception.
         try {
             $result = $inboundEmail->importOneEmail('1', '1');
             $this->assertEquals(false, $result);
         } catch (Exception $e) {
             $this->fail("\nException: " . get_class($e) . ": " . $e->getMessage() . "\nin " . $e->getFile() . ':' . $e->getLine() . "\nTrace:\n" . $e->getTraceAsString() . "\n");
         }
-        
-        // clean up
-        
-        $this->restoreStateAll($state);
     }
 
     public function testisUuencode()
     {
-        // save state
-        
-        $state = $this->storeStateAll();
-        
-        // test
-        
-        
-        $inboundEmail = new InboundEmail();
+        $inboundEmail = BeanFactory::newBean('InboundEmail');
 
         $this->assertEquals(false, $inboundEmail->isUuencode('test'));
 
         $this->assertEquals(false, $inboundEmail->isUuencode("begin 0744 odt_uuencoding_file.dat\r+=&5S=\"!S=')I;F<`\r`\rend"));
-        
-        // clean up
-        
-        $this->restoreStateAll($state);
     }
 
     public function testhandleUUEncodedEmailBody()
     {
-        // save state
-        
-        $state = $this->storeStateAll();
-        
-        // test
-        
-        
-        $inboundEmail = new InboundEmail();
+        $inboundEmail = BeanFactory::newBean('InboundEmail');
 
         $raw = 'Message Body: This is a KnowledgeBase article that provides information on how to find email headers and use the data to trace a email.';
 
         $result = $inboundEmail->handleUUEncodedEmailBody($raw, 1);
 
         $this->assertEquals("\n".$raw, $result);
-        
-        // clean up
-        
-        $this->restoreStateAll($state);
     }
 
     public function testhandleUUDecode()
@@ -3396,7 +2302,7 @@ class InboundEmailTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
 //        $db->checkConnection();
 //
 //
-//        $inboundEmail = new InboundEmail();
+//        $inboundEmail = BeanFactory::newBean('InboundEmail');
 //
 //        $raw = "\nMessage Body: This is a KnowledgeBase article that provides information on how to find email headers and use the data to trace a email.";
 //
@@ -3407,73 +2313,42 @@ class InboundEmailTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
 
     public function testcheckFilterDomain()
     {
-        // save state
-        
-        $state = $this->storeStateAll();
-        
-        // test
-        
-        
         //unset and reconnect Db to resolve mysqli fetch exeception
         $db = DBManagerFactory::getInstance();
         unset($db->database);
         $db->checkConnection();
 
-        $inboundEmail = new InboundEmail();
+        $inboundEmail = BeanFactory::newBean('InboundEmail');
 
-        $email = new Email();
+        $email = BeanFactory::newBean('Emails');
         $email->reply_to_email = 'reply@gmail.com';
         $email->from_addr = 'from@gmail.com';
 
         $result = $inboundEmail->checkFilterDomain($email);
         $this->assertEquals(true, $result);
-        
-        // clean up
-        
-        $this->restoreStateAll($state);
     }
 
     public function testcheckOutOfOffice()
     {
-        // save state
-        
-        $state = $this->storeStateAll();
-        
-        // test
-        
-        
-
         //unset and reconnect Db to resolve mysqli fetch exeception
         $db = DBManagerFactory::getInstance();
         unset($db->database);
         $db->checkConnection();
 
-        $inboundEmail = new InboundEmail();
+        $inboundEmail = BeanFactory::newBean('InboundEmail');
 
         $this->assertEquals(false, $inboundEmail->checkOutOfOffice('currently Out of Office, will reply later'));
         $this->assertEquals(true, $inboundEmail->checkOutOfOffice('test subject'));
-        
-        // clean up
-        
-        $this->restoreStateAll($state);
     }
 
     public function testsetAndgetAutoreplyStatus()
     {
-        // save state
-        
-        $state = $this->storeStateAll();
-        
-        // test
-        
-        
-
         //unset and reconnect Db to resolve mysqli fetch exeception
         $db = DBManagerFactory::getInstance();
         unset($db->database);
         $db->checkConnection();
 
-        $inboundEmail = new InboundEmail();
+        $inboundEmail = BeanFactory::newBean('InboundEmail');
 
         $inboundEmail->id = 1;
 
@@ -3483,52 +2358,31 @@ class InboundEmailTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
         //test with and invalid email. it will return true as well because it's stil under max limit.
         $result = $inboundEmail->getAutoreplyStatus('invalid@email.com');
         $this->assertEquals(true, $result);
-        
-        // clean up
-        
-        $this->restoreStateAll($state);
     }
 
     public function testsaveInboundEmailSystemSettings()
     {
-        // save state
-        
-        $state = $this->storeStateAll();
-        
-        // test
-        
-        
         global $sugar_config, $db;
 
         //unset and reconnect Db to resolve mysqli fetch exeception
         unset($db->database);
         $db->checkConnection();
 
-        $inboundEmail = new InboundEmail();
+        $inboundEmail = BeanFactory::newBean('InboundEmail');
 
         //execute the method to save the setting
         $inboundEmail->saveInboundEmailSystemSettings('test', 'test_macro');
 
         //verify the key created
         $this->assertEquals('test_macro', $sugar_config['inbound_email_test_subject_macro']);
-        
-        // clean up
-        
-        $this->restoreStateAll($state);
     }
 
     public function testgetSystemSettingsForm()
     {
 //        $this->markTestIncomplete("It should be an acceptance test");
 //
-//        // save state
 //
-//        $state = $this->storeStateAll();
-//
-//        // test
-//
-//
-//        $inboundEmail = new InboundEmail();
+//        $inboundEmail = BeanFactory::newBean('InboundEmail');
 //
 //        $expected = "<form action=\"index.php\" method=\"post\" name=\"Macro\" id=\"form\">
 //    <input type=\"hidden\" name=\"module\" value=\"InboundEmail\">
@@ -3571,56 +2425,30 @@ class InboundEmailTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
 //        $result = $inboundEmail->getSystemSettingsForm();
 //
 //        $this->assertSame($expected, $result);
-//
-//        // clean up
-//
-//        $this->restoreStateAll($state);
     }
 
     public function testgetCaseIdFromCaseNumber()
     {
-        // save state
-        
-        $state = $this->storeStateAll();
-        
-        // test
-        
-        
-        $inboundEmail = new InboundEmail();
+        $inboundEmail = BeanFactory::newBean('InboundEmail');
 
-        $result = $inboundEmail->getCaseIdFromCaseNumber('test', new aCase());
+        $result = $inboundEmail->getCaseIdFromCaseNumber('test', BeanFactory::newBean('Cases'));
         $this->assertEquals(false, $result);
-        
-        // clean up
-        
-        $this->restoreStateAll($state);
     }
 
     public function testget_stored_options()
     {
-        // save state
-        
-        $state = $this->storeStateAll();
-        
-        // test
-        
-        
-        $inboundEmail = new InboundEmail();
+        $inboundEmail = BeanFactory::newBean('InboundEmail');
 
         $result = $inboundEmail->get_stored_options('test', '');
         $this->assertEquals('', $result);
 
         $result = $inboundEmail->get_stored_options('test', 'default_option');
         $this->assertEquals('default_option', $result);
-        
-        // clean up
-        
-        $this->restoreStateAll($state);
     }
-    
+
     public function testSetStoredOptions()
     {
-        $ie = new InboundEmail();
+        $ie = BeanFactory::newBean('InboundEmail');
         $so = $ie->getStoredOptions();
         $so['something'] = 'testinfo';
         $ie->setStoredOptions($so);
@@ -3637,7 +2465,7 @@ class InboundEmailTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
 ////        unset($db->database);
 ////        $db->checkConnection();
 ////
-////        $inboundEmail = new InboundEmail();
+////        $inboundEmail = BeanFactory::newBean('InboundEmail');
 ////
 ////        //test with Users module
 ////        $inboundEmail->getRelatedId('getRelatedId@email.com', 'Users');
@@ -3650,79 +2478,38 @@ class InboundEmailTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
 
     public function testgetNewMessageIds()
     {
-        // save state
-        
-        $state = $this->storeStateAll();
-        
-        // test
-        
-        
-        $inboundEmail = new InboundEmail();
+        $inboundEmail = BeanFactory::newBean('InboundEmail');
 
         $result = $inboundEmail->getNewMessageIds();
 
         $this->assertEquals(null, $result);
-        
-        // clean up
-        
-        $this->restoreStateAll($state);
     }
 
     public function testgetConnectString()
     {
-        // save state
-        
-        $state = $this->storeStateAll();
-        
-        // test
-        
-        
-        $inboundEmail = new InboundEmail();
+        $inboundEmail = BeanFactory::newBean('InboundEmail');
 
         $this->assertEquals('{:/service=}', $inboundEmail->getConnectString()); //test with default options
         $this->assertEquals('{:/service=mail.google.com}INBOX', $inboundEmail->getConnectString('mail.google.com', 'INBOX'));//test with includeMbox true
         $this->assertEquals('{:/service=mail.google.com}', $inboundEmail->getConnectString('mail.google.com', 'INBOX', false));//test with includeMbox false
-        
-        
-        // clean up
-        
-        $this->restoreStateAll($state);
     }
 
     public function testdisconnectMailserver()
     {
-        // save state
-        
-        $state = $this->storeStateAll();
-        
-        // test
-        
-        
-        $inboundEmail = new InboundEmail();
+        $inboundEmail = BeanFactory::newBean('InboundEmail');
 
-        //execute the method and test if it works and does not throws an exception.
+        // Execute the method and test that it works and doesn't throw an exception.
         try {
             $inboundEmail->disconnectMailserver();
             $this->assertTrue(true);
         } catch (Exception $e) {
             $this->fail("\nException: " . get_class($e) . ": " . $e->getMessage() . "\nin " . $e->getFile() . ':' . $e->getLine() . "\nTrace:\n" . $e->getTraceAsString() . "\n");
         }
-        
-        // clean up
-        
-        $this->restoreStateAll($state);
     }
 
     public function testconnectMailserver()
     {
-        // save state
-        
-        $state = $this->storeStateAll();
-        
-        // test
-        
-        
-        $inboundEmail = new InboundEmail();
+        $inboundEmail = BeanFactory::newBean('InboundEmail');
 
         //test with default parameters
         $result = $inboundEmail->connectMailserver();
@@ -3730,47 +2517,25 @@ class InboundEmailTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
 
         //test with test and force true
         $result = $inboundEmail->connectMailserver(true, true);
-        $this->assertEquals("Can't open mailbox {:/service=}: invalid remote specification<p><p><p>", $result);
-        
-        // clean up
-        
-        $this->restoreStateAll($state);
+        $this->assertEquals("Can't open mailbox {:/service=}: invalid remote specification<p><p><p>Please check your settings and try again.", $result);
     }
 
     public function testcheckImap()
     {
-        // save state
-        
-        $state = $this->storeStateAll();
-        
-        // test
-        
-        
-        $inboundEmail = new InboundEmail();
+        $inboundEmail = BeanFactory::newBean('InboundEmail');
 
-        //execute the method and test if it works and does not throws an exception.
+        // Execute the method and test that it works and doesn't throw an exception.
         try {
             $inboundEmail->checkImap();
             $this->assertTrue(true);
         } catch (Exception $e) {
             $this->fail("\nException: " . get_class($e) . ": " . $e->getMessage() . "\nin " . $e->getFile() . ':' . $e->getLine() . "\nTrace:\n" . $e->getTraceAsString() . "\n");
         }
-        
-        // clean up
-        
-        $this->restoreStateAll($state);
     }
 
     public function testget_summary_text()
     {
-        // save state
-        
-        $state = $this->storeStateAll();
-        
-        // test
-        
-        
-        $inboundEmail = new InboundEmail();
+        $inboundEmail = BeanFactory::newBean('InboundEmail');
 
         //test without setting name
         $this->assertEquals(null, $inboundEmail->get_summary_text());
@@ -3778,22 +2543,11 @@ class InboundEmailTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
         //test with name set
         $inboundEmail->name = 'test';
         $this->assertEquals('test', $inboundEmail->get_summary_text());
-        
-        // clean up
-        
-        $this->restoreStateAll($state);
     }
 
     public function testcreate_export_query()
     {
-        // save state
-        
-        $state = $this->storeStateAll();
-        
-        // test
-        
-        
-        $inboundEmail = new InboundEmail();
+        $inboundEmail = BeanFactory::newBean('InboundEmail');
 
         //test with empty string params
         $expected = " SELECT  inbound_email.*  , jt0.user_name created_by_name , jt0.created_by created_by_name_owner  , 'Users' created_by_name_mod FROM inbound_email   LEFT JOIN  users jt0 ON jt0.id=inbound_email.created_by AND jt0.deleted=0\n AND jt0.deleted=0 where inbound_email.deleted=0";
@@ -3804,22 +2558,11 @@ class InboundEmailTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
         $expected = " SELECT  inbound_email.*  , jt0.user_name created_by_name , jt0.created_by created_by_name_owner  , 'Users' created_by_name_mod FROM inbound_email   LEFT JOIN  users jt0 ON jt0.id=inbound_email.created_by AND jt0.deleted=0\n AND jt0.deleted=0 where (jt0.user_name=\"\") AND inbound_email.deleted=0 ORDER BY inbound_email.id";
         $actual = $inboundEmail->create_export_query('id', 'jt0.user_name=""');
         $this->assertSame($expected, $actual);
-        
-        // clean up
-        
-        $this->restoreStateAll($state);
     }
 
     public function testget_list_view_data()
     {
-        // save state
-        
-        $state = $this->storeStateAll();
-        
-        // test
-        
-        
-        $inboundEmail = new InboundEmail();
+        $inboundEmail = BeanFactory::newBean('InboundEmail');
 
         $inboundEmail->mailbox_type = 'INBOX';
         $inboundEmail->status = 'Active';
@@ -3828,34 +2571,23 @@ class InboundEmailTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
 
         $expected = array(
                         'DELETED' => '0',
-                        'STATUS' => null,
+                        'STATUS' => 'Active',
                         'DELETE_SEEN' => '0',
                         'MAILBOX_TYPE' => 'INBOX',
                         'IS_PERSONAL' => '0',
                         'MAILBOX_TYPE_NAME' => null,
-                        'GLOBAL_PERSONAL_STRING' => null,
+                        'GLOBAL_PERSONAL_STRING' => 'group',
                     );
 
         $this->assertTrue(is_array($result));
         $this->assertEquals($expected, $result);
 
         $result = $inboundEmail->get_list_view_data();
-        
-        // clean up
-        
-        $this->restoreStateAll($state);
     }
 
     public function testfill_in_additional_list_fields()
     {
-        // save state
-        
-        $state = $this->storeStateAll();
-        
-        // test
-        
-        
-        $inboundEmail = new InboundEmail();
+        $inboundEmail = BeanFactory::newBean('InboundEmail');
 
         $inboundEmail->service = 'tls::ca::ssl::protocol';
 
@@ -3865,22 +2597,11 @@ class InboundEmailTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
         $this->assertEquals($inboundEmail->ca, 'ca');
         $this->assertEquals($inboundEmail->ssl, 'ssl');
         $this->assertEquals($inboundEmail->protocol, 'protocol');
-        
-        // clean up
-        
-        $this->restoreStateAll($state);
     }
 
     public function testfill_in_additional_detail_fields()
     {
-        // save state
-        
-        $state = $this->storeStateAll();
-        
-        // test
-        
-        
-        $inboundEmail = new InboundEmail();
+        $inboundEmail = BeanFactory::newBean('InboundEmail');
 
         $inboundEmail->service = 'tls::ca::ssl::protocol';
 
@@ -3890,24 +2611,13 @@ class InboundEmailTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
         $this->assertEquals($inboundEmail->ca, 'ca');
         $this->assertEquals($inboundEmail->ssl, 'ssl');
         $this->assertEquals($inboundEmail->protocol, 'protocol');
-        
-        // clean up
-        
-        $this->restoreStateAll($state);
     }
 
     public function testisAutoImport()
     {
-        // save state
-        
-        $state = $this->storeStateAll();
-        
-        // test
-        
-        
-        $inboundEmail = new InboundEmail();
+        $inboundEmail = BeanFactory::newBean('InboundEmail');
 
-        $user = new User();
+        $user = BeanFactory::newBean('Users');
 
         //test with invalid user
         $result = $inboundEmail->isAutoImport($user);
@@ -3917,74 +2627,45 @@ class InboundEmailTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
         $user->retrieve('1');
         $result = $inboundEmail->isAutoImport($user);
         $this->assertEquals(false, $result);
-        
-        // clean up
-        
-        $this->restoreStateAll($state);
     }
 
     public function testcleanOutCache()
     {
-        // save state
-        
-        $state = $this->storeStateAll();
-        
-        // test
-        
-        
-        $inboundEmail = new InboundEmail();
+        $inboundEmail = BeanFactory::newBean('InboundEmail');
 
-        //execute the method and test if it works and does not throws an exception.
+        // Execute the method and test that it works and doesn't throw an exception.
         try {
             $inboundEmail->cleanOutCache();
             $this->assertTrue(true);
         } catch (Exception $e) {
             $this->fail("\nException: " . get_class($e) . ": " . $e->getMessage() . "\nin " . $e->getFile() . ':' . $e->getLine() . "\nTrace:\n" . $e->getTraceAsString() . "\n");
         }
-        
-        // clean up
-        
-        $this->restoreStateAll($state);
     }
 
     public function testcopyEmails()
     {
 //        $this->markTestIncomplete('Propably an error level changed in the code?');
-//        // save state
-//
-//        $state = $this->storeStateAll();
-//
-//        // test
 //
 //
-//        $inboundEmail = new InboundEmail();
+//        $inboundEmail = BeanFactory::newBean('InboundEmail');
 //
 //        $inboundEmail->id = 1;
 //
-//        //execute the method and test if it works and does not throws an exception.
+//        // Execute the method and test that it works and doesn't throw an exception.
 //        try {
 //            $result = $inboundEmail->copyEmails(1, 'INBOX', 1, 'TRASH', array(1));
 //            $this->assertTrue(true);
 //        } catch (Exception $e) {
 //            $this->fail("\nException: " . get_class($e) . ": " . $e->getMessage() . "\nin " . $e->getFile() . ':' . $e->getLine() . "\nTrace:\n" . $e->getTraceAsString() . "\n");
 //        }
-//
-//        // clean up
-//
-//        $this->restoreStateAll($state);
     }
 
     public function testmoveEmails()
     {
 //        $this->markTestIncomplete('Propably an error level changed in the code?');
-//        // save state
-//
-//        $state = $this->storeStateAll();
-//
-//        // test
 //
 //
-//        $inboundEmail = new InboundEmail();
+//        $inboundEmail = BeanFactory::newBean('InboundEmail');
 //
 //        $inboundEmail->id = 1;
 //
@@ -3993,23 +2674,12 @@ class InboundEmailTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
 //
 //        $result = $inboundEmail->moveEmails(1, 'INBOX', 2, 'TRASH', array(1));
 //        $this->assertEquals(false, $result);
-//
-//        // clean up
-//
-//        $this->restoreStateAll($state);
     }
 
     public function testgetTempFilename()
     {
 //        $this->markTestIncomplete('Propably an error level changed in the code?');
-//        // save state
-//
-//        $state = $this->storeStateAll();
-//
-//        // test
-//
-//
-//        $inboundEmail = new InboundEmail();
+//        $inboundEmail = BeanFactory::newBean('InboundEmail');
 //
 //        $inboundEmail->compoundMessageId = 'cmid';
 //
@@ -4020,68 +2690,35 @@ class InboundEmailTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
 //        //test with true
 //        $result = $inboundEmail->getTempFilename(true);
 //        $this->assertEquals('cmid', $result);
-//
-//        // clean up
-//
-//        $this->restoreStateAll($state);
     }
 
     public function testdeleteMessageOnMailServer()
     {
 //        $this->markTestIncomplete('Deprecated way to check imap');
 //
-//        // save state
-//
-//        $state = $this->storeStateAll();
-//
-//        // test
-//
-//
-//        $inboundEmail = new InboundEmail();
+//        $inboundEmail = BeanFactory::newBean('InboundEmail');
 //
 //        $result = $inboundEmail->deleteMessageOnMailServer('1');
 //
 //        $this->assertEquals(false, $result);
-//
-//        // clean up
-//
-//        $this->restoreStateAll($state);
     }
 
     public function testdeleteMessageOnMailServerForPop3()
     {
-        // save state
-        
-        $state = $this->storeStateAll();
-        
-        // test
-        
-        
-        $inboundEmail = new InboundEmail();
+        $inboundEmail = BeanFactory::newBean('InboundEmail');
 
-        //execute the method and test if it works and does not throws an exception.
+        // Execute the method and test that it works and doesn't throw an exception.
         try {
             $inboundEmail->deleteMessageOnMailServerForPop3('1');
             $this->assertTrue(true);
         } catch (Exception $e) {
             $this->fail("\nException: " . get_class($e) . ": " . $e->getMessage() . "\nin " . $e->getFile() . ':' . $e->getLine() . "\nTrace:\n" . $e->getTraceAsString() . "\n");
         }
-        
-        // clean up
-        
-        $this->restoreStateAll($state);
     }
 
     public function testisPop3Protocol()
     {
-        // save state
-        
-        $state = $this->storeStateAll();
-        
-        // test
-        
-        
-        $inboundEmail = new InboundEmail();
+        $inboundEmail = BeanFactory::newBean('InboundEmail');
 
         //test without setting protocol
         $this->assertEquals(false, $inboundEmail->isPop3Protocol());
@@ -4089,24 +2726,13 @@ class InboundEmailTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
         //test with pop3 protocol
         $inboundEmail->protocol = 'pop3';
         $this->assertEquals(true, $inboundEmail->isPop3Protocol());
-        
-        // clean up
-        
-        $this->restoreStateAll($state);
     }
 
     public function testSetAndGetUsersDefaultOutboundServerId()
     {
-        // save state
-        
-        $state = $this->storeStateAll();
-        
-        // test
-        
-        
-        $inboundEmail = new InboundEmail();
+        $inboundEmail = BeanFactory::newBean('InboundEmail');
 
-        $user = new User();
+        $user = BeanFactory::newBean('Users');
         $user->retrieve(1);
 
         //set a Outbound Server Id
@@ -4117,24 +2743,13 @@ class InboundEmailTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
         $isValidator = new SuiteCRM\Utility\SuiteValidator();
 
         $this->assertTrue($isValidator->isValidId($result));
-        
-        // clean up
-        
-        $this->restoreStateAll($state);
     }
 
     public function testsetEmailForDisplay()
     {
 //        $this->markTestIncomplete('Deprecated pop3 test');
 //
-//        // save state
-//
-//        $state = $this->storeStateAll();
-//
-//        // test
-//
-//
-//        $inboundEmail = new InboundEmail();
+//        $inboundEmail = BeanFactory::newBean('InboundEmail');
 //
 //        $result = $inboundEmail->setEmailForDisplay('');
 //        $this->assertEquals('NOOP', $result);
@@ -4147,26 +2762,15 @@ class InboundEmailTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
 //        //test with pop3 protocol and all parameters true
 //        $result = $inboundEmail->setEmailForDisplay('1', true, true, true);
 //        $this->assertEquals('error', $result);
-//
-//        // clean up
-//
-//        $this->restoreStateAll($state);
     }
 
     public function testdisplayOneEmail()
     {
-        // save state
-        
-        $state = $this->storeStateAll();
-        
-        // test
-        
-        
-        $inboundEmail = new InboundEmail();
+        $inboundEmail = BeanFactory::newBean('InboundEmail');
 
         $inboundEmail->id = 1;
         $inboundEmail->mailbox = 'INBOX';
-        $inboundEmail->email = new Email();
+        $inboundEmail->email = BeanFactory::newBean('Emails');
 
         $inboundEmail->email->name = 'test';
         $inboundEmail->email->from_addr_name = 'from';
@@ -4180,22 +2784,11 @@ class InboundEmailTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
         $result = $inboundEmail->displayOneEmail(1, 'INBOX');
 
         $this->assertEquals($expected, $result);
-        
-        // clean up
-        
-        $this->restoreStateAll($state);
     }
 
     public function testcollapseLongMailingList()
     {
-        // save state
-        
-        $state = $this->storeStateAll();
-        
-        // test
-        
-        
-        $inboundEmail = new InboundEmail();
+        $inboundEmail = BeanFactory::newBean('InboundEmail');
 
         $emails = 'one@email.com,two@email.com,three@email.com,four@email.com,five@email.com,six@email.com';
 
@@ -4204,22 +2797,11 @@ class InboundEmailTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
         $actual = $inboundEmail->collapseLongMailingList($emails);
 
         $this->assertEquals($expected, $actual);
-        
-        // clean up
-        
-        $this->restoreStateAll($state);
     }
 
     public function testsortFetchedOverview()
     {
-        // save state
-        
-        $state = $this->storeStateAll();
-        
-        // test
-        
-        
-        $inboundEmail = new InboundEmail();
+        $inboundEmail = BeanFactory::newBean('InboundEmail');
 
         $inboundEmail->id = 1;
         $inboundEmail->mailbox = 'INBOX';
@@ -4249,22 +2831,11 @@ class InboundEmailTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
         //execute the method to sort the objects array ascending and verify the order
         $result = $inboundEmail->sortFetchedOverview($arr, 3, 'ASC');
         $this->assertEquals('subject 1', $result['retArr'][0]->subject);
-        
-        // clean up
-        
-        $this->restoreStateAll($state);
     }
 
     public function testdisplayFolderContents()
     {
-        // save state
-        
-        $state = $this->storeStateAll();
-        
-        // test
-        
-        
-        $inboundEmail = new InboundEmail();
+        $inboundEmail = BeanFactory::newBean('InboundEmail');
 
         $expected = array('mbox' => 'INBOX', 'ieId' => 1, 'name' => 'test', 'fromCache' => 0, 'out' => array());
         $inboundEmail->id = 1;
@@ -4273,10 +2844,6 @@ class InboundEmailTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
         $result = $inboundEmail->displayFolderContents('INBOX', 'false', 1);
 
         $this->assertEquals($expected, $result);
-        
-        // clean up
-        
-        $this->restoreStateAll($state);
     }
 
     public function testcreateUserSubscriptionsForGroupAccount()
@@ -4290,7 +2857,7 @@ class InboundEmailTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
 ////        unset($db->database);
 ////        $db->checkConnection();
 ////
-////        $inboundEmail = new InboundEmail();
+////        $inboundEmail = BeanFactory::newBean('InboundEmail');
 ////
 ////        //$inboundEmail->createUserSubscriptionsForGroupAccount();
 ////
@@ -4299,19 +2866,12 @@ class InboundEmailTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
 
     public function testcreateAutoImportSugarFolder()
     {
-        // save state
-        
-        $state = $this->storeStateAll();
-        
-        // test
-        
-        
         //unset and reconnect Db to resolve mysqli fetch exeception
         $db = DBManagerFactory::getInstance();
         unset($db->database);
         $db->checkConnection();
 
-        $inboundEmail = new InboundEmail();
+        $inboundEmail = BeanFactory::newBean('InboundEmail');
 
         $inboundEmail->name = 'test';
 
@@ -4320,22 +2880,11 @@ class InboundEmailTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
         //test for record ID to verify that record is saved
         $this->assertTrue(isset($result));
         $this->assertEquals(36, strlen($result));
-        
-        // clean up
-        
-        $this->restoreStateAll($state);
     }
 
     public function testgetMailboxes()
     {
-        // save state
-        
-        $state = $this->storeStateAll();
-        
-        // test
-        
-        
-        $inboundEmail = new InboundEmail();
+        $inboundEmail = BeanFactory::newBean('InboundEmail');
 
         $inboundEmail->mailboxarray = array('INBOX.TRASH', 'OUTBOX.TRASH');
         $expected = array('INBOX' => array('TRASH' => 'TRASH'), 'OUTBOX' => array('TRASH' => 'TRASH'));
@@ -4347,22 +2896,11 @@ class InboundEmailTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
         //test with justRaw true
         $result = $inboundEmail->getMailboxes(true);
         $this->assertEquals($inboundEmail->mailboxarray, $result);
-        
-        // clean up
-        
-        $this->restoreStateAll($state);
     }
 
     public function testgetMailBoxesForGroupAccount()
     {
-        // save state
-        
-        $state = $this->storeStateAll();
-        
-        // test
-        
-        
-        $inboundEmail = new InboundEmail();
+        $inboundEmail = BeanFactory::newBean('InboundEmail');
 
         $inboundEmail->mailbox = 1;
         $inboundEmail->mailbox = 'INBOX.TRASH,OUTBOX.TRASH';
@@ -4371,90 +2909,46 @@ class InboundEmailTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
         $result = $inboundEmail->getMailBoxesForGroupAccount();
 
         $this->assertEquals($expected, $result);
-        
-        // clean up
-        
-        $this->restoreStateAll($state);
     }
 
     public function testretrieveMailBoxFolders()
     {
-        // save state
-        
-        $state = $this->storeStateAll();
-        
-        // test
-        
-        
-        $inboundEmail = new InboundEmail();
+        $inboundEmail = BeanFactory::newBean('InboundEmail');
 
         $inboundEmail->mailbox = 'INBOX,OUTBOX,TRASH';
 
         $inboundEmail->retrieveMailBoxFolders();
 
         $this->assertEquals(array('INBOX', 'OUTBOX', 'TRASH'), $inboundEmail->mailboxarray);
-        
-        // clean up
-        
-        $this->restoreStateAll($state);
     }
 
     public function testinsertMailBoxFolders()
     {
-        // save state
-        
-        $state = $this->storeStateAll();
-        
-        // test
-        
-        
-        $inboundEmail = new InboundEmail();
+        $inboundEmail = BeanFactory::newBean('InboundEmail');
 
         $inboundEmail->id = '101';
 
-        //execute the method and test if it works and does not throws an exception.
+        // Execute the method and test that it works and doesn't throw an exception.
         try {
             $inboundEmail->insertMailBoxFolders(array('INBOX', 'OUTBOX'));
             $this->assertTrue(true);
         } catch (Exception $e) {
             $this->fail("\nException: " . get_class($e) . ": " . $e->getMessage() . "\nin " . $e->getFile() . ':' . $e->getLine() . "\nTrace:\n" . $e->getTraceAsString() . "\n");
         }
-        
-        // clean up
-        
-        $this->restoreStateAll($state);
     }
 
     public function testretrieveDelimiter()
     {
-        // save state
-        
-        $state = $this->storeStateAll();
-        
-        // test
-        
-        
-        $inboundEmail = new InboundEmail();
+        $inboundEmail = BeanFactory::newBean('InboundEmail');
 
         $result = $inboundEmail->retrieveDelimiter();
 
         $this->assertEquals('.', $result);
-        
-        // clean up
-        
-        $this->restoreStateAll($state);
     }
 
     public function testgenerateFlatArrayFromMultiDimArray()
     {
-        // save state
-        
-        $state = $this->storeStateAll();
-        
-        // test
-        
-        
-        $inboundEmail = new InboundEmail();
+        $inboundEmail = BeanFactory::newBean('InboundEmail');
 
         $arraymbox = array('INBOX' => array('TRASH' => 'TRASH'), 'OUTBOX' => array('TRASH' => 'TRASH'));
 
@@ -4463,44 +2957,22 @@ class InboundEmailTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
         $result = $inboundEmail->generateFlatArrayFromMultiDimArray($arraymbox, '.');
 
         $this->assertEquals($expected, $result);
-        
-        // clean up
-        
-        $this->restoreStateAll($state);
     }
 
     public function testgenerateMultiDimArrayFromFlatArray()
     {
-        // save state
-        
-        $state = $this->storeStateAll();
-        
-        // test
-        
-        
-        $inboundEmail = new InboundEmail();
+        $inboundEmail = BeanFactory::newBean('InboundEmail');
 
         $expected = array('INBOX' => array('TRASH' => 'TRASH'), 'OUTBOX' => array('TRASH' => 'TRASH'));
 
         $result = $inboundEmail->generateMultiDimArrayFromFlatArray(array('INBOX.TRASH', 'OUTBOX.TRASH'), '.');
 
         $this->assertEquals($expected, $result);
-        
-        // clean up
-        
-        $this->restoreStateAll($state);
     }
 
     public function testgenerateArrayData()
     {
-        // save state
-        
-        $state = $this->storeStateAll();
-        
-        // test
-        
-        
-        $inboundEmail = new InboundEmail();
+        $inboundEmail = BeanFactory::newBean('InboundEmail');
 
         $result = array();
         $arraymbox = array('INBOX' => array('TRASH' => 'TRASH'));
@@ -4509,93 +2981,48 @@ class InboundEmailTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
         $inboundEmail->generateArrayData('MAIN', $arraymbox, $result, '.');
 
         $this->assertEquals($expected, $result);
-        
-        // clean up
-        
-        $this->restoreStateAll($state);
     }
 
     public function testsortMailboxes()
     {
-        // save state
-        
-        $state = $this->storeStateAll();
-        
-        // test
-        
-        
-        $inboundEmail = new InboundEmail();
+        $inboundEmail = BeanFactory::newBean('InboundEmail');
 
         $result = $inboundEmail->sortMailboxes('INBOX.TRASH', array());
 
         $expected = array('INBOX' => array('TRASH' => 'TRASH'));
 
         $this->assertEquals($expected, $result);
-        
-        // clean up
-        
-        $this->restoreStateAll($state);
     }
 
     public function testgetServiceString()
     {
-        // save state
-        
-        $state = $this->storeStateAll();
-        
-        // test
-        
-        
-        $inboundEmail = new InboundEmail();
+        $inboundEmail = BeanFactory::newBean('InboundEmail');
 
         $inboundEmail->service = 'tls::ca::ssl::protocol';
 
         $result = $inboundEmail->getServiceString();
 
         $this->assertEquals('/tls/ca/ssl/protocol', $result);
-        
-        // clean up
-        
-        $this->restoreStateAll($state);
     }
 
     public function testgetNewEmailsForSyncedMailbox()
     {
-        // save state
-        
-        $state = $this->storeStateAll();
-        
-        // test
-        
-        
-        $inboundEmail = new InboundEmail();
+        $inboundEmail = BeanFactory::newBean('InboundEmail');
 
-        //execute the method and test if it works and does not throws an exception.
+        // Execute the method and test that it works and doesn't throw an exception.
         try {
             $inboundEmail->getNewEmailsForSyncedMailbox();
             $this->assertTrue(true);
         } catch (Exception $e) {
             $this->fail("\nException: " . get_class($e) . ": " . $e->getMessage() . "\nin " . $e->getFile() . ':' . $e->getLine() . "\nTrace:\n" . $e->getTraceAsString() . "\n");
         }
-        
-        
-        // clean up
-        
-        $this->restoreStateAll($state);
     }
 
     public function testimportMessages()
     {
-        // save state
-        
-        $state = $this->storeStateAll();
-        
-        // test
-        
-        
-        $inboundEmail = new InboundEmail();
+        $inboundEmail = BeanFactory::newBean('InboundEmail');
 
-        //execute the method and test if it works and does not throws an exception.
+        // Execute the method and test that it works and doesn't throw an exception.
         try {
             $inboundEmail->protocol = 'pop3';
             $inboundEmail->importMessages();
@@ -4604,10 +3031,6 @@ class InboundEmailTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
         } catch (Exception $e) {
             $this->fail("\nException: " . get_class($e) . ": " . $e->getMessage() . "\nin " . $e->getFile() . ':' . $e->getLine() . "\nTrace:\n" . $e->getTraceAsString() . "\n");
         }
-        
-        // clean up
-        
-        $this->restoreStateAll($state);
     }
 
     public function testOverview()
@@ -4615,7 +3038,7 @@ class InboundEmailTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
 //        $this->markTestIncomplete('Fatal error: Class \'Overview\' not found');
 ////
 ////
-////        //execute the contructor and check for the Object type and  attributes
+////        // Execute the constructor and check for the Object type and  attributes
 ////        $overview = new Overview();
 ////
 ////        $this->assertInstanceOf('Overview', $overview);

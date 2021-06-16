@@ -41,19 +41,14 @@ if (!defined('sugarEntry') || !sugarEntry) {
  * display the words "Powered by SugarCRM" and "Supercharged by SuiteCRM".
  */
 
-/*********************************************************************************
 
- * Description:
- * Portions created by SugarCRM are Copyright (C) SugarCRM, Inc. All Rights
- * Reserved. Contributor(s): ______________________________________..
- *********************************************************************************/
 
 global $mod_strings;
 global $current_user;
 
 $default = 'index.php?module=Emails&action=ListView&assigned_user_id='.$current_user->id;
 
-$e = new Email();
+$e = BeanFactory::newBean('Emails');
 
 // my inbox
 if (ACLController::checkAccess('Emails', 'edit', true)) {

@@ -1,6 +1,8 @@
 <?php
 
-class AOS_ContractsTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
+use SuiteCRM\Test\SuitePHPUnitFrameworkTestCase;
+
+class AOS_ContractsTest extends SuitePHPUnitFrameworkTestCase
 {
     protected function setUp()
     {
@@ -8,14 +10,13 @@ class AOS_ContractsTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
 
         global $current_user;
         get_sugar_config_defaults();
-        $current_user = new User();
+        $current_user = BeanFactory::newBean('Users');
     }
 
     public function testAOS_Contracts()
     {
-
-        //execute the contructor and check for the Object type and attributes
-        $aosContracts = new AOS_Contracts();
+        // Execute the constructor and check for the Object type and attributes
+        $aosContracts = BeanFactory::newBean('AOS_Contracts');
         $this->assertInstanceOf('AOS_Contracts', $aosContracts);
         $this->assertInstanceOf('Basic', $aosContracts);
         $this->assertInstanceOf('SugarBean', $aosContracts);
@@ -32,17 +33,7 @@ class AOS_ContractsTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
 
     public function testsaveAndDelete()
     {
-        $state = new SuiteCRM\StateSaver();
-        
-        $state->pushTable('aod_indexevent');
-        $state->pushTable('aos_contracts');
-        $state->pushTable('tracker');
-        $state->pushTable('aod_index');
-        $state->pushGlobals();
-        
-        
-
-        $aosContracts = new AOS_Contracts();
+        $aosContracts = BeanFactory::newBean('AOS_Contracts');
         $aosContracts->name = 'test';
 
         $aosContracts->save();
@@ -55,28 +46,13 @@ class AOS_ContractsTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
         $aosContracts->mark_deleted($aosContracts->id);
         $result = $aosContracts->retrieve($aosContracts->id);
         $this->assertEquals(null, $result);
-        
-        // clean up
-        
-        $state->popGlobals();
-        $state->popTable('aod_index');
-        $state->popTable('tracker');
-        $state->popTable('aos_contracts');
-        $state->popTable('aod_indexevent');
     }
 
     public function testCreateReminderAndCreateLinkAndDeleteCall()
     {
-        $state = new SuiteCRM\StateSaver();
-        $state->pushTable('aod_indexevent');
-        $state->pushTable('calls');
-        $state->pushTable('vcals');
-        $state->pushTable('tracker');
-        $state->pushGlobals();
-        
         $call = new call();
 
-        $aosContracts = new AOS_Contracts();
+        $aosContracts = BeanFactory::newBean('AOS_Contracts');
         $aosContracts->name = 'test';
 
         //test createReminder()
@@ -99,12 +75,5 @@ class AOS_ContractsTest extends SuiteCRM\StateCheckerPHPUnitTestCaseAbstract
         $aosContracts->deleteCall();
         $result = $call->retrieve($aosContracts->call_id);
         $this->assertEquals(null, $result);
-        
-        // clean up
-        $state->popGlobals();
-        $state->popTable('tracker');
-        $state->popTable('vcals');
-        $state->popTable('calls');
-        $state->popTable('aod_indexevent');
     }
 }

@@ -211,7 +211,7 @@ class SubPanelTiles
             // so we need to do a merge while attempting as best we can to preserve the sense of the specified order
             // this is complicated by the different ordering schemes used in the two sources for the panels: the user's layout uses an ordinal layout, the panels from getTabs have an explicit ordering driven by the 'order' parameter
             // it's not clear how to best reconcile these two schemes; so we punt on it, and add all new panels to the end of the user's layout. At least this will give them a clue that something has changed...
-            // we also now check for tabs that have been removed since the user saved his or her preferences.
+            // we also now check for tabs that have been removed since the user saved their preferences.
 
             $tabs = $this->getTabs($showContainer, $selected_group) ;
 
@@ -239,7 +239,7 @@ class SubPanelTiles
             if (!class_exists('Relationship')) {
                 require('modules/Relationships/Relationship.php');
             }
-            $rel= new Relationship();
+            $rel= BeanFactory::newBean('Relationships');
             $rel->load_relationship_meta();
         }
 
@@ -381,8 +381,11 @@ class SubPanelTiles
             array_push($tab_names, $tab);
         }
 
-        $tab_names = '["' . join($tab_names, '","') . '"]';
+        $tab_names = '["' . implode('","', $tab_names) . '"]';
 
+        if (!isset($module_sub_panels)) {
+            $module_sub_panels = [];
+        }
         $module_sub_panels = array_map('array_keys', $module_sub_panels);
         $module_sub_panels = json_encode($module_sub_panels);
 
@@ -414,6 +417,11 @@ class SubPanelTiles
         return $this->layout_manager;
     }
 
+    /**
+     * @param aSubPanel $thisPanel
+     * @param $panel_query
+     * @return string
+     */
     public function get_buttons($thisPanel, $panel_query=null)
     {
         $subpanel_def = $thisPanel->get_buttons();
@@ -443,11 +451,26 @@ class SubPanelTiles
         $widget_contents = smarty_function_sugar_action_menu(
             [
                 'buttons' => $buttons,
-                'flat' => !empty($thisPanel->_instance_properties['flat']),
                 'class' => 'clickMenu fancymenu',
             ],
             $this->xTemplate
         );
         return $widget_contents;
+    }
+
+    /**
+     * @param string $html_text
+     * @param aSubPanel $thisPanel
+     * @return string
+     */
+    public function getCheckbox($html_text, $thisPanel)
+    {
+        $template = new Sugar_Smarty();
+
+        if ($thisPanel->get_inst_prop_value('select_link_top')) {
+            $html_text .= $template->fetch('include/SubPanel/tpls/SubPanelCheckbox.tpl');
+        }
+
+        return $html_text;
     }
 }
